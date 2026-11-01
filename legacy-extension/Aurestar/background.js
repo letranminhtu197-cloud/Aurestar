@@ -724,36 +724,36 @@ async function loadItsukiLocalCatalog(){
   return itsukiCatalogPromise;
 }
 const ITSUKI_STUDY_LINES=[
-  "Từng việc một thôi nhé. Bước nhỏ cũng đưa cậu tiến lên.",
-  "Đừng đợi có động lực mới bắt đầu. Làm trước rồi sẽ vào guồng.",
-  "Quay lại mục tiêu nào. Mười phút tập trung hơn hẳn mười phút lướt mạng.",
-  "Không cần hoàn hảo đâu. Cứ cẩn thận làm bước tiếp theo là được.",
-  "Giữ nhịp học đều nhé. Mỗi ngày tiến một chút sẽ thành nhiều.",
-  "Cất điện thoại đi nào, dành sự chú ý cho điều quan trọng nhé.",
-  "Thấy khó thì chia nhỏ ra. Bắt đầu từ một bước dễ nhất thôi.",
-  "Tương lai được tạo nên từ những lựa chọn nhỏ hôm nay đấy.",
-  "Tiếp tục nhé. Mỗi phút tập trung là một khoản đầu tư cho chính cậu.",
-  "Buổi học hiệu quả bắt đầu bằng việc tắt những thứ gây xao nhãng.",
-  "Hít thở nào, chọn một việc rồi tập trung đúng khoảng thời gian đã định.",
-  "Đừng so sánh tiến độ với ai cả. Hoàn thành bước tiếp theo của mình nhé."
+  "Ê, tập trung nào! Cậu định để bài vở tự làm hộ mình à? ...Đùa thôi, bắt đầu từ một câu nhé.",
+  "Đừng có nhìn đồng hồ mãi. Làm xong một phần rồi nghỉ, nghe chưa?",
+  "Khó một chút thì đã sao? Chia nhỏ ra rồi xử lý từng bước. Cậu làm được mà!",
+  "Này, quay lại bàn học đi. Mình đã chọn việc cần làm rồi thì làm cho đến nơi nhé.",
+  "Không cần phải giỏi ngay lập tức đâu. Cứ tiến bộ từng chút một… mình tin cậu.",
+  "Điện thoại để sang bên kia nào. Đừng bắt mình nhắc lần thứ hai đấy!",
+  "Chỉ cần bắt đầu thôi. Phần còn lại cứ để sự tập trung lo… cố lên nhé.",
+  "Cậu đang tiến bộ đấy, dù có thể chưa nhận ra. Tiếp tục nào!",
+  "Đừng so sánh với người khác. Hôm nay chỉ cần tốt hơn hôm qua một chút thôi.",
+  "Thở đều, mở bài ra, làm câu đầu tiên. Rõ ràng vậy mà, đúng không?",
+  "Định bỏ cuộc vì một câu khó à? Nghỉ một nhịp rồi thử lại. Mình chờ được.",
+  "Hoàn thành từng việc một nhé. Mình sẽ… ừm, cổ vũ cậu từ đây."
 ];
 const ITSUKI_WAKE_LINES=[
-  "Chào buổi sáng! 5 giờ 30 rồi, dậy thôi và bắt đầu học nào.",
-  "Dậy thôi nào. Rửa mặt, uống chút nước rồi bắt đầu việc học đầu tiên.",
-  "Chào buổi sáng! Ra khỏi giường và khởi đầu thật tốt cho mục tiêu hôm nay.",
-  "Đến giờ dậy học rồi. Bắt đầu bằng một việc nhỏ thôi, cậu làm được mà.",
-  "Dậy nào! Sắp xếp bàn học, mở kế hoạch rồi bắt đầu nhé.",
-  "Buổi học sáng bắt đầu rồi. Dậy chuẩn bị và làm bước đầu tiên thôi."
+  "Chào buổi sáng! 5 giờ 30 rồi đó. Dậy thôi… đừng để mình gọi lần nữa nhé!",
+  "Dậy nào, còn ngái ngủ thì rửa mặt uống nước trước. Rồi bắt đầu thật nhẹ nhàng.",
+  "Buổi sáng đến rồi. Cậu đã có mục tiêu hôm nay, giờ chỉ cần bước xuống giường thôi!",
+  "Nào, thức dậy đi. Một việc nhỏ trước đã… cậu làm được mà.",
+  "Đừng cuộn chăn thêm nữa! Sắp xếp bàn học rồi bắt đầu nhé.",
+  "Chào ngày mới. Hôm nay cũng cố gắng vừa sức thôi, đừng ép mình quá nhé."
 ];
 const ITSUKI_SLEEP_LINES=[
-  "Đến lúc thư giãn rồi. Tắt những thứ gây xao nhãng và chuẩn bị ngủ nhé.",
-  "Ngủ đủ giúp ngày mai học tốt hơn đấy. Thư giãn thôi nào.",
-  "Hôm nay cậu đã cố gắng đủ rồi. Cất thiết bị đi và nghỉ ngơi nhé.",
-  "Đừng đổi giấc ngủ lấy vài phút lướt mạng nữa nhé.",
-  "Chuẩn bị đồ cho ngày mai, giảm ánh sáng rồi bắt đầu giờ nghỉ nhé.",
-  "Nghỉ ngơi cũng là một phần của tiến bộ. Khép lại hôm nay thật nhẹ nhàng nhé.",
-  "Rời màn hình thôi. Ngủ ngon và mai mình bắt đầu ngày mới nhé.",
-  "Tối nay không cần giải quyết hết mọi thứ đâu. Nghỉ đi, mai tiếp tục nhé."
+  "Đủ rồi đó. Hôm nay cậu đã cố gắng mà… giờ nghỉ ngơi đi, nghe chưa?",
+  "Ngủ đủ thì mai mới tỉnh táo được. Tắt màn hình rồi chuẩn bị ngủ nào.",
+  "Cậu làm tốt hôm nay rồi. Đừng cố thêm nữa, mai mình tiếp tục nhé.",
+  "Vẫn còn định lướt điện thoại à? Thôi nào, giờ ngủ quan trọng hơn đó.",
+  "Chuẩn bị đồ cho ngày mai, giảm ánh sáng rồi đi nghỉ nhé. Đừng thức khuya!",
+  "Nghỉ ngơi cũng là nhiệm vụ đấy. Hôm nay kết thúc ở đây thôi.",
+  "Rời màn hình nào. Ngủ ngon… mai lại cùng cố gắng nhé.",
+  "Không cần giải quyết mọi thứ trong một đêm đâu. Nghỉ đi, mình nhắc thật đó."
 ];
 function itsukiTimeBand(now=new Date()){
   const m=now.getHours()*60+now.getMinutes();
