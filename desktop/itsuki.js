@@ -41,5 +41,6 @@ async function boot(){
   }
 }
 $('hideItsuki').addEventListener('click',()=>window.aurestarDesktop.hideItsuki());
+$('itsukiPet').addEventListener('click',async()=>{await sendItsukiEvent('click');await refreshItsuki();});
 $('openWorkspace').addEventListener('click',()=>window.aurestarDesktop.openWorkspace());
 boot();
