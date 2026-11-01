@@ -1,6 +1,6 @@
 {
   "schemaVersion": 10,
-  "description": "Vietnamese Itsuki study motivation and bedtime dialogue. Existing art and UI language remain unchanged.",
+  "description": "Vietnamese dialogue in Itsuki's warm, earnest, lightly teasing study-companion voice; original artwork and UI language unchanged.",
   "targetImageCount": 30,
   "verifiedImageCount": 30,
   "images": [
@@ -14,7 +14,7 @@
       ],
       "visualNotes": "Laughing with eyes closed",
       "source": "User-provided offline image archive; visually reviewed in contact sheet",
-      "dialogue": "Từng việc một thôi nhé. Bước nhỏ cũng đưa cậu tiến lên."
+      "dialogue": "Hừm, hôm nay cũng cố gắng nhé! Mình sẽ cổ vũ cậu… một chút thôi đó."
     },
     {
       "id": "itsuki-02",
@@ -26,7 +26,7 @@
       ],
       "visualNotes": "Neutral, serious gaze",
       "source": "User-provided offline image archive; visually reviewed in contact sheet",
-      "dialogue": "Đừng đợi có động lực mới bắt đầu. Làm trước rồi sẽ vào guồng."
+      "dialogue": "Tập trung nào. Cậu đã đặt mục tiêu rồi thì từng bước thực hiện nhé."
     },
     {
       "id": "itsuki-03",
@@ -38,7 +38,7 @@
       ],
       "visualNotes": "Bright smile and upbeat pose",
       "source": "User-provided offline image archive; visually reviewed in contact sheet",
-      "dialogue": "Quay lại mục tiêu nào. Mười phút tập trung hơn hẳn mười phút lướt mạng."
+      "dialogue": "Hừm, hôm nay cũng cố gắng nhé! Mình sẽ cổ vũ cậu… một chút thôi đó."
     },
     {
       "id": "itsuki-04",
@@ -50,7 +50,7 @@
       ],
       "visualNotes": "Downcast, subdued expression",
       "source": "User-provided offline image archive; visually reviewed in contact sheet",
-      "dialogue": "Đừng đổi giấc ngủ lấy vài phút lướt mạng nữa nhé."
+      "dialogue": "Có mệt thì nghỉ một chút. Đừng tự trách mình… mai thử lại cũng được."
     },
     {
       "id": "itsuki-05",
@@ -62,7 +62,7 @@
       ],
       "visualNotes": "Wide eyes and flushed cheeks",
       "source": "User-provided offline image archive; visually reviewed in contact sheet",
-      "dialogue": "Giữ nhịp học đều nhé. Mỗi ngày tiến một chút sẽ thành nhiều."
+      "dialogue": "Ơ, lại xao nhãng nữa à? Nào, quay về bài học đi!"
     },
     {
       "id": "itsuki-06",
@@ -74,7 +74,7 @@
       ],
       "visualNotes": "Worried, subdued gaze",
       "source": "User-provided offline image archive; visually reviewed in contact sheet",
-      "dialogue": "Cất điện thoại đi nào, dành sự chú ý cho điều quan trọng nhé."
+      "dialogue": "Đừng quên uống nước và nghỉ mắt nhé. Học tốt cũng phải biết chăm sóc mình."
     },
     {
       "id": "itsuki-07",
@@ -86,7 +86,7 @@
       ],
       "visualNotes": "Wide-eyed surprise",
       "source": "User-provided offline image archive; visually reviewed in contact sheet",
-      "dialogue": "Thấy khó thì chia nhỏ ra. Bắt đầu từ một bước dễ nhất thôi."
+      "dialogue": "Ơ, lại xao nhãng nữa à? Nào, quay về bài học đi!"
     },
     {
       "id": "itsuki-08",
@@ -98,7 +98,7 @@
       ],
       "visualNotes": "Dizzy, startled expression",
       "source": "User-provided offline image archive; visually reviewed in contact sheet",
-      "dialogue": "Tối nay không cần giải quyết hết mọi thứ đâu. Nghỉ đi, mai tiếp tục nhé."
+      "dialogue": "Ơ, lại xao nhãng nữa à? Nào, quay về bài học đi!"
     },
     {
       "id": "itsuki-09",
@@ -110,7 +110,7 @@
       ],
       "visualNotes": "Blushing, gentle expression",
       "source": "User-provided offline image archive; visually reviewed in contact sheet",
-      "dialogue": "Tiếp tục nhé. Mỗi phút tập trung là một khoản đầu tư cho chính cậu."
+      "dialogue": "Cậu đang tiến bộ đó… mình có nói vậy thì cũng đừng tự mãn nhé."
     },
     {
       "id": "itsuki-10",
@@ -122,7 +122,7 @@
       ],
       "visualNotes": "Open-mouthed upset expression",
       "source": "User-provided offline image archive; visually reviewed in contact sheet",
-      "dialogue": "Buổi học hiệu quả bắt đầu bằng việc tắt những thứ gây xao nhãng."
+      "dialogue": "Này! Điện thoại xuống nào. Bài học đang chờ cậu kìa!"
     },
     {
       "id": "itsuki-11",
@@ -134,7 +134,7 @@
       ],
       "visualNotes": "Blushing with a slightly stern look",
       "source": "User-provided offline image archive; visually reviewed in contact sheet",
-      "dialogue": "Hít thở nào, chọn một việc rồi tập trung đúng khoảng thời gian đã định."
+      "dialogue": "Cậu đang tiến bộ đó… mình có nói vậy thì cũng đừng tự mãn nhé."
     },
     {
       "id": "itsuki-12",
@@ -146,7 +146,7 @@
       ],
       "visualNotes": "Embarrassed, startled expression",
       "source": "User-provided offline image archive; visually reviewed in contact sheet",
-      "dialogue": "Đừng đổi giấc ngủ lấy vài phút lướt mạng nữa nhé."
+      "dialogue": "Cậu đang tiến bộ đó… mình có nói vậy thì cũng đừng tự mãn nhé."
     },
     {
       "id": "itsuki-13",
@@ -158,7 +158,7 @@
       ],
       "visualNotes": "Eyes shut, shouting in frustration",
       "source": "User-provided offline image archive; visually reviewed in contact sheet",
-      "dialogue": "Từng việc một thôi nhé. Bước nhỏ cũng đưa cậu tiến lên."
+      "dialogue": "Còn định trì hoãn đến bao giờ hả? …Thôi, bắt đầu một chút đi!"
     },
     {
       "id": "itsuki-14",
@@ -170,7 +170,7 @@
       ],
       "visualNotes": "Annoyed, shouting expression",
       "source": "User-provided offline image archive; visually reviewed in contact sheet",
-      "dialogue": "Đừng đợi có động lực mới bắt đầu. Làm trước rồi sẽ vào guồng."
+      "dialogue": "Này! Điện thoại xuống nào. Bài học đang chờ cậu kìa!"
     },
     {
       "id": "itsuki-15",
@@ -182,7 +182,7 @@
       ],
       "visualNotes": "Calm, attentive expression",
       "source": "User-provided offline image archive; visually reviewed in contact sheet",
-      "dialogue": "Quay lại mục tiêu nào. Mười phút tập trung hơn hẳn mười phút lướt mạng."
+      "dialogue": "Tập trung nào. Cậu đã đặt mục tiêu rồi thì từng bước thực hiện nhé."
     },
     {
       "id": "itsuki-16",
@@ -194,7 +194,7 @@
       ],
       "visualNotes": "Tearful, distressed expression",
       "source": "User-provided offline image archive; visually reviewed in contact sheet",
-      "dialogue": "Tối nay không cần giải quyết hết mọi thứ đâu. Nghỉ đi, mai tiếp tục nhé."
+      "dialogue": "Có mệt thì nghỉ một chút. Đừng tự trách mình… mai thử lại cũng được."
     },
     {
       "id": "itsuki-17",
@@ -206,7 +206,7 @@
       ],
       "visualNotes": "Blushing, angry pout",
       "source": "User-provided offline image archive; visually reviewed in contact sheet",
-      "dialogue": "Giữ nhịp học đều nhé. Mỗi ngày tiến một chút sẽ thành nhiều."
+      "dialogue": "Còn định trì hoãn đến bao giờ hả? …Thôi, bắt đầu một chút đi!"
     },
     {
       "id": "itsuki-18",
@@ -218,7 +218,7 @@
       ],
       "visualNotes": "Grumpy, displeased expression",
       "source": "User-provided offline image archive; visually reviewed in contact sheet",
-      "dialogue": "Cất điện thoại đi nào, dành sự chú ý cho điều quan trọng nhé."
+      "dialogue": "Này! Điện thoại xuống nào. Bài học đang chờ cậu kìa!"
     },
     {
       "id": "itsuki-19",
@@ -230,7 +230,7 @@
       ],
       "visualNotes": "Playful relaxed pose",
       "source": "User-provided offline image archive; visually reviewed in contact sheet",
-      "dialogue": "Thấy khó thì chia nhỏ ra. Bắt đầu từ một bước dễ nhất thôi."
+      "dialogue": "Chậm mà chắc nhé. Không cần vội, miễn là cậu vẫn tiến lên."
     },
     {
       "id": "itsuki-20",
@@ -242,7 +242,7 @@
       ],
       "visualNotes": "Laughing energetically",
       "source": "User-provided offline image archive; visually reviewed in contact sheet",
-      "dialogue": "Đừng đổi giấc ngủ lấy vài phút lướt mạng nữa nhé."
+      "dialogue": "Hừm, hôm nay cũng cố gắng nhé! Mình sẽ cổ vũ cậu… một chút thôi đó."
     },
     {
       "id": "itsuki-21",
@@ -254,7 +254,7 @@
       ],
       "visualNotes": "Studying with glasses and focused posture",
       "source": "User-provided offline image archive; visually reviewed in contact sheet",
-      "dialogue": "Tiếp tục nhé. Mỗi phút tập trung là một khoản đầu tư cho chính cậu."
+      "dialogue": "Quyết tâm lên! Chọn một việc và hoàn thành nó. Cậu làm được!"
     },
     {
       "id": "itsuki-22",
@@ -266,7 +266,7 @@
       ],
       "visualNotes": "Eyes closed, warm smile",
       "source": "User-provided offline image archive; visually reviewed in contact sheet",
-      "dialogue": "Buổi học hiệu quả bắt đầu bằng việc tắt những thứ gây xao nhãng."
+      "dialogue": "Hừm, hôm nay cũng cố gắng nhé! Mình sẽ cổ vũ cậu… một chút thôi đó."
     },
     {
       "id": "itsuki-23",
@@ -278,7 +278,7 @@
       ],
       "visualNotes": "Flustered, hands raised",
       "source": "User-provided offline image archive; visually reviewed in contact sheet",
-      "dialogue": "Hít thở nào, chọn một việc rồi tập trung đúng khoảng thời gian đã định."
+      "dialogue": "Cậu đang tiến bộ đó… mình có nói vậy thì cũng đừng tự mãn nhé."
     },
     {
       "id": "itsuki-24",
@@ -290,7 +290,7 @@
       ],
       "visualNotes": "Intense, determined gaze",
       "source": "User-provided offline image archive; visually reviewed in contact sheet",
-      "dialogue": "Tối nay không cần giải quyết hết mọi thứ đâu. Nghỉ đi, mai tiếp tục nhé."
+      "dialogue": "Quyết tâm lên! Chọn một việc và hoàn thành nó. Cậu làm được!"
     },
     {
       "id": "itsuki-25",
@@ -302,7 +302,7 @@
       ],
       "visualNotes": "Wide-eyed startled expression",
       "source": "User-provided offline image archive; visually reviewed in contact sheet",
-      "dialogue": "Từng việc một thôi nhé. Bước nhỏ cũng đưa cậu tiến lên."
+      "dialogue": "Ơ, lại xao nhãng nữa à? Nào, quay về bài học đi!"
     },
     {
       "id": "itsuki-26",
@@ -314,7 +314,7 @@
       ],
       "visualNotes": "Confident smile",
       "source": "User-provided offline image archive; visually reviewed in contact sheet",
-      "dialogue": "Đừng đợi có động lực mới bắt đầu. Làm trước rồi sẽ vào guồng."
+      "dialogue": "Thấy chưa, cậu làm được mà! Giữ nhịp này nhé."
     },
     {
       "id": "itsuki-27",
@@ -326,7 +326,7 @@
       ],
       "visualNotes": "Wide eyes and flushed cheeks",
       "source": "User-provided offline image archive; visually reviewed in contact sheet",
-      "dialogue": "Quay lại mục tiêu nào. Mười phút tập trung hơn hẳn mười phút lướt mạng."
+      "dialogue": "Ơ, lại xao nhãng nữa à? Nào, quay về bài học đi!"
     },
     {
       "id": "itsuki-28",
@@ -338,7 +338,7 @@
       ],
       "visualNotes": "Focused, confident smile",
       "source": "User-provided offline image archive; visually reviewed in contact sheet",
-      "dialogue": "Đừng đổi giấc ngủ lấy vài phút lướt mạng nữa nhé."
+      "dialogue": "Quyết tâm lên! Chọn một việc và hoàn thành nó. Cậu làm được!"
     },
     {
       "id": "itsuki-29",
@@ -350,7 +350,7 @@
       ],
       "visualNotes": "Quiet, thoughtful expression",
       "source": "User-provided offline image archive; visually reviewed in contact sheet",
-      "dialogue": "Giữ nhịp học đều nhé. Mỗi ngày tiến một chút sẽ thành nhiều."
+      "dialogue": "Tiến bộ không phải lúc nào cũng thấy ngay. Cứ kiên trì nhé."
     },
     {
       "id": "itsuki-30",
@@ -362,7 +362,7 @@
       ],
       "visualNotes": "Half-lidded, tired expression",
       "source": "User-provided offline image archive; visually reviewed in contact sheet",
-      "dialogue": "Cất điện thoại đi nào, dành sự chú ý cho điều quan trọng nhé."
+      "dialogue": "Từng bước một nhé. Mình tin cậu làm được."
     },
     {
       "id": "itsuki-chibi-fallback",
@@ -374,7 +374,7 @@
       ],
       "visualNotes": "Bundled chibi fallback, used only if all numbered images fail validation.",
       "source": "Original project archive",
-      "dialogue": "Thấy khó thì chia nhỏ ra. Bắt đầu từ một bước dễ nhất thôi."
+      "dialogue": "Hừm, hôm nay cũng cố gắng nhé! Mình sẽ cổ vũ cậu… một chút thôi đó."
     }
   ]
 }
