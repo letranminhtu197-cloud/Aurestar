@@ -690,7 +690,7 @@ function itsukiExpressionTone(item){
 async function loadItsukiLocalCatalog(){
   if(itsukiCatalogPromise)return itsukiCatalogPromise;
   itsukiCatalogPromise=(async()=>{
-    const fallback={id:'itsuki-chibi-fallback',src:'assets/itsuki/itsuki-pet.png',primaryExpression:'cheerful',expressions:['cheerful','supportive'],dialogue:'Focus on one task at a time. Small steps still move you forward.'};
+    const fallback={id:'itsuki-chibi-fallback',src:'assets/itsuki/itsuki-pet.png',primaryExpression:'cheerful',expressions:['cheerful','supportive'],dialogue:'Từng việc một thôi nhé. Bước nhỏ cũng đưa cậu tiến lên.'};
     let raw=[];
     try{
       const response=await fetch(chrome.runtime.getURL(ITSUKI_LOCAL_CATALOG_PATH),{cache:'force-cache'});
@@ -709,7 +709,7 @@ async function loadItsukiLocalCatalog(){
         if(!response.ok||!type.startsWith('image/'))continue;
         const blob=await response.blob();if(blob.size<1024||blob.size>5000000)continue;
         const expressions=Array.isArray(item.expressions)?item.expressions.map(x=>String(x)):[];
-        valid.push({id,src,primaryExpression:String(item.primaryExpression||expressions[0]||'supportive'),expressions,dialogue:String(item.dialogue||'Focus on one task at a time. Small steps still move you forward.')});
+        valid.push({id,src,primaryExpression:String(item.primaryExpression||expressions[0]||'supportive'),expressions,dialogue:String(item.dialogue||'Từng việc một thôi nhé. Bước nhỏ cũng đưa cậu tiến lên.')});
       }catch{}
     }
     if(!valid.length){
@@ -724,36 +724,36 @@ async function loadItsukiLocalCatalog(){
   return itsukiCatalogPromise;
 }
 const ITSUKI_STUDY_LINES=[
-  "Focus on one task at a time. Small steps still move you forward.",
-  "Do not wait for motivation. Start first, and let momentum follow.",
-  "Return to your goal. Ten focused minutes beat ten minutes of scrolling.",
-  "You do not need to be perfect. Take the next useful step with care.",
-  "Keep a steady study rhythm. Small daily progress adds up.",
-  "Put your phone away and give your attention to what matters most.",
-  "If the task feels difficult, break it down and begin with one small step.",
-  "Your future is shaped by the small choices you make today.",
-  "Keep going. Every focused minute is an investment in yourself.",
-  "A good study session begins by closing distractions.",
-  "Take a breath, choose one task, and work on it for the time you planned.",
-  "Do not compare your progress with anyone else. Finish your own next step."
+  "Từng việc một thôi nhé. Bước nhỏ cũng đưa cậu tiến lên.",
+  "Đừng đợi có động lực mới bắt đầu. Làm trước rồi sẽ vào guồng.",
+  "Quay lại mục tiêu nào. Mười phút tập trung hơn hẳn mười phút lướt mạng.",
+  "Không cần hoàn hảo đâu. Cứ cẩn thận làm bước tiếp theo là được.",
+  "Giữ nhịp học đều nhé. Mỗi ngày tiến một chút sẽ thành nhiều.",
+  "Cất điện thoại đi nào, dành sự chú ý cho điều quan trọng nhé.",
+  "Thấy khó thì chia nhỏ ra. Bắt đầu từ một bước dễ nhất thôi.",
+  "Tương lai được tạo nên từ những lựa chọn nhỏ hôm nay đấy.",
+  "Tiếp tục nhé. Mỗi phút tập trung là một khoản đầu tư cho chính cậu.",
+  "Buổi học hiệu quả bắt đầu bằng việc tắt những thứ gây xao nhãng.",
+  "Hít thở nào, chọn một việc rồi tập trung đúng khoảng thời gian đã định.",
+  "Đừng so sánh tiến độ với ai cả. Hoàn thành bước tiếp theo của mình nhé."
 ];
 const ITSUKI_WAKE_LINES=[
-  "Good morning. It is 5:30 AM — time to wake up and begin studying.",
-  "Wake up now. Wash your face, drink some water, and start your first study task.",
-  "Good morning! Get out of bed and give your goals a strong start today.",
-  "It is time to get up and study. Start with one small task; you can do this.",
-  "Rise and shine. Prepare your desk, open your study plan, and begin.",
-  "Your morning study session starts now. Get up, get ready, and take the first step."
+  "Chào buổi sáng! 5 giờ 30 rồi, dậy thôi và bắt đầu học nào.",
+  "Dậy thôi nào. Rửa mặt, uống chút nước rồi bắt đầu việc học đầu tiên.",
+  "Chào buổi sáng! Ra khỏi giường và khởi đầu thật tốt cho mục tiêu hôm nay.",
+  "Đến giờ dậy học rồi. Bắt đầu bằng một việc nhỏ thôi, cậu làm được mà.",
+  "Dậy nào! Sắp xếp bàn học, mở kế hoạch rồi bắt đầu nhé.",
+  "Buổi học sáng bắt đầu rồi. Dậy chuẩn bị và làm bước đầu tiên thôi."
 ];
 const ITSUKI_SLEEP_LINES=[
-  "It is time to wind down. Close distractions and get ready for bed.",
-  "Enough sleep helps you learn better tomorrow. Start relaxing now.",
-  "You have done enough for today. Put your device away and recover.",
-  "Do not trade your sleep for a few more minutes of scrolling.",
-  "Prepare what you need for tomorrow, dim the lights, and begin your bedtime routine.",
-  "Rest is part of progress. Let today come to a calm close.",
-  "It is time to step away from the screen. Sleep well and start fresh tomorrow.",
-  "You do not need to solve everything tonight. Rest now and continue tomorrow."
+  "Đến lúc thư giãn rồi. Tắt những thứ gây xao nhãng và chuẩn bị ngủ nhé.",
+  "Ngủ đủ giúp ngày mai học tốt hơn đấy. Thư giãn thôi nào.",
+  "Hôm nay cậu đã cố gắng đủ rồi. Cất thiết bị đi và nghỉ ngơi nhé.",
+  "Đừng đổi giấc ngủ lấy vài phút lướt mạng nữa nhé.",
+  "Chuẩn bị đồ cho ngày mai, giảm ánh sáng rồi bắt đầu giờ nghỉ nhé.",
+  "Nghỉ ngơi cũng là một phần của tiến bộ. Khép lại hôm nay thật nhẹ nhàng nhé.",
+  "Rời màn hình thôi. Ngủ ngon và mai mình bắt đầu ngày mới nhé.",
+  "Tối nay không cần giải quyết hết mọi thứ đâu. Nghỉ đi, mai tiếp tục nhé."
 ];
 function itsukiTimeBand(now=new Date()){
   const m=now.getHours()*60+now.getMinutes();
@@ -822,8 +822,8 @@ async function commitItsukiExpression(eventName,messageOverride=""){
   const lineHistory=Array.isArray(stored.itsukiRecentDialogueLines)?stored.itsukiRecentDialogueLines:[];
   const override=typeof messageOverride==='string'?messageOverride.trim().slice(0,240):'';
   const timeBand=itsukiTimeBand(new Date(now));
-  // Every Itsuki speech line is drawn from the approved English study/sleep pools.
-  // Ignore legacy event-specific overrides so old Vietnamese dialogue cannot leak through.
+  // Every Itsuki speech line is drawn from the approved Vietnamese study/sleep pools.
+  // Use the approved Vietnamese dialogue pools consistently.
   const timedMessage=await nextItsukiTimedLine();
   const dialogueResult={message:timedMessage,rotation:stored.itsukiDialogueRotation||{}};
   const message=dialogueResult.message;
