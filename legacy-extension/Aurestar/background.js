@@ -463,10 +463,10 @@ function recalcHabits(s){for(const h of s.habits){const set=new Set(h.completion
 function recalcStudyStreak(s,end=dateKey()){
   const validKinds=new Set(["task","habit","focus"]);
   const activeDates=new Set((s.completions||[])
-    .filter(c=>validKinds.has(String(c.kind||""))&&/^\\d{4}-\\d{2}-\\d{2}$/.test(String(c.date||""))&&String(c.date)<=end)
+    .filter(c=>validKinds.has(String(c.kind||""))&&/^\d{4}-\d{2}-\d{2}$/.test(String(c.date||""))&&String(c.date)<=end)
     .map(c=>String(c.date)));
   for(const session of (s.workoutSessions||[])){
-    if(session?.completed===true&&/^\\d{4}-\\d{2}-\\d{2}$/.test(String(session.date||""))&&String(session.date)<=end)activeDates.add(String(session.date));
+    if(session?.completed===true&&/^\d{4}-\d{2}-\d{2}$/.test(String(session.date||""))&&String(session.date)<=end)activeDates.add(String(session.date));
   }
   const anchor=activeDates.has(end)?end:shiftDate(end,-1);
   const current=currentStreak(activeDates,anchor);
