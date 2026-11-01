@@ -41,6 +41,27 @@ async function boot(){
   }
 }
 $('hideItsuki').addEventListener('click',()=>window.aurestarDesktop.hideItsuki());
-$('itsukiPet').addEventListener('click',async()=>{await sendItsukiEvent('click');await refreshItsuki();});
+const pet=$('itsukiPet');
+let petPointer=null;
+pet.addEventListener('pointerdown',event=>{
+  if(event.button!==0)return;
+  petPointer={id:event.pointerId,x:event.screenX,y:event.screenY,lastX:event.screenX,lastY:event.screenY,moved:false};
+  pet.setPointerCapture(event.pointerId);
+});
+pet.addEventListener('pointermove',event=>{
+  if(!petPointer||petPointer.id!==event.pointerId)return;
+  const dx=event.screenX-petPointer.lastX,dy=event.screenY-petPointer.lastY;
+  if(Math.abs(event.screenX-petPointer.x)+Math.abs(event.screenY-petPointer.y)>5)petPointer.moved=true;
+  if(petPointer.moved&&(dx||dy))window.aurestarDesktop.dragItsukiBy(dx,dy);
+  petPointer.lastX=event.screenX;petPointer.lastY=event.screenY;
+});
+async function finishPetPointer(event){
+  if(!petPointer||petPointer.id!==event.pointerId)return;
+  const wasClick=!petPointer.moved;
+  petPointer=null;
+  if(wasClick){await sendItsukiEvent('click');await refreshItsuki();}
+}
+pet.addEventListener('pointerup',finishPetPointer);
+pet.addEventListener('pointercancel',()=>{petPointer=null;});
 $('openWorkspace').addEventListener('click',()=>window.aurestarDesktop.openWorkspace());
 boot();
