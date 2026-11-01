@@ -95,38 +95,10 @@ function toggleItsuki(){
   if(itsukiWindow&&!itsukiWindow.isDestroyed()&&itsukiWindow.isVisible())hideItsuki();
   else createItsuki();
 }
-let globalItsukiHotkeyHook=null;
 function installItsukiHotkeys(){
-  if(globalItsukiHotkeyHook)return;
-  try{
-    const {uIOhook,UiohookKey}=require('uiohook-napi');
-    const altCodes=new Set([UiohookKey.Alt,UiohookKey.AltRight]);
-    const ctrlCodes=new Set([UiohookKey.Ctrl,UiohookKey.CtrlRight]);
-    let altDown=false,ctrlDown=false,comboTriggered=false;
-    uIOhook.on('keydown',event=>{
-      const key=Number(event?.keycode);
-      if(altCodes.has(key))altDown=true;
-      if(ctrlCodes.has(key))ctrlDown=true;
-      if(altDown&&ctrlDown&&!comboTriggered){
-        comboTriggered=true;
-        createItsuki();
-      }
-    });
-    uIOhook.on('keyup',event=>{
-      const key=Number(event?.keycode);
-      if(altCodes.has(key)){
-        const shouldHide=altDown&&!comboTriggered&&!ctrlDown;
-        altDown=false;
-        comboTriggered=false;
-        if(shouldHide)hideItsuki();
-      }
-      if(ctrlCodes.has(key))ctrlDown=false;
-    });
-    uIOhook.start();
-    globalItsukiHotkeyHook=uIOhook;
-  }catch(error){
-    console.error('Could not register global Itsuki hotkeys. Alt hides Itsuki; Ctrl+Alt shows it.',error);
-  }
+  // F6 hides the companion; Ctrl+F6 brings it back.
+  globalShortcut.register('F6',hideItsuki);
+  globalShortcut.register('Control+F6',createItsuki);
 }
 function bindAltToggle(browserWindow){
   // Avoid opening Chromium's menu bar when Alt is pressed inside an Aurestar window.
@@ -342,5 +314,5 @@ app.whenReady().then(()=>{
   if(process.platform==='win32' && state.settings.startWithWindows){app.setLoginItemSettings({openAtLogin:true});}
   app.on('activate',()=>{if(!win)createWindow();else win.show();if(!pomodoroWidget)createPomodoroWidget();});
 });
-app.on('before-quit',()=>{app.isQuitting=true;if(reminderTimer)clearInterval(reminderTimer);if(focusTickTimer)clearInterval(focusTickTimer);try{globalItsukiHotkeyHook?.stop();}catch{}globalShortcut.unregisterAll();saveState();});
+app.on('before-quit',()=>{app.isQuitting=true;if(reminderTimer)clearInterval(reminderTimer);if(focusTickTimer)clearInterval(focusTickTimer);globalShortcut.unregisterAll();saveState();});
 app.on('window-all-closed',()=>{if(process.platform!=='darwin' && !state?.settings?.minimizeToTray)app.quit();});
