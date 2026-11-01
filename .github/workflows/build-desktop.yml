@@ -9,6 +9,7 @@ on:
     branches: [desktop-rebuild]
     paths:
       - 'desktop/**'
+      - 'legacy-extension/Aurestar/**'
       - '.github/workflows/build-desktop.yml'
 jobs:
   build-windows:
