@@ -1761,3 +1761,64 @@ body.view-settings .view{overflow:auto;padding:24px 28px 36px}
 .gym-active-page .gym-sidebar-card{min-height:0;overflow:hidden;display:flex;flex-direction:column}.gym-active-page .gym-task-stack{overflow:auto;min-height:0;flex:1}.gym-active-page .gym-focus-card{min-height:0;overflow:auto}
 @media(max-width:1120px){.overview-v2-grid{grid-template-columns:minmax(210px,.72fr) minmax(320px,1.2fr)}.overview-goals-calendar{display:none}.focus-workspace-grid{grid-template-columns:minmax(0,1.2fr) minmax(230px,.8fr)}.calendar-core-fit{grid-template-columns:minmax(0,1fr) 270px}}
 @media(max-width:820px){.view{overflow:auto;padding:12px}.overview-v2,.task-reference-page,.gym-page,.focus-workspace,.calendar-page-fit{height:auto;min-height:100%;display:flex;flex-direction:column}.overview-v2-grid,.overview-progress,.focus-workspace-grid,.calendar-core-fit,.calendar-bottom-grid,.gym-active-page .gym-active-grid{grid-template-columns:1fr}.overview-v2-grid{display:grid}.overview-goals-calendar{display:flex}.overview-action-columns{grid-template-columns:1fr}.task-reference-layout{grid-template-columns:1fr}.focus-side-v4{grid-template-rows:auto auto 220px}.gym-page:not(.gym-active-page) .gym-history-panel{min-height:180px}}
+
+/* Aurestar interface pass — consistent viewport sizing, balanced panels, safe responsive behavior */
+.app-shell{min-width:0;min-height:0}
+.sidebar{min-height:0}
+.main-area{min-width:0;min-height:0}
+.view{min-width:0}
+.overview-v2,.task-reference-page,.focus-workspace,.calendar-page-fit,.gym-page{min-width:0}
+.overview-v2-grid{grid-template-columns:minmax(220px,.78fr) minmax(360px,1.42fr) minmax(230px,.82fr)}
+.overview-progress-card{align-content:start}
+.overview-action-columns{grid-template-columns:minmax(0,1fr) minmax(145px,.72fr)}
+.task-reference-layout{grid-template-columns:minmax(0,1fr) 240px}
+.task-reference-rail{overflow:auto}
+.task-reference-rail .task-rail-card{height:auto;min-height:100%}
+.task-reference-groups{overscroll-behavior:contain}
+.focus-workspace-grid{grid-template-columns:minmax(0,1.45fr) minmax(285px,.8fr)}
+.focus-session-card,.focus-side-v4>section{overflow:hidden}
+.focus-history-scroll,.overview-scroll-list,.calendar-schedule-scroll,.calendar-history-scroll,.calendar-goals-scroll,.gym-task-list,.gym-history-list{overscroll-behavior:contain}
+.calendar-page-fit{grid-template-rows:auto minmax(0,1.4fr) minmax(150px,.7fr)}
+.calendar-core-fit{grid-template-columns:minmax(0,1.25fr) minmax(285px,.8fr)}
+.calendar-bottom-grid{grid-template-columns:minmax(0,1.15fr) minmax(250px,.85fr)}
+.calendar-main-v53 .calendar-day{overflow:hidden}
+.gym-page .gym-hero{min-width:0}
+@media(min-width:1500px){
+ .view{padding:18px 24px}
+ .overview-v2,.task-reference-page,.focus-workspace,.calendar-page-fit,.gym-page{max-width:1600px;margin-inline:auto;width:100%}
+ .task-reference-layout{grid-template-columns:minmax(0,1fr) 260px}
+}
+@media(max-width:1250px) and (min-width:821px){
+ .overview-v2-grid{grid-template-columns:minmax(190px,.7fr) minmax(300px,1.3fr)}
+ .overview-goals-calendar{display:none}
+ .task-reference-layout{grid-template-columns:minmax(0,1fr) 220px}
+ .focus-workspace-grid{grid-template-columns:minmax(0,1.2fr) minmax(250px,.8fr)}
+ .calendar-core-fit{grid-template-columns:minmax(0,1fr) 260px}
+ .calendar-bottom-grid{grid-template-columns:minmax(0,1fr) minmax(220px,.8fr)}
+}
+@media(max-height:780px) and (min-width:821px){
+ .main-area{grid-template-rows:58px minmax(0,1fr)}
+ .view{padding-top:10px;padding-bottom:10px}
+ .overview-v2,.focus-workspace{gap:8px}
+ .overview-v2-grid,.focus-workspace-grid,.calendar-core-fit,.calendar-bottom-grid{gap:8px}
+ .overview-panel,.focus-session-card,.focus-side-v4>section{padding:11px}
+ .overview-streak{padding:7px 12px}
+ .overview-progress-card{padding:9px 12px}
+ .calendar-page-fit{grid-template-rows:auto minmax(0,1.35fr) minmax(120px,.65fr);gap:8px}
+}
+@media(max-width:820px){
+ .app-shell{min-width:0;grid-template-columns:1fr}
+ .sidebar{height:auto}
+ .view{height:auto;min-height:0;overflow:visible}
+ .overview-v2,.task-reference-page,.focus-workspace,.calendar-page-fit,.gym-page{height:auto;min-height:0}
+ .overview-v2-grid,.overview-progress,.focus-workspace-grid,.calendar-core-fit,.calendar-bottom-grid{grid-template-columns:minmax(0,1fr)}
+ .overview-goals-calendar{display:flex}
+ .task-reference-layout{grid-template-columns:minmax(0,1fr)}
+ .task-reference-rail{overflow:visible}
+ .task-reference-rail .task-rail-card{height:auto}
+ .calendar-page-fit{display:flex}
+ .calendar-core-fit,.calendar-bottom-grid{display:grid}
+ .calendar-main-v53{min-height:460px}
+ .calendar-day-panel-v53{min-height:300px}
+ .gym-page:not(.gym-active-page) .gym-history-panel{flex:0 0 auto}
+}
