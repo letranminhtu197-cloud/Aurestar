@@ -7,7 +7,7 @@ Target: ASAR-extracted working copy
 
 | Check | Result | Evidence / limitation |
 |---|---|---|
-| ASAR extraction | PASS | 59 packed files extracted; original archive preserved separately |
+| ASAR extraction and integrity | PASS | 59 packed files extracted; every SHA-256 matches ASAR metadata; 37 unpacked entries are external and unavailable |
 | Main Process syntax | PASS | `node --check main.cjs` |
 | Preload syntax | PASS | `node --check preload.cjs` |
 | Renderer syntax | PASS | `node --check renderer.js` |
