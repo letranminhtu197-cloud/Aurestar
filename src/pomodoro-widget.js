@@ -21,7 +21,7 @@ function render(response){
   $('detail').textContent+=` · round ${Math.max(1,Math.min(target,completed+(mode==='focus'?1:0)))} of ${target}`;
   for(const [key,element] of [['focus',$('modeFocus')],['short',$('modeShort')],['long',$('modeLong')]])element.setAttribute('aria-pressed',String(key===mode));
   const toggle=$('toggle');toggle.textContent=active?'Ⅱ':'▶';toggle.setAttribute('aria-label',active?'Pause timer':paused?'Resume timer':mode==='focus'?'Start focus':'Start break');toggle.title=active?'Pause':paused?'Resume':'Start';
-  $('reset').disabled=busy;
+  $('reset').disabled=busy||(!active&&!paused&&f.phase!=='break');
   document.title=`${formatSeconds(seconds)} · Aurestar`;
 }
 async function refresh(){
