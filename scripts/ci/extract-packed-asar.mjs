@@ -99,7 +99,10 @@ function walk(entries, prefix = '') {
     }
 
     fs.mkdirSync(path.dirname(target), { recursive: true });
-    fs.writeFileSync(target, extractFile(archivePath, relativePath));
+    // ASAR's filesystem traversal uses the host platform's path separator.
+    // Header paths are POSIX-style, so normalize them before extraction on Windows.
+    const archiveRelativePath = relativePath.split('/').join(path.sep);
+    fs.writeFileSync(target, extractFile(archivePath, archiveRelativePath));
     extracted.push(relativePath);
   }
 }
