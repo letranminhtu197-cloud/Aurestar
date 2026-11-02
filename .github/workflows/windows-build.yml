@@ -1,0 +1,231 @@
+name: Aurestar Windows CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - "audit/**"
+      - "release/**"
+    paths:
+      - ".github/workflows/windows-build.yml"
+      - "app.asar"
+      - "Aurestar-*.zip"
+      - "package.json"
+      - "package-lock.json"
+      - "main.cjs"
+      - "preload.cjs"
+      - "renderer.js"
+      - "aurestar-chrome/**"
+      - "tests/**"
+      - "scripts/ci/**"
+  pull_request:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aurestar-windows-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source-audit:
+    name: Recover and validate Electron source
+    runs-on: windows-latest
+    outputs:
+      package_ready: ${{ steps.inspect.outputs.package_ready }}
+      blockers: ${{ steps.inspect.outputs.blockers }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Extract app.asar
+        id: extract
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $archive = Join-Path $env:GITHUB_WORKSPACE "app.asar"
+          if (-not (Test-Path $archive)) {
+            throw "app.asar was not found at the repository root."
+          }
+          $sourceDir = Join-Path $env:RUNNER_TEMP "aurestar-recovered-source"
+          if (Test-Path $sourceDir) { Remove-Item $sourceDir -Recurse -Force }
+          New-Item -ItemType Directory -Path $sourceDir | Out-Null
+          npx --yes @electron/asar extract $archive $sourceDir
+          if ($LASTEXITCODE -ne 0) { throw "ASAR extraction failed." }
+          foreach ($file in @("main.cjs", "preload.cjs", "renderer.js", "index.html")) {
+            if (-not (Test-Path (Join-Path $sourceDir $file))) {
+              throw "Required ASAR entry missing: $file"
+            }
+          }
+          "source_dir=$sourceDir" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "Aurestar ASAR extraction completed." | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+
+      - name: Apply startup regression correction to recovered source
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          node scripts/ci/patch-recovered-source.cjs "${{ steps.extract.outputs.source_dir }}"
+          if ($LASTEXITCODE -ne 0) { throw "Could not apply the reviewed startup correction." }
+
+      - name: Run source regression tests
+        shell: pwsh
+        env:
+          AURESTAR_SOURCE_DIR: ${{ steps.extract.outputs.source_dir }}
+        run: |
+          node --test tests/*.test.cjs
+          if ($LASTEXITCODE -ne 0) { throw "Aurestar source regression tests failed." }
+
+      - name: Inspect packaging prerequisites
+        id: inspect
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $blockers = [System.Collections.Generic.List[string]]::new()
+          $manifestPath = Join-Path $env:GITHUB_WORKSPACE "package.json"
+          $lockPath = Join-Path $env:GITHUB_WORKSPACE "package-lock.json"
+          $manifest = $null
+
+          if (-not (Test-Path $manifestPath)) {
+            $blockers.Add("Missing root package.json with a reproducible Electron build configuration.")
+          } else {
+            $manifest = Get-Content $manifestPath -Raw | ConvertFrom-Json
+            if (-not $manifest.scripts -or -not $manifest.scripts.'dist:win') {
+              $blockers.Add("Root package.json must define scripts.dist:win.")
+            }
+            if (-not $manifest.devDependencies -or -not $manifest.devDependencies.electron) {
+              $blockers.Add("Root package.json must pin a tested Electron version in devDependencies.")
+            }
+            if (-not $manifest.devDependencies -or -not $manifest.devDependencies.'electron-builder') {
+              $blockers.Add("Root package.json must pin electron-builder in devDependencies.")
+            }
+            if (-not $manifest.build -or -not $manifest.build.win) {
+              $blockers.Add("electron-builder Windows target configuration is missing.")
+            }
+          }
+
+          if (-not (Test-Path $lockPath)) {
+            $blockers.Add("Missing package-lock.json; CI cannot perform a reproducible npm ci.")
+          }
+
+          foreach ($file in @("main.cjs", "preload.cjs", "renderer.js", "index.html")) {
+            if (-not (Test-Path (Join-Path $env:GITHUB_WORKSPACE $file))) {
+              $blockers.Add("Missing editable root source file: $file.")
+            }
+          }
+
+          $background = Join-Path $env:GITHUB_WORKSPACE "aurestar-chrome/background.js"
+          if (-not (Test-Path $background)) {
+            $zip = Get-ChildItem -Path $env:GITHUB_WORKSPACE -Filter "Aurestar-*.zip" -File | Select-Object -First 1
+            if ($zip) {
+              $zipDir = Join-Path $env:RUNNER_TEMP "aurestar-legacy-zip"
+              New-Item -ItemType Directory -Path $zipDir -Force | Out-Null
+              Expand-Archive -Path $zip.FullName -DestinationPath $zipDir -Force
+              $candidates = @(Get-ChildItem -Path $zipDir -Filter "background.js" -File -Recurse -ErrorAction SilentlyContinue)
+              if ($candidates.Count -eq 1) {
+                "Found legacy background script in ZIP: $($candidates[0].FullName)" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+              } elseif ($candidates.Count -eq 0) {
+                $blockers.Add("Required aurestar-chrome/background.js was not found in the repository or version ZIP.")
+              } else {
+                $blockers.Add("Multiple background.js candidates were found in the ZIP; resource selection needs an explicit mapping.")
+              }
+            } else {
+              $blockers.Add("Required aurestar-chrome/background.js is missing and no Aurestar ZIP is available to inspect.")
+            }
+          }
+
+          $ready = ($blockers.Count -eq 0)
+          "package_ready=$($ready.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "blockers=$($blockers -join '; ')" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+          "## Windows installer prerequisites" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          if ($ready) {
+            "All required source/build prerequisites were found." | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          } else {
+            "The installer build is intentionally blocked; no placeholder EXE will be produced." | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+            foreach ($item in $blockers) { "- $item" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8 }
+          }
+
+      - name: Archive recovered source and audit report
+        if: always()
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Continue"
+          $out = Join-Path $env:RUNNER_TEMP "Aurestar-CI-Audit"
+          New-Item -ItemType Directory -Path $out -Force | Out-Null
+          $sourceDir = "${{ steps.extract.outputs.source_dir }}"
+          if ($sourceDir -and (Test-Path $sourceDir)) {
+            Compress-Archive -Path (Join-Path $sourceDir "*") -DestinationPath (Join-Path $out "Aurestar-Recovered-Source.zip") -Force
+          }
+          @(
+            "Commit: ${{ github.sha }}"
+            "Ref: ${{ github.ref }}"
+            "Package ready: ${{ steps.inspect.outputs.package_ready }}"
+            "Blockers: ${{ steps.inspect.outputs.blockers }}"
+          ) | Set-Content (Join-Path $out "BUILD-STATUS.txt")
+
+      - name: Upload audit artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aurestar-windows-ci-audit
+          path: ${{ runner.temp }}/Aurestar-CI-Audit/
+          if-no-files-found: warn
+          retention-days: 14
+
+  package-windows:
+    name: Build Windows installers
+    needs: source-audit
+    if: needs.source-audit.outputs.package_ready == 'true'
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build Setup and Portable executables
+        run: npm run dist:win
+
+      - name: Upload Windows installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: Aurestar-Windows-Installers
+          path: |
+            dist/*Setup*.exe
+            dist/*Portable*.exe
+          if-no-files-found: error
+          retention-days: 30
+
+  report-blocked-build:
+    name: Report installer build status
+    needs: source-audit
+    if: always() && needs.source-audit.outputs.package_ready != 'true'
+    runs-on: windows-latest
+    steps:
+      - name: Explain why no installer was produced
+        shell: pwsh
+        env:
+          BLOCKERS: ${{ needs.source-audit.outputs.blockers }}
+        run: |
+          "## Installer not generated" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          "Source audit can run independently, but packaging is gated until every required build input exists." | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          "Blockers: $env:BLOCKERS" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
