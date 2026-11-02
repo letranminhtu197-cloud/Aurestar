@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' file: data:; style-src 'self' 'unsafe-inline'; script-src 'self';">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Study companion</title>
+<link rel="stylesheet" href="widget-shared.css">
+<style>
+:root{--rose:var(--widget-rose);--line:var(--widget-edge);--muted:var(--widget-muted);--focus-ring:var(--widget-focus)}
+.widget{padding:9px 11px;display:grid;grid-template-rows:minmax(0,1fr) 27px;gap:7px}
+.message-row{display:flex;align-items:center;gap:11px;min-width:0;min-height:0}.avatar{width:52px;height:52px;flex:0 0 52px;border-radius:14px;border:1px solid #ffffff1c;background:#2b181e;object-fit:cover;object-position:center 22%;box-shadow:0 4px 12px #0005;pointer-events:none;-webkit-user-drag:none}.message{min-width:0;max-height:66px;overflow:hidden;color:#f7e9ed;font-size:13px;font-weight:560;line-height:1.46;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow-wrap:anywhere}.status-row{display:flex;align-items:center;gap:8px;padding-top:6px;border-top:1px solid #ffffff17;-webkit-app-region:no-drag}.context{display:inline-flex;align-items:center;gap:6px;min-width:0;padding:4px 8px;border:1px solid #d94e6738;border-radius:999px;background:#d94e6718;color:var(--rose);font-size:9px;font-weight:800;letter-spacing:.08em}.context:before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}.context[data-context="sleep"]{border-color:#9c84c044;background:#9c84c01a;color:#cfbde8}.context[data-context="wind-down"]{border-color:#f6c55544;background:#f6c55518;color:#f6d779}.spacer{flex:1}.hide{display:grid;place-items:center;width:28px;height:26px;border:0;border-radius:8px;background:#ffffff0b;color:#e7d5dc;font-size:17px;cursor:pointer;-webkit-app-region:no-drag;transition:background .14s,color .14s}.hide:hover{background:#ffffff18;color:#fff}.hide:focus-visible{outline:2px solid var(--focus-ring);outline-offset:1px}
+</style>
+</head>
+<body>
+<main class="widget widget-surface" aria-label="Study companion widget">
+  <section class="message-row" aria-live="polite">
+    <img class="avatar" id="itsukiArt" alt="Study companion" draggable="false">
+    <div class="message" id="itsukiLine">Your study plan is ready. Choose one clear task and take the first step.</div>
+  </section>
+  <div class="status-row"><span class="context" id="itsukiStatus" data-context="focus">FOCUS</span><span class="spacer"></span><button class="hide" id="hideItsuki" type="button" title="Hide study companion" aria-label="Hide study companion">×</button></div>
+</main>
+<script src="bridge-alias.js"></script>
+<script src="itsuki.js"></script>
+</body>
+</html>

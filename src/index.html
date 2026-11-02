@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' file: data:; img-src 'self' file: data: blob:; media-src 'self' file: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' file:; object-src 'none'; base-uri 'self'; frame-src 'none';">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Aurestar</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="app-body">
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Navigation">
+      <div class="brand-row">
+        <div class="brand-mark" aria-label="Aurestar">★</div>
+        <div class="brand-copy"><strong>Aurestar</strong><small>STUDY SPACE · ONE STEP AT A TIME</small></div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-label">WORKSPACE</div>
+        <nav id="nav" class="smart-nav compact-nav">
+          <button data-view="dashboard" type="button"><i class="nav-icon" aria-hidden="true">◫</i><span>Overview</span><em></em></button>
+          <button data-view="tasks" type="button"><i class="nav-icon" aria-hidden="true">☷</i><span>Tasks &amp; Habits</span><em></em></button>
+          <button data-view="focus" type="button"><i class="nav-icon" aria-hidden="true">◉</i><span>Focus</span><em></em></button>
+          <button data-view="calendar" type="button"><i class="nav-icon" aria-hidden="true">▦</i><span>Calendar</span><em></em></button>
+          <button data-view="gym" type="button"><i class="nav-icon" aria-hidden="true">↗</i><span>Training</span><em></em></button>
+          <button data-view="analytics" type="button"><i class="nav-icon" aria-hidden="true">▤</i><span>Progress</span><em></em></button>
+        </nav>
+      </div>
+
+      <div class="sidebar-bottom">
+        <button id="appSettings" data-view="settings" class="settings-link" type="button"><i class="nav-icon" aria-hidden="true">⚙</i><span>Settings</span></button>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <div class="top-title">
+          <div class="crumb">AURESTAR <span>/</span> STUDY SPACE</div>
+          <h1 id="pageTitle">Overview</h1>
+        </div>
+        <div class="top-search">
+          <span class="search-mark">⌕</span>
+          <input id="globalSearch" type="search" placeholder="Search tasks…" autocomplete="off" aria-label="Search tasks">
+          <kbd>Ctrl K</kbd>
+        </div>
+        <div class="top-actions">
+          <button class="top-action" id="importTop" title="Import data" aria-label="Import data">↓</button>
+          <button class="top-action" id="exportTop" title="Export data" aria-label="Export data">↑</button>
+        </div>
+      </header>
+      <section id="view" class="view"></section>
+    </main>
+  </div>
+  <button class="floating-add-task" id="globalAddTask" type="button"><span>+</span> Add task</button>
+  <script src="bridge-alias.js"></script>
+  <script src="renderer.js"></script>
+</body>
+</html>
