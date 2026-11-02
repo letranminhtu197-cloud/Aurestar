@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#211217">
+<title>Focus · Aurestar</title>
+<link rel="stylesheet" href="aurestar-ui.css">
+</head>
+<body>
+<div class="app-shell">
+<aside class="sidebar">
+  <a class="brand" href="overview.html"><span class="brand-mark">✦</span><span><span class="brand-name">AURESTAR</span><span class="brand-sub">STUDY SPACE · ONE STEP AT A TIME</span></span></a>
+  <div class="nav-label">WORKSPACE</div>
+  <nav class="nav">
+    <a class="" href="overview.html"><span class="nav-icon">◫</span>Overview</a>
+    <a class="" href="tasks-habits.html"><span class="nav-icon">☷</span>Tasks &amp; Habits</a>
+    <a class="active" href="focus.html"><span class="nav-icon">◉</span>Focus</a>
+    <a class="" href="calendar.html"><span class="nav-icon">▦</span>Calendar</a>
+    <a class="" href="training.html"><span class="nav-icon">↗</span>Training</a>
+    <a class="" href="insights.html"><span class="nav-icon">⌁</span>Insights</a>
+  </nav>
+  <div class="sidebar-bottom"><a class="nav " href="settings.html"><span class="nav-icon">⚙</span>Settings</a><div class="sidebar-note">Local-first workspace<br><span style="color:var(--rose2)">Professional Edition · UI preview</span></div></div>
+</aside>
+<main class="main-area">
+<header class="topbar">
+  <div class="top-title"><div class="crumb">AURESTAR <span>/</span> FOCUS</div><h1>Focus</h1></div>
+  <div class="search"><input type="search" placeholder="Search tasks…" aria-label="Search tasks"></div>
+  <div class="top-actions"><button class="icon-btn" type="button" title="Import preview" onclick="alert('UI preview only')">↓</button><button class="icon-btn" type="button" title="Export preview" onclick="alert('UI preview only')">↑</button></div>
+</header>
+<section class="content">
+<header class="page-head"><div><div class="eyebrow">FOCUS ENGINE</div><h2>Deep work, without distractions.</h2><p>A clear session. A single task. A deliberate break.</p></div><span class="pill"><i class="pill-dot"></i> Ready for a session</span></header>
+<div class="focus-layout">
+ <section class="panel focus-stage">
+  <div class="kicker">POMODORO · ROUND 1 OF 4</div>
+  <div class="timer-ring" id="focusDial"><div class="timer-inner"><div class="timer-caption">FOCUS</div><div class="timer-time" id="focusTime">25:00</div><div class="tiny muted">Remaining</div></div></div>
+  <div class="timer-controls"><button class="btn btn-primary" id="focusToggle">Start focus</button><button class="btn" id="focusReset">Reset</button></div>
+  <div class="preset-row"><button class="preset active" data-minutes="25">25 min</button><button class="preset" data-minutes="45">45 min</button><button class="preset" data-minutes="60">60 min</button></div>
+  <div class="small muted" style="margin-top:18px">After focus: 5-minute short break · Long break after 4 rounds</div>
+ </section>
+ <aside class="grid">
+  <section class="panel"><div class="panel-head"><h3>Current task</h3><a class="ghost-btn" href="tasks-habits.html">Change →</a></div><div class="task-row"><span class="nav-icon">◎</span><div class="task-copy"><b>IELTS Listening practice</b><div class="task-meta">35 minutes · High priority</div></div></div></section>
+  <section class="panel"><div class="panel-head"><h3>Session plan</h3><span class="tiny muted">25 / 5 / 15</span></div><div class="goal-row"><b>Focus interval</b><span>25 min</span></div><div class="goal-row"><b>Short break</b><span>5 min</span></div><div class="goal-row"><b>Long break</b><span>15 min</span></div><div class="goal-row"><b>Daily focus goal</b><span>2 hours</span></div></section>
+  <section class="panel"><div class="panel-head"><h3>Focus audio</h3><span class="tiny muted">Preview controls</span></div><div class="grid grid-2"><button class="ghost-btn" onclick="this.classList.toggle('btn-gold')">White noise</button><button class="ghost-btn" onclick="this.classList.toggle('btn-gold')">Rain</button><button class="ghost-btn" onclick="this.classList.toggle('btn-gold')">Brown noise</button><button class="ghost-btn" onclick="this.classList.toggle('btn-gold')">Night synth</button></div><div class="field"><label>Volume</label><input type="range" min="0" max="100" value="40"></div></section>
+ </aside>
+</div>
+</section>
+</main>
+</div>
+<div class="toast" role="status" aria-live="polite"></div>
+<script src="aurestar-ui.js"></script>
+</body></html>
