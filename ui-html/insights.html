@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#211217">
+<title>Insights · Aurestar</title>
+<link rel="stylesheet" href="aurestar-ui.css">
+</head>
+<body>
+<div class="app-shell">
+<aside class="sidebar">
+  <a class="brand" href="overview.html"><span class="brand-mark">✦</span><span><span class="brand-name">AURESTAR</span><span class="brand-sub">STUDY SPACE · ONE STEP AT A TIME</span></span></a>
+  <div class="nav-label">WORKSPACE</div>
+  <nav class="nav">
+    <a class="" href="overview.html"><span class="nav-icon">◫</span>Overview</a>
+    <a class="" href="tasks-habits.html"><span class="nav-icon">☷</span>Tasks &amp; Habits</a>
+    <a class="" href="focus.html"><span class="nav-icon">◉</span>Focus</a>
+    <a class="" href="calendar.html"><span class="nav-icon">▦</span>Calendar</a>
+    <a class="" href="training.html"><span class="nav-icon">↗</span>Training</a>
+    <a class="active" href="insights.html"><span class="nav-icon">⌁</span>Insights</a>
+  </nav>
+  <div class="sidebar-bottom"><a class="nav " href="settings.html"><span class="nav-icon">⚙</span>Settings</a><div class="sidebar-note">Local-first workspace<br><span style="color:var(--rose2)">Professional Edition · UI preview</span></div></div>
+</aside>
+<main class="main-area">
+<header class="topbar">
+  <div class="top-title"><div class="crumb">AURESTAR <span>/</span> INSIGHTS</div><h1>Insights</h1></div>
+  <div class="search"><input type="search" placeholder="Search tasks…" aria-label="Search tasks"></div>
+  <div class="top-actions"><button class="icon-btn" type="button" title="Import preview" onclick="alert('UI preview only')">↓</button><button class="icon-btn" type="button" title="Export preview" onclick="alert('UI preview only')">↑</button></div>
+</header>
+<section class="content">
+<header class="page-head"><div><div class="eyebrow">INSIGHTS</div><h2>Progress &amp; Motivation</h2><p>Understand your momentum, then choose the next meaningful action.</p></div><span class="pill">Last 30 days</span></header>
+<div class="tabs" data-tab-group><button class="tab active" data-tab="progress">Progress</button><button class="tab" data-tab="motivation">Motivation</button></div>
+<div data-tab-panel="progress">
+ <section class="stats"><div class="stat"><span class="stat-label">Completed actions</span><strong class="stat-value">86</strong><span class="stat-foot">Across tasks, habits and focus</span></div><div class="stat"><span class="stat-label">Focus sessions</span><strong class="stat-value">24</strong><span class="stat-foot">14h 20m total focus</span></div><div class="stat"><span class="stat-label">Best streak</span><strong class="stat-value">18 days</strong><span class="stat-foot">Current streak · 12 days</span></div></section>
+ <div class="grid grid-2"><section class="panel insight-card"><div class="panel-head"><h3>Weekly activity</h3><span class="tiny muted">Completed actions</span></div><div class="sparkline"><span style="height:32%"></span><span style="height:55%"></span><span style="height:42%"></span><span style="height:72%"></span><span style="height:60%"></span><span style="height:88%"></span><span style="height:76%"></span><span style="height:94%"></span><span style="height:64%"></span><span style="height:82%"></span><span style="height:100%"></span><span style="height:73%"></span></div></section><section class="panel insight-card"><div class="panel-head"><h3>Focus distribution</h3><span class="tiny muted">This month</span></div><div class="stat-value">14h 20m</div><div class="progress"><i style="width:72%"></i></div><div class="goal-row"><span class="muted">Study sessions</span><b>24</b></div><div class="goal-row"><span class="muted">Daily average</span><b>29 min</b></div></section></div>
+</div>
+<div data-tab-panel="motivation" hidden>
+ <div class="grid grid-2"><section class="panel"><div class="kicker">A NOTE FOR TODAY</div><p class="quote">“Great things are done by a series of small things brought together.”</p><div class="quote-by">ONE STEP AT A TIME</div><p class="small muted" style="margin-top:18px">You do not need a perfect day. Choose one task, begin, and let consistency do its work.</p></section>
+ <section class="panel"><div class="panel-head"><h3>Motivation library</h3><span class="tiny muted">Saved items</span></div><div class="item-list"><div class="task-row"><span class="nav-icon">▶</span><div class="task-copy"><b>Study with intention</b><div class="task-meta">Saved video · 04:12</div></div><span class="priority">Saved</span></div><div class="task-row"><span class="nav-icon">✦</span><div class="task-copy"><b>Small progress is still progress</b><div class="task-meta">Daily reminder</div></div></div></div><button class="btn btn-primary" style="margin-top:13px" onclick="toast('Motivation controls are preview-only')">＋ Add motivation item</button></section></div>
+</div>
+</section>
+</main>
+</div>
+<div class="toast" role="status" aria-live="polite"></div>
+<script src="aurestar-ui.js"></script>
+</body></html>
