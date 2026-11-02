@@ -34,6 +34,9 @@ jobs:
           node --check renderer.js
           node --check ../legacy-extension/Aurestar/background.js
           node -e "JSON.parse(require('node:fs').readFileSync('package.json','utf8')); console.log('package.json valid')"
+      - name: Run startup regression tests
+        working-directory: desktop
+        run: npm test
       - name: Package Windows app
         working-directory: desktop
         run: npm run dist
