@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Tray, Menu, Notification, ipcMain, dialog, shell, nativeImage, globalShortcut, powerMonitor } = require('electron');
+const { app, BrowserWindow, Tray, Menu, Notification, ipcMain, dialog, shell, nativeImage, globalShortcut, powerMonitor, screen } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
 const { fileURLToPath } = require('node:url');
@@ -10,8 +10,10 @@ const portableDataPath=process.env.PORTABLE_EXECUTABLE_DIR?path.join(process.env
 app.setPath('userData',testDataPath||portableDataPath||path.join(app.getPath('appData'),'aurestar-desktop'));
 
 const APP_NAME = 'Aurestar';
-let win = null, tray = null, pomodoroWidget = null, itsukiWindow = null, reminderWindow = null, reminderTimer = null, focusTickTimer = null, focusSaveCounter = 0;
+let win = null, tray = null, pomodoroWidget = null, itsukiWindow = null, reminderWindow = null, reminderTimer = null;
 let state = null;
+const widgetPositionTimers=new Map();
+const widgetLayout={pomodoro:{width:228,height:92,setting:'pomodoroWidgetPosition'},itsuki:{width:316,height:112,setting:'itsukiWidgetPosition'}};
 const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
 const dataDir = () => app.getPath('userData');
 const dataFile = () => path.join(dataDir(), 'aurestar-data.json');
@@ -96,7 +98,11 @@ function chromeStorageSet(items){
     if(wasWidgetEnabled!==nextWidgetEnabled){if(nextWidgetEnabled)createPomodoroWidget();else closePomodoroWidget();}
     const wasCompanionEnabled=previous.privacyMode!==true&&previous.itsukiCompanionEnabled!==false;
     const nextCompanionEnabled=settings.privacyMode!==true&&settings.itsukiCompanionEnabled!==false;
-    if(wasCompanionEnabled!==nextCompanionEnabled){if(nextCompanionEnabled)createItsuki();else hideItsuki();}
+    if(wasCompanionEnabled!==nextCompanionEnabled){if(nextCompanionEnabled)createItsuki();else hideItsuki({persist:false});}
+  }
+  const expression=changes.itsukiExpressionState?.newValue;
+  if(['wind-down','sleep'].includes(String(expression?.event||''))&&store.settings?.privacyMode!==true&&store.settings?.itsukiCompanionEnabled!==false){
+    store.settings.itsukiWidgetHiddenByUser=false;state=store;saveState();createItsuki({scheduled:true});
   }
   broadcastChromeStorage(changes);return true;
 }
@@ -215,68 +221,98 @@ function checkSchedule(){
     try{fs.mkdirSync(backupDir(),{recursive:true});fs.copyFileSync(dataFile(),path.join(backupDir(),`aurestar-${today()}.json`));state.remindersSent[today()+':backup']=Date.now();saveState();}catch(e){console.error('Auto backup failed',e);}
   }
 }
-function tickFocus(){
-  if(!state?.focus?.active || state.focus.paused) return;
-  state.focus.remaining=Math.max(0,Number(state.focus.remaining||0)-1);
-  focusSaveCounter++;
-  if(state.focus.remaining===0){
-    if(state.focus.phase==='break'){
-      const next=(Number(state.settings.focusPreset)||25)*60;
-      state.focus={...state.focus,active:false,paused:false,phase:'focus',remaining:next,total:next,startedAt:0};
-      showReminderLine('Break complete. Start your next focus session.');
-    } else {
-      const minutes=Math.max(1,Math.round((Number(state.focus.total)||1500)/60));
-      state.focusSessions.push({id:crypto.randomUUID(),date:today(),minutes,createdAt:Date.now()});
-      state.profile.totalFocusMinutes=(state.profile.totalFocusMinutes||0)+minutes;
-      state.profile.xp=(state.profile.xp||0)+minutes;
-      state.completions.push({kind:'focus',date:today(),minutes,at:Date.now()});
-      const cycles=(state.focus.completedCycles||0)+1;
-      const every=Math.max(1,Number(state.settings.focusLongBreakEvery)||4);
-      const breakMinutes=cycles%every===0?(Number(state.settings.focusLongBreak)||15):(Number(state.settings.focusShortBreak)||5);
-      state.focus={...state.focus,active:false,paused:false,phase:'break',remaining:breakMinutes*60,total:breakMinutes*60,startedAt:0,completedCycles:cycles};
-      showReminderLine('Take a breath. Drink some water. Begin again.');
+function clampWidgetPosition(bounds){
+  const display=screen.getDisplayNearestPoint({x:Math.round(bounds.x+bounds.width/2),y:Math.round(bounds.y+bounds.height/2)}),area=display.workArea;
+  return {x:Math.min(area.x+area.width-bounds.width,Math.max(area.x,Math.round(bounds.x))),y:Math.min(area.y+area.height-bounds.height,Math.max(area.y,Math.round(bounds.y)))};
+}
+function widgetPosition(key){
+  const layout=widgetLayout[key],area=screen.getPrimaryDisplay().workArea,stored=state?.settings?.[layout.setting];
+  const desired=stored&&Number.isFinite(Number(stored.x))&&Number.isFinite(Number(stored.y))?{x:Number(stored.x),y:Number(stored.y)}:
+    key==='pomodoro'?{x:area.x+area.width-layout.width-16,y:area.y+16}:{x:area.x+16,y:area.y+area.height-layout.height-16};
+  return clampWidgetPosition({...desired,width:layout.width,height:layout.height});
+}
+function overlaps(a,b){return a.x<b.x+b.width&&a.x+a.width>b.x&&a.y<b.y+b.height&&a.y+a.height>b.y;}
+function persistWidgetPositionNow(key,browserWindow){
+  const pending=widgetPositionTimers.get(key);if(pending)clearTimeout(pending);widgetPositionTimers.delete(key);
+  if(!browserWindow||browserWindow.isDestroyed()||!state)return;
+  const [x,y]=browserWindow.getPosition(),setting=widgetLayout[key].setting;state.settings={...(state.settings||{}),[setting]:{x,y}};saveState();
+}
+function saveWidgetPosition(key,browserWindow){
+  const pending=widgetPositionTimers.get(key);if(pending)clearTimeout(pending);
+  widgetPositionTimers.set(key,setTimeout(()=>persistWidgetPositionNow(key,browserWindow),350));
+}
+function trackWidgetPosition(key,browserWindow){
+  browserWindow.on('move',()=>{
+    if(browserWindow.isDestroyed())return;
+    const [x,y]=browserWindow.getPosition(),layout=widgetLayout[key],clamped=clampWidgetPosition({x,y,width:layout.width,height:layout.height});
+    if(x!==clamped.x||y!==clamped.y)browserWindow.setPosition(clamped.x,clamped.y);
+    const other=key==='pomodoro'?itsukiWindow:pomodoroWidget;
+    if(other&&!other.isDestroyed()&&other.isVisible()){
+      const [ox,oy]=other.getPosition(),otherSize=other.getBounds(),otherBounds={x:ox,y:oy,width:otherSize.width,height:otherSize.height};
+      if(overlaps({...clamped,width:layout.width,height:layout.height},otherBounds)){
+        const area=screen.getDisplayNearestPoint({x:clamped.x+layout.width/2,y:clamped.y+layout.height/2}).workArea;
+        const candidates=[{x:area.x+12,y:area.y+12},{x:area.x+area.width-layout.width-12,y:area.y+12},{x:area.x+12,y:area.y+area.height-layout.height-12},{x:area.x+area.width-layout.width-12,y:area.y+area.height-layout.height-12}]
+          .map(pos=>({...pos,width:layout.width,height:layout.height})).filter(pos=>!overlaps(pos,otherBounds));
+        if(candidates.length){candidates.sort((a,b)=>Math.hypot(a.x-clamped.x,a.y-clamped.y)-Math.hypot(b.x-clamped.x,b.y-clamped.y));browserWindow.setPosition(candidates[0].x,candidates[0].y);}
+      }
     }
-    focusSaveCounter=0;
+    saveWidgetPosition(key,browserWindow);
+  });
+  browserWindow.on('close',()=>persistWidgetPositionNow(key,browserWindow));
+}
+function separateWidgets(){
+  if(!pomodoroWidget||pomodoroWidget.isDestroyed()||!pomodoroWidget.isVisible()||!itsukiWindow||itsukiWindow.isDestroyed()||!itsukiWindow.isVisible())return;
+  const [px,py]=pomodoroWidget.getPosition(),[ix,iy]=itsukiWindow.getPosition(),ib=itsukiWindow.getBounds(),pb=pomodoroWidget.getBounds();
+  if(!overlaps({x:px,y:py,width:pb.width,height:pb.height},{x:ix,y:iy,width:ib.width,height:ib.height}))return;
+  const area=screen.getDisplayNearestPoint({x:ix+ib.width/2,y:iy+ib.height/2}).workArea;
+  const positions=[{x:area.x+12,y:area.y+area.height-ib.height-12},{x:area.x+area.width-ib.width-12,y:area.y+12},{x:area.x+area.width-ib.width-12,y:area.y+area.height-ib.height-12},{x:area.x+12,y:area.y+12}];
+  const open=positions.find(pos=>!overlaps({...pos,width:ib.width,height:ib.height},{x:px,y:py,width:pb.width,height:pb.height}));
+  if(open){itsukiWindow.setPosition(open.x,open.y);saveWidgetPosition('itsuki',itsukiWindow);}
+}
+function repositionWidgetsForDisplayChange(){
+  for(const [key,browserWindow] of [['pomodoro',pomodoroWidget],['itsuki',itsukiWindow]]){
+    if(!browserWindow||browserWindow.isDestroyed())continue;
+    const [x,y]=browserWindow.getPosition(),layout=widgetLayout[key],next=clampWidgetPosition({x,y,width:layout.width,height:layout.height});
+    if(x!==next.x||y!==next.y){browserWindow.setPosition(next.x,next.y);saveWidgetPosition(key,browserWindow);}
   }
-  if(focusSaveCounter>=10 || focusSaveCounter===0){saveState();focusSaveCounter=0;}
-  win?.webContents.send('aurestar:state',state);broadcastWidget();broadcastItsuki('focus-tick');
+  separateWidgets();
 }
-
-function widgetPayload(){return {focus:state?.focus||{},settings:state?.settings||{}};}
-function broadcastWidget(){if(pomodoroWidget&&!pomodoroWidget.isDestroyed())pomodoroWidget.webContents.send('pomodoro:state',widgetPayload());}
-
-function broadcastItsuki(eventName){
-  if(itsukiWindow&&!itsukiWindow.isDestroyed())itsukiWindow.webContents.send('itsuki:event',{event:eventName,focus:state?.focus||{}});
-}
-function createItsuki(){
+screen.on('display-metrics-changed',repositionWidgetsForDisplayChange);
+screen.on('display-added',repositionWidgetsForDisplayChange);
+screen.on('display-removed',repositionWidgetsForDisplayChange);
+function createItsuki(options={}){
+  if(state?.settings?.privacyMode===true||state?.settings?.itsukiCompanionEnabled===false)return;
+  if(options.startup&&state?.settings?.itsukiWidgetHiddenByUser===true)return;
+  if(!options.startup){state.settings={...(state.settings||{}),itsukiWidgetHiddenByUser:false};saveState();}
   if(itsukiWindow&&!itsukiWindow.isDestroyed()){itsukiWindow.show();itsukiWindow.moveTop();return;}
-  const area=require('electron').screen.getPrimaryDisplay().workArea;
-  itsukiWindow=new BrowserWindow({width:370,height:330,x:18,y:Math.max(12,area.y+area.height-350),frame:false,transparent:true,alwaysOnTop:true,skipTaskbar:true,resizable:false,show:false,backgroundColor:'#00000000',webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true}});
-  secureWindow(itsukiWindow);
-  bindAltToggle(itsukiWindow);
+  const {x,y}=widgetPosition('itsuki');
+  itsukiWindow=new BrowserWindow({width:widgetLayout.itsuki.width,height:widgetLayout.itsuki.height,x,y,frame:false,transparent:true,alwaysOnTop:true,skipTaskbar:true,resizable:false,show:false,backgroundColor:'#00000000',webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true}});
+  secureWindow(itsukiWindow);bindAltToggle(itsukiWindow);trackWidgetPosition('itsuki',itsukiWindow);
   itsukiWindow.loadFile(path.join(__dirname,'itsuki.html'));
-  itsukiWindow.once('ready-to-show',()=>{itsukiWindow?.show();itsukiWindow?.moveTop();broadcastItsuki('startup');});
-  itsukiWindow.on('close',e=>{if(!app.isQuitting){e.preventDefault();itsukiWindow.hide();}});
+  itsukiWindow.once('ready-to-show',()=>{itsukiWindow?.show();itsukiWindow?.moveTop();separateWidgets();});
+  itsukiWindow.on('close',e=>{if(!app.isQuitting){e.preventDefault();hideItsuki();}});
   itsukiWindow.on('closed',()=>{itsukiWindow=null;});
 }
-function hideItsuki(){if(itsukiWindow&&!itsukiWindow.isDestroyed())itsukiWindow.hide();}
+function hideItsuki({persist=true}={}){if(persist&&state){state.settings={...(state.settings||{}),itsukiWidgetHiddenByUser:true};saveState();}if(itsukiWindow&&!itsukiWindow.isDestroyed())itsukiWindow.hide();}
 
 function createPomodoroWidget(){
   if(pomodoroWidget&&!pomodoroWidget.isDestroyed()){pomodoroWidget.show();pomodoroWidget.moveTop();return;}
-  pomodoroWidget=new BrowserWindow({width:300,height:176, x:Math.max(12,require('electron').screen.getPrimaryDisplay().workAreaSize.width-320),y:90,frame:false,transparent:true,alwaysOnTop:true,skipTaskbar:true,resizable:false,minimizable:false,maximizable:false,closable:true,show:false,backgroundColor:'#00000000',webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true}});
-  secureWindow(pomodoroWidget);
-  bindAltToggle(pomodoroWidget);
+  const {x,y}=widgetPosition('pomodoro');
+  pomodoroWidget=new BrowserWindow({width:widgetLayout.pomodoro.width,height:widgetLayout.pomodoro.height,x,y,frame:false,transparent:true,alwaysOnTop:true,skipTaskbar:true,resizable:false,minimizable:false,maximizable:false,closable:true,show:false,backgroundColor:'#00000000',webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true}});
+  secureWindow(pomodoroWidget);bindAltToggle(pomodoroWidget);trackWidgetPosition('pomodoro',pomodoroWidget);
   pomodoroWidget.loadFile(path.join(__dirname,'pomodoro-widget.html'));
-  pomodoroWidget.once('ready-to-show',()=>{pomodoroWidget?.show();pomodoroWidget?.moveTop();broadcastWidget();});
+  pomodoroWidget.once('ready-to-show',()=>{pomodoroWidget?.show();pomodoroWidget?.moveTop();separateWidgets();});
   pomodoroWidget.on('closed',()=>{pomodoroWidget=null;});
 }
 function closePomodoroWidget(){if(pomodoroWidget&&!pomodoroWidget.isDestroyed())pomodoroWidget.close();}
 
 function createWindow(initialView='dashboard'){
+  const allowedViews=['dashboard','today','tasks','focus','gym','calendar','analytics','settings'];
+  const route=allowedViews.includes(String(initialView))?String(initialView):'dashboard';
   win=new BrowserWindow({width:1440,height:920,minWidth:1024,minHeight:700,show:false,backgroundColor:'#211217',title:APP_NAME,autoHideMenuBar:true,webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true}});
   secureWindow(win);
   bindAltToggle(win);
-  win.loadFile(path.join(__dirname,'index.html'),{hash:String(initialView||'dashboard').replace(/^#/,'')});
+  win.loadFile(path.join(__dirname,'index.html'),{hash:route.replace(/^#/,'')});
   win.once('ready-to-show',()=>win.show());
   win.on('close',(e)=>{if(state?.settings?.minimizeToTray && tray && !app.isQuitting){e.preventDefault();win.hide();}});
   win.on('closed',()=>{win=null;});
@@ -298,11 +334,11 @@ function createTray(){
   tray.on('double-click',()=>{if(!win)createWindow();else win.show();});
 }
 function showMainWindow(view='dashboard'){
-  if(!win||win.isDestroyed())createWindow(view);
+  const target=String(view||'dashboard');
+  if(!['dashboard','today','tasks','focus','gym','calendar','analytics','settings'].includes(target))return;
+  if(!win||win.isDestroyed())createWindow(target);
   else{
     win.show();win.focus();
-    const target=String(view||'dashboard');
-    if(!['dashboard','today','tasks','focus','gym','calendar','analytics','motivation','settings'].includes(target))return;
     const navigate=()=>win&&!win.isDestroyed()&&win.webContents.send('aurestar:navigate',target);
     if(win.webContents.isLoadingMainFrame())win.webContents.once('did-finish-load',navigate);else navigate();
   }
@@ -364,13 +400,6 @@ ipcMain.handle('app:reminder',(_event,payload)=>{
   const messages={wake:'Good morning. Get ready and start with one small task.',study:'Choose one task and begin now.', 'wind-down':'It is time to wind down and prepare for sleep.',sleep:'Put your devices away and get ready for bed.'};
   showReminderLine(payload?.text||messages[String(payload?.type||'').toLowerCase()]||'Your Aurestar reminder is ready.');return {ok:true};
 });
-ipcMain.handle('app:open-motivation',async(_event,id)=>{
-  const item=(state?.motivationVideos||[]).find(video=>String(video.id)===String(id));
-  if(!item?.url)return {ok:false};
-  let url;try{url=new URL(String(item.url));}catch{return {ok:false};}
-  if(!['http:','https:'].includes(url.protocol))return {ok:false};
-  await shell.openExternal(url.href);return {ok:true};
-});
 ipcMain.handle('chrome:background-script-url',()=>{
   const file=app.isPackaged?path.join(process.resourcesPath,'aurestar-chrome','background.js'):path.join(__dirname,'..','resources','aurestar-chrome','background.js');
   return require('node:url').pathToFileURL(file).href;
@@ -380,19 +409,14 @@ ipcMain.handle('chrome:notification',(_event,payload)=>{
   if(Notification.isSupported())new Notification({title:String(options.title||APP_NAME),body:String(options.message||''),silent:!!options.silent}).show();
   return String(payload?.id||'');
 });
-ipcMain.on('itsuki:drag',(_event,{dx=0,dy=0}={})=>{
-  if(!itsukiWindow||itsukiWindow.isDestroyed())return;
-  const [x,y]=itsukiWindow.getPosition();itsukiWindow.setPosition(x+Math.round(Number(dx)||0),y+Math.round(Number(dy)||0));
-});
 ipcMain.handle('state:get',()=>state);
 ipcMain.handle('pomodoro:widget-close',()=>{closePomodoroWidget();return {ok:true};});
 ipcMain.handle('pomodoro:widget-open',()=>{createPomodoroWidget();return {ok:true};});
 ipcMain.handle('itsuki:hide',()=>{hideItsuki();return {ok:true};});
 ipcMain.handle('itsuki:show',()=>{createItsuki();return {ok:true};});
-ipcMain.handle('itsuki:dismiss',()=>{broadcastItsuki('dismiss');return {ok:true};});
 ipcMain.handle('app:show',(_event,view='dashboard')=>{showMainWindow(view);return {ok:true};});
 ipcMain.handle('itsuki:art-url',(_e,index=0)=>{const n=Math.max(1,Math.min(30,Number(index)||1));const file=path.join(app.isPackaged?process.resourcesPath:path.join(__dirname,'..','resources'),'itsuki','expressions',`${n}.jpg`);return require('node:url').pathToFileURL(file).href;});
-ipcMain.handle('state:save',(_e,next)=>{if(!next||typeof next!=='object')throw new Error('Invalid state');const previousStart=Boolean(state?.settings?.startWithWindows);state={...state,...next};saveState();broadcastWidget();if(process.platform==='win32'&&Boolean(state.settings?.startWithWindows)!==previousStart)app.setLoginItemSettings({openAtLogin:Boolean(state.settings.startWithWindows)});return state;});
+ipcMain.handle('state:save',(_e,next)=>{if(!next||typeof next!=='object')throw new Error('Invalid state');const previousStart=Boolean(state?.settings?.startWithWindows);state={...state,...next};saveState();if(process.platform==='win32'&&Boolean(state.settings?.startWithWindows)!==previousStart)app.setLoginItemSettings({openAtLogin:Boolean(state.settings.startWithWindows)});return state;});
 ipcMain.handle('task:complete',(_e,{id,date=today()})=>{
   const t=state.tasks.find(x=>String(x.id)===String(id));if(!t)return {ok:false};
   t.completedDates=Array.isArray(t.completedDates)?t.completedDates:[];
@@ -400,9 +424,6 @@ ipcMain.handle('task:complete',(_e,{id,date=today()})=>{
   if(done)t.completedDates=t.completedDates.filter(d=>d!==date);else{t.completedDates.push(date);state.completions.push({id:String(id),kind:'task',date,at:Date.now()});state.profile.xp=(state.profile.xp||0)+10;}
   saveState();return {ok:true,done:!done,state};
 });
-ipcMain.handle('focus:toggle',()=>{toggleFocus();return state.focus;});
-ipcMain.handle('focus:reset',(_e,minutes)=>{state.focus={...state.focus,active:false,paused:false,phase:'focus',remaining:Math.max(1,Number(minutes)||25)*60,total:Math.max(1,Number(minutes)||25)*60,startedAt:0};saveState();broadcastWidget();return state.focus;});
-ipcMain.handle('focus:finish',(_e,minutes)=>{const n=Math.max(1,Number(minutes)||25);state.focusSessions.push({id:crypto.randomUUID(),date:today(),minutes:n,createdAt:Date.now()});state.profile.totalFocusMinutes=(state.profile.totalFocusMinutes||0)+n;state.profile.xp=(state.profile.xp||0)+n;const cycles=(state.focus.completedCycles||0)+1;const every=Math.max(1,Number(state.settings.focusLongBreakEvery)||4);const breakMinutes=cycles%every===0?(Number(state.settings.focusLongBreak)||15):(Number(state.settings.focusShortBreak)||5);state.focus={...state.focus,active:false,paused:false,phase:'break',remaining:breakMinutes*60,total:breakMinutes*60,startedAt:0,completedCycles:cycles};state.completions.push({kind:'focus',date:today(),minutes:n,at:Date.now()});saveState();showReminderLine('Take a breath. Drink some water. Begin again.');broadcastWidget();return state;});
 ipcMain.handle('data:export',async()=>{const r=await dialog.showSaveDialog(win,{title:'Export Aurestar backup',defaultPath:`Aurestar-${today()}.json`,filters:[{name:'JSON backup',extensions:['json']}]});if(r.canceled||!r.filePath)return {canceled:true};writeJsonAtomic(r.filePath,state);return {ok:true,filePath:r.filePath};});
 ipcMain.handle('data:import',async()=>{const r=await dialog.showOpenDialog(win,{title:'Restore Aurestar backup',properties:['openFile'],filters:[{name:'JSON backup',extensions:['json']}]});if(r.canceled||!r.filePaths[0])return {canceled:true};const next=JSON.parse(fs.readFileSync(r.filePaths[0],'utf8'));if(!next||typeof next!=='object'||!Array.isArray(next.tasks))throw new Error('This file is not a valid Aurestar data backup.');if(fs.existsSync(dataFile())){fs.mkdirSync(backupDir(),{recursive:true});fs.copyFileSync(dataFile(),path.join(backupDir(),`aurestar-pre-import-${Date.now()}.json`));}state={...defaultState(),...next,settings:{...defaultState().settings,...next.settings}};chromeStorageCache=state;saveState();win?.webContents.send('aurestar:state',state);return {ok:true,state};});
 ipcMain.handle('backup:now',()=>{fs.mkdirSync(backupDir(),{recursive:true});const p=path.join(backupDir(),`aurestar-${today()}-${Date.now()}.json`);fs.copyFileSync(dataFile(),p);return {ok:true,path:p};});
@@ -430,7 +451,7 @@ function initializeNativeServices(){
   powerMonitor.on('unlock-screen',()=>{lastIdleState='idle';pollSystemIdle();});
 }
 app.whenReady().then(()=>{
-  initializeNativeServices();state=readState();saveState();createBackgroundWindow();createWindow();createTray();createApplicationMenu();if(state.settings?.focusWidgetEnabled!==false)createPomodoroWidget();
+  initializeNativeServices();state=readState();saveState();createBackgroundWindow();createWindow();createTray();createApplicationMenu();if(state.settings?.focusWidgetEnabled!==false)createPomodoroWidget();if(state.settings?.itsukiCompanionEnabled!==false&&state.settings?.privacyMode!==true)createItsuki({startup:true});
   globalShortcut.register('CommandOrControl+Shift+L',toggleFocus);
   globalShortcut.register('CommandOrControl+Shift+K',()=>{if(!win)createWindow();win?.show();win?.webContents.send('aurestar:quick-add');});
   // A bare Alt key is handled by before-input-event while an Aurestar window is focused.
@@ -438,7 +459,7 @@ app.whenReady().then(()=>{
   if(process.platform==='win32' && state.settings.startWithWindows){app.setLoginItemSettings({openAtLogin:true});}
   app.on('activate',()=>{if(!win)createWindow();else win.show();const prefs=chromeStorageGet('settings').settings||{};if(!pomodoroWidget&&prefs.focusWidgetEnabled!==false)createPomodoroWidget();});
 });
-app.on('before-quit',()=>{app.isQuitting=true;if(reminderTimer)clearTimeout(reminderTimer);if(idlePollTimer)clearInterval(idlePollTimer);nativeAlarms?.close();if(focusTickTimer)clearInterval(focusTickTimer);globalShortcut.unregisterAll();if(state&&chromeStorageCache)saveState();});
+app.on('before-quit',()=>{app.isQuitting=true;if(reminderTimer)clearTimeout(reminderTimer);if(idlePollTimer)clearInterval(idlePollTimer);nativeAlarms?.close();persistWidgetPositionNow('pomodoro',pomodoroWidget);persistWidgetPositionNow('itsuki',itsukiWindow);globalShortcut.unregisterAll();if(state&&chromeStorageCache)saveState();});
 app.on('window-all-closed',()=>{if(process.platform!=='darwin' && !state?.settings?.minimizeToTray)app.quit();});
 app.whenReady().catch(error=>{
   console.error('Aurestar startup failed safely:',error);

@@ -32,12 +32,6 @@ const DEFAULT_SETTINGS = {
   alarmDuration: 12,
   autoBackup: true,
   backupTime: "23:30",
-  motivationAutoOpen: false,
-  motivationIntervalMinutes: 10,
-  motivationFixedEnabled: false,
-  motivationFixedVideoId: "",
-  motivationFixedTime: "18:00",
-  motivationQuietHours: [],
   blockedWebsites: ["tiktok.com","facebook.com"],
   focusAutoBreak: false,
   focusAutoStart: false,
@@ -134,7 +128,7 @@ function normalize(raw){
   const s={...DEFAULT_STATE,...(raw||{})};
   s.settings={...DEFAULT_SETTINGS,...(raw?.settings||{})};
   s.settings.language="en";
-  if(s.settings.privacyMode===true){s.settings.notifications=false;s.settings.taskReminders=false;s.settings.alarmSound=false;s.settings.itsukiCompanionEnabled=false;s.settings.itsukiCompanionNotifications=false;s.settings.itsukiCompanionDailyReminder=false;s.settings.motivationAutoOpen=false;s.settings.motivationFixedEnabled=false;}
+  if(s.settings.privacyMode===true){s.settings.notifications=false;s.settings.taskReminders=false;s.settings.alarmSound=false;s.settings.itsukiCompanionEnabled=false;s.settings.itsukiCompanionNotifications=false;s.settings.itsukiCompanionDailyReminder=false;}
   s.settings.focusAutoBreak=false;
   s.settings.focusAutoStart=false;
   s.settings.focusAutoCycle=s.settings.focusAutoCycle===true;
@@ -179,13 +173,7 @@ function normalize(raw){
   s.focusPresence={active:Boolean(raw?.focusPresence?.active),lastHeartbeat:Number(raw?.focusPresence?.lastHeartbeat)||0,startedAt:Number(raw?.focusPresence?.startedAt)||0};
   const fe=raw?.focusEngine||{}; s.focusEngine={active:Boolean(fe.active),phase:["focus","break","idle"].includes(String(fe.phase))?String(fe.phase):"idle",mode:normalizeFocusMinutes(fe.mode||25),startedAt:Number(fe.startedAt)||0,endsAt:Number(fe.endsAt)||0,remaining:Math.max(0,Number(fe.remaining)||0),paused:Boolean(fe.paused),pomodorosCompleted:Math.max(0,Math.floor(Number(fe.pomodorosCompleted)||0)),roundsTarget:Math.min(20,Math.max(1,Math.floor(Number(fe.roundsTarget)||4))),taskId:String(fe.taskId||""),breakKind:["short","long"].includes(String(fe.breakKind))?String(fe.breakKind):"short",free:false,sessionStartedAt:Number(fe.sessionStartedAt||fe.startedAt)||0,countdown:true};
   s.motivationLastVideoId=String(raw?.motivationLastVideoId||"");s.motivationLastOpenedAt=Number(raw?.motivationLastOpenedAt)||0;
-  s.settings.motivationAutoOpen=false;
-  s.settings.motivationIntervalMinutes=10;
-  s.settings.motivationFixedEnabled=false;
-  s.settings.motivationFixedVideoId=String(s.settings.motivationFixedVideoId||"");
-  s.settings.motivationFixedTime=/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(String(s.settings.motivationFixedTime||""))?String(s.settings.motivationFixedTime):"18:00";
-  s.settings.motivationQuietHours=Array.isArray(s.settings.motivationQuietHours)?s.settings.motivationQuietHours.map(x=>({start:String(x?.start||""),end:String(x?.end||"")})).filter(x=>/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(x.start)&&/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(x.end)):[];
-  // Motivation records are normalized below; do not discard local or YouTube entries here.
+  // Preserve legacy video records as opaque backup data; the application no longer exposes a player.
   s.motivationVideos=Array.isArray(s.motivationVideos)?s.motivationVideos:[];
   s.profile.xpHistory=Array.isArray(s.profile.xpHistory)?s.profile.xpHistory:[];s.profile.levelHistory=Array.isArray(s.profile.levelHistory)?s.profile.levelHistory:[];s.profile.xpAwards=Array.isArray(s.profile.xpAwards)?s.profile.xpAwards:[];
   s.profile.coins=Number(s.profile.coins)||0;s.profile.milestoneClaims=Array.isArray(s.profile.milestoneClaims)?s.profile.milestoneClaims:[];s.profile.points=Number(s.profile.points)||0;s.profile.pointsHistory=Array.isArray(s.profile.pointsHistory)?s.profile.pointsHistory:[];s.profile.levelPointsGrantedThrough=Math.max(1,Number(s.profile.levelPointsGrantedThrough)||1);
@@ -267,7 +255,6 @@ function normalize(raw){
   s.profile.character.maxHp=Math.max(1,Number(s.profile.character.maxHp)||100);
   s.profile.character.hp=Math.max(0,Math.min(s.profile.character.maxHp,Number.isFinite(Number(s.profile.character.hp))?Number(s.profile.character.hp):s.profile.character.maxHp));
   for(const k of ["lists","tasks","habits","goals","focusSessions","completions","achievements","reviews","motivationVideos","workoutSessions"])if(!Array.isArray(s[k]))s[k]=[];
-  normalizeMotivationVideos(s);
   s.workoutSessions=Array.isArray(s.workoutSessions)?s.workoutSessions:[];
   s.workoutEngine={active:false,phase:"idle",paused:false,date:"",startedAt:0,phaseStartedAt:0,endsAt:0,remaining:0,elapsedBase:0,taskIds:[],taskIndex:0,setIndex:0,circuitRound:0,circuitIndex:0,session:null,timerKind:"countdown",...(raw?.workoutEngine||{})};
   s.tasks=s.tasks.map(t=>({...t,workoutConfig:workoutEnsureTaskConfig(t).workoutConfig}));
@@ -298,7 +285,6 @@ function migrate(s){
     s.completions=[];
     s.achievements=[];
     s.reviews=[];
-    s.motivationVideos=[];
     s.dataMeta.v25SelectiveReset=true;
   // v40: unified Ascended 13 economy and clean legacy penalty data.
   if(Number(s.dataMeta.ascended13EconomyVersion||0)<1){
@@ -315,9 +301,9 @@ function migrate(s){
     s.dataMeta.revision=0;
     s.dataMeta.updatedAt=Date.now();
   }
-  // v36: legacy YouTube motivation links retained in storage but no longer auto-opened.
+  // v36: retain legacy video records for backup compatibility; the retired screen cannot edit them.
   if(Number(s.schemaVersion||0)<36 && !s.dataMeta.v36YouTubeMotivation){
-    s.motivationVideos=normalizeMotivationVideos(s).motivationVideos;
+    s.motivationVideos=Array.isArray(s.motivationVideos)?s.motivationVideos:[];
     s.dataMeta.v36YouTubeMotivation=true;
     s.dataMeta.updatedAt=Date.now();
   }
@@ -423,33 +409,6 @@ function migrate(s){
     s.dataMeta.workoutScheduleVersion=1;
   }
   delete s.rewards;delete s.profile.rewardHistory;delete s.rewardShop;delete s.profile.rewards;delete s.profile.gems;
-}
-// v35/v36: Motivation supports local legacy videos and YouTube links.
-function normalizeMotivationVideos(s){
-  s.motivationVideos=(Array.isArray(s.motivationVideos)?s.motivationVideos:[]).map(v=>{
-    if(v?.local===true&&String(v.storageKey||v.id||"")) return {...v,local:true,tiktok:false,youtube:false,url:"",storageKey:String(v.storageKey||v.id),title:String(v.title||"Local motivation video").trim()||"Local motivation video"};
-    const url=String(v?.url||"").trim();
-    if(/^https?:\/\/(www\.)?tiktok\.com\//i.test(url)&&/\/video\/(\d+)/.test(url)) return {...v,local:false,tiktok:true,youtube:false,url,title:String(v.title||"TikTok motivation").trim()||"TikTok motivation"};
-    const videoId=String(v?.videoId||youtubeVideoIdFromUrl(url));
-    if(url&&videoId) return {...v,local:false,tiktok:false,youtube:true,url:normalizeYouTubeUrl(url)||url,videoId,title:String(v.title||"YouTube motivation").trim()||"YouTube motivation"};
-    return null;
-  }).filter(Boolean);
-  return s;
-}
-function youtubeVideoIdFromUrl(url){
-  try{
-    const u=new URL(String(url||""));
-    const host=u.hostname.toLowerCase().replace(/^www\./,"");
-    if(host==="youtu.be") return (u.pathname.split("/").filter(Boolean)[0]||"").match(/^[A-Za-z0-9_-]{6,}$/)?.[0]||"";
-    if(host==="youtube.com" || host==="m.youtube.com"){
-      if(u.pathname==="/watch") return String(u.searchParams.get("v")||"").match(/^[A-Za-z0-9_-]{6,}$/)?.[0]||"";
-      const m=u.pathname.match(/^\/(?:shorts|embed)\/([A-Za-z0-9_-]{6,})/i);return m?m[1]:"";
-    }
-  }catch{}
-  return "";
-}
-function normalizeYouTubeUrl(url){
-  const id=youtubeVideoIdFromUrl(url);return id?`https://www.youtube.com/watch?v=${id}`:"";
 }
 function eligibleTask(t,k){if(t.archived)return false;const r=t.repeat?.type||"none";if(r==="daily")return !t.repeat.startDate||k>=t.repeat.startDate;if(r==="weekly")return (!t.repeat.startDate||k>=t.repeat.startDate)&&(t.repeat.weekdays||[]).map(Number).includes(weekday(k));return !!t.dueDate&&t.dueDate===k;}
 function plannedTasks(s,k){return s.tasks.filter(t=>eligibleTask(t,k)).sort((a,b)=>((a.dueTime||"99:99").localeCompare(b.dueTime||"99:99")||priorityWeight(b.priority)-priorityWeight(a.priority)));}
@@ -662,22 +621,24 @@ const ITSUKI_LOCAL_CATALOG_PATH = 'assets/itsuki/expressions.json';
 let itsukiCatalogPromise = null;
 let itsukiExpressionQueue = Promise.resolve();
 const ITSUKI_EVENT_PROFILE = {
-  'widget-open': {moods:['cheerful','supportive','confident'],kind:'greeting'},
-  'click': {moods:['displeased','angry','serious','determined','cheerful','supportive','shy'],kind:'interaction'},
-  'tab-change': {moods:['displeased','angry','serious','determined'],kind:'tab-change'},
-  'focus-start': {moods:['determined','serious'],kind:'focus'},
-  'focus-pause': {moods:['relaxed','supportive','sleepy'],kind:'pause'},
-  'focus-resume': {moods:['determined','serious'],kind:'focus'},
-  'focus-stop': {moods:['displeased','angry','serious','determined'],kind:'stop'},
-  'break-start': {moods:['relaxed','sleepy','supportive'],kind:'break'},
-  'break-end': {moods:['determined','displeased','serious'],kind:'break-end'},
-  'focus-complete': {moods:['cheerful','supportive','confident'],kind:'done'},
-  'focus-reminder': {moods:['serious','determined','displeased','angry'],kind:'focus-reminder'},
-  'idle-reminder': {moods:['serious','determined','displeased','angry'],kind:'encouragement'},
-  'distraction': {moods:['serious','displeased','angry','determined'],kind:'warning'},
-  'water': {moods:['supportive','relaxed','sleepy','concerned'],kind:'care'},
-  'return': {moods:['cheerful','supportive','thoughtful'],kind:'return'},
-  'periodic': {moods:[],kind:'portrait-rotation'}
+  'widget-open': {moods:['cheerful','supportive','confident'],kind:'encouragement'},
+  'click': {moods:['cheerful','supportive','thoughtful'],kind:'encouragement'},
+  'tab-change': {moods:['supportive','thoughtful','determined'],kind:'encouragement'},
+  'focus-start': {moods:['determined','supportive'],kind:'focus'},
+  'focus-pause': {moods:['relaxed','supportive'],kind:'pause'},
+  'focus-resume': {moods:['determined','supportive'],kind:'focus'},
+  'focus-stop': {moods:['supportive','thoughtful'],kind:'encouragement'},
+  'break-start': {moods:['relaxed','supportive'],kind:'break'},
+  'break-end': {moods:['determined','supportive'],kind:'focus'},
+  'focus-complete': {moods:['cheerful','supportive','confident'],kind:'encouragement'},
+  'focus-reminder': {moods:['supportive','determined'],kind:'focus'},
+  'idle-reminder': {moods:['supportive','thoughtful'],kind:'encouragement'},
+  'distraction': {moods:['supportive','thoughtful'],kind:'focus'},
+  'water': {moods:['supportive','relaxed'],kind:'focus'},
+  'return': {moods:['cheerful','supportive','thoughtful'],kind:'encouragement'},
+  'wind-down': {moods:['relaxed','supportive'],kind:'wind-down'},
+  'sleep': {moods:['relaxed','supportive'],kind:'sleep'},
+  'periodic': {moods:[],kind:'encouragement'}
 };
 function itsukiExpressionTone(item){
   const e=String(item?.primaryExpression||'').toLowerCase();
@@ -724,68 +685,43 @@ async function loadItsukiLocalCatalog(){
   return itsukiCatalogPromise;
 }
 const ITSUKI_STUDY_LINES=[
-  "Ê, tập trung nào! Cậu định để bài vở tự làm hộ mình à? ...Đùa thôi, bắt đầu từ một câu nhé.",
-  "Đừng có nhìn đồng hồ mãi. Làm xong một phần rồi nghỉ, nghe chưa?",
-  "Khó một chút thì đã sao? Chia nhỏ ra rồi xử lý từng bước. Cậu làm được mà!",
-  "Này, quay lại bàn học đi. Mình đã chọn việc cần làm rồi thì làm cho đến nơi nhé.",
-  "Không cần phải giỏi ngay lập tức đâu. Cứ tiến bộ từng chút một… mình tin cậu.",
-  "Điện thoại để sang bên kia nào. Đừng bắt mình nhắc lần thứ hai đấy!",
-  "Chỉ cần bắt đầu thôi. Phần còn lại cứ để sự tập trung lo… cố lên nhé.",
-  "Cậu đang tiến bộ đấy, dù có thể chưa nhận ra. Tiếp tục nào!",
-  "Đừng so sánh với người khác. Hôm nay chỉ cần tốt hơn hôm qua một chút thôi.",
-  "Thở đều, mở bài ra, làm câu đầu tiên. Rõ ràng vậy mà, đúng không?",
-  "Định bỏ cuộc vì một câu khó à? Nghỉ một nhịp rồi thử lại. Mình chờ được.",
-  "Hoàn thành từng việc một nhé. Mình sẽ… ừm, cổ vũ cậu từ đây."
+  "Choose one clear task and begin with its first small step.",
+  "Stay with the task in front of you. You are making steady progress.",
+  "Take a calm breath, open your notes, and start where you left off.",
+  "One focused step is enough to get moving.",
+  "Keep your attention on the task you chose. You can do this.",
+  "Make the next step clear, then give it your full attention.",
+  "Progress grows one small action at a time.",
+  "Take your time and return to the work when you are ready."
 ];
-const ITSUKI_WAKE_LINES=[
-  "Chào buổi sáng! 5 giờ 30 rồi đó. Dậy thôi… đừng để mình gọi lần nữa nhé!",
-  "Dậy nào, còn ngái ngủ thì rửa mặt uống nước trước. Rồi bắt đầu thật nhẹ nhàng.",
-  "Buổi sáng đến rồi. Cậu đã có mục tiêu hôm nay, giờ chỉ cần bước xuống giường thôi!",
-  "Nào, thức dậy đi. Một việc nhỏ trước đã… cậu làm được mà.",
-  "Đừng cuộn chăn thêm nữa! Sắp xếp bàn học rồi bắt đầu nhé.",
-  "Chào ngày mới. Hôm nay cũng cố gắng vừa sức thôi, đừng ép mình quá nhé."
+const ITSUKI_WIND_DOWN_LINES=[
+  "Wind down now. Close distractions and give yourself time to rest.",
+  "Ease into the evening. Put work aside and prepare for sleep.",
+  "A steady day ends with a quiet wind-down."
 ];
 const ITSUKI_SLEEP_LINES=[
-  "Đủ rồi đó. Hôm nay cậu đã cố gắng mà… giờ nghỉ ngơi đi, nghe chưa?",
-  "Ngủ đủ thì mai mới tỉnh táo được. Tắt màn hình rồi chuẩn bị ngủ nào.",
-  "Cậu làm tốt hôm nay rồi. Đừng cố thêm nữa, mai mình tiếp tục nhé.",
-  "Vẫn còn định lướt điện thoại à? Thôi nào, giờ ngủ quan trọng hơn đó.",
-  "Chuẩn bị đồ cho ngày mai, giảm ánh sáng rồi đi nghỉ nhé. Đừng thức khuya!",
-  "Nghỉ ngơi cũng là nhiệm vụ đấy. Hôm nay kết thúc ở đây thôi.",
-  "Rời màn hình nào. Ngủ ngon… mai lại cùng cố gắng nhé.",
-  "Không cần giải quyết mọi thứ trong một đêm đâu. Nghỉ đi, mình nhắc thật đó."
+  "Your day is complete. Put your devices away and get ready for sleep.",
+  "Close your screens and let yourself rest. Tomorrow can wait.",
+  "You have done enough for today. Let your mind settle and rest."
 ];
 function itsukiTimeBand(now=new Date()){
-  const m=now.getHours()*60+now.getMinutes();
-  // Until 05:30, Itsuki gives sleep/rest reminders. At 05:30 she switches
-  // to wake-up-and-study dialogue until 06:10, then normal study prompts.
-  if(m>=330&&m<370)return {kind:'wake-up-study',interval:10,lines:ITSUKI_WAKE_LINES};
-  if(m>=370&&m<1245)return {kind:'study',interval:10,lines:ITSUKI_STUDY_LINES};
-  if(m>=1245&&m<1320)return {kind:'sleep-early',interval:5,lines:ITSUKI_SLEEP_LINES};
-  return {kind:'sleep-late',interval:15,lines:ITSUKI_SLEEP_LINES};
+  const minute=now.getHours()*60+now.getMinutes();
+  if(minute>=1260||minute<330)return {kind:'sleep',interval:1440,lines:ITSUKI_SLEEP_LINES};
+  if(minute>=1245&&minute<1260)return {kind:'wind-down',interval:15,lines:ITSUKI_WIND_DOWN_LINES};
+  return {kind:'focus',interval:12,lines:ITSUKI_STUDY_LINES};
 }
 async function nextItsukiTimedLine(){
-  const band=itsukiTimeBand();
-  const stored=await chrome.storage.local.get(['itsukiTimedDialogueHistory','itsukiTimedDialogueCursor']);
-  const history=Array.isArray(stored.itsukiTimedDialogueHistory)?stored.itsukiTimedDialogueHistory:[];
-  const cursor=Math.max(0,Number(stored.itsukiTimedDialogueCursor)||0);
-  let candidates=band.lines.filter(line=>!history.slice(-3).includes(line));
-  if(!candidates.length)candidates=band.lines;
+  const band=itsukiTimeBand(),stored=await chrome.storage.local.get(['itsukiTimedDialogueHistory','itsukiTimedDialogueCursor']);
+  const history=Array.isArray(stored.itsukiTimedDialogueHistory)?stored.itsukiTimedDialogueHistory:[],cursor=Math.max(0,Number(stored.itsukiTimedDialogueCursor)||0);
+  let candidates=band.lines.filter(line=>!history.slice(-3).includes(line));if(!candidates.length)candidates=band.lines;
   const line=candidates[cursor%candidates.length];
   await chrome.storage.local.set({itsukiTimedDialogueHistory:[...history,line].slice(-8),itsukiTimedDialogueCursor:cursor+1});
   return line;
 }
 function nextItsukiRotationDelay(now=Date.now()){
-  const date=new Date(now),band=itsukiTimeBand(date);
-  const minute=date.getHours()*60+date.getMinutes();
-  const boundaries=[330,370,1245,1320];
+  const date=new Date(now),band=itsukiTimeBand(date),minute=date.getHours()*60+date.getMinutes(),boundaries=[330,1245,1260];
   let minutesToBoundary=Infinity;
-  for(const boundary of boundaries){
-    let delta=boundary-minute;
-    if(delta<=0)delta+=1440;
-    minutesToBoundary=Math.min(minutesToBoundary,delta);
-  }
-  // Wake exactly at a schedule transition, then resume the new cadence.
+  for(const boundary of boundaries){let delta=boundary-minute;if(delta<=0)delta+=1440;minutesToBoundary=Math.min(minutesToBoundary,delta);}
   return Math.max(30*1000,Math.min(band.interval,minutesToBoundary)*60*1000);
 }
 async function commitItsukiExpression(eventName,messageOverride=""){
@@ -795,10 +731,10 @@ async function commitItsukiExpression(eventName,messageOverride=""){
   const previous=stored.itsukiExpressionState||{};
   const lastAt=Number(previous.updatedAt)||0;
   const repeatMs=event==='periodic'?140000:event==='widget-open'?8000:event==='focus-reminder'?120000:0;
-  if(previous.event===event&&repeatMs&&now-lastAt<repeatMs&&!String(messageOverride||'').trim())return {ok:true,state:previous,unchanged:true,imageChanged:false};
+  if(Number(previous.schemaVersion)>=11&&previous.event===event&&repeatMs&&now-lastAt<repeatMs)return {ok:true,state:previous,unchanged:true,imageChanged:false};
   // Debounce duplicate focus events sent by multiple injected tabs, but never
   // debounce an explicit click or a real tab switch: those must change the art.
-  if(!['click','periodic','tab-change'].includes(event)&&previous.event===event&&now-lastAt<9000&&!String(messageOverride||'').trim())return {ok:true,state:previous,unchanged:true,imageChanged:false};
+  if(Number(previous.schemaVersion)>=11&&!['click','periodic','tab-change'].includes(event)&&previous.event===event&&now-lastAt<9000)return {ok:true,state:previous,unchanged:true,imageChanged:false};
   const catalog=await loadItsukiLocalCatalog();
   if(!catalog.length){
     return {ok:false,error:'No valid local companion images are packaged in the extension.'};
@@ -820,19 +756,15 @@ async function commitItsukiExpression(eventName,messageOverride=""){
   const chosen=catalog[chosenIndex]||catalog[0];
   cursor=(chosenIndex+1)%catalog.length;
   const lineHistory=Array.isArray(stored.itsukiRecentDialogueLines)?stored.itsukiRecentDialogueLines:[];
-  const override=typeof messageOverride==='string'?messageOverride.trim().slice(0,240):'';
   const timeBand=itsukiTimeBand(new Date(now));
-  // Every Itsuki speech line is drawn from the approved Vietnamese study/sleep pools.
-  // Use the approved Vietnamese dialogue pools consistently.
-  const timedMessage=await nextItsukiTimedLine();
-  const dialogueResult={message:timedMessage,rotation:stored.itsukiDialogueRotation||{}};
-  const message=dialogueResult.message;
+  const message=await nextItsukiTimedLine();
+  const context=['wind-down','sleep'].includes(event)?event:timeBand.kind;
   const revision=Math.max(Number(previous.revision)||0,now)+1;
-  const state={schemaVersion:10,revision,event,kind:profile.kind,imageId:chosen.id,imageSrc:chosen.src,expression:chosen.primaryExpression,message,updatedAt:now,imageChanged:chosen.id!==lastId};
+  const state={schemaVersion:11,revision,event,kind:profile.kind,context,imageId:chosen.id,imageSrc:chosen.src,expression:chosen.primaryExpression,message,updatedAt:now,imageChanged:chosen.id!==lastId};
   const recentImages=Array.isArray(stored.itsukiRecentImageIds)?stored.itsukiRecentImageIds:[];
   const nextImages=[...recentImages.filter(id=>id!==chosen.id),chosen.id].slice(-29);
   const nextLines=[...lineHistory.filter(line=>line!==message),message].slice(-12);
-  const setData={itsukiExpressionState:state,itsukiRecentImageIds:nextImages,itsukiRecentDialogueLines:nextLines,itsukiImageCursor:cursor,itsukiDialogueRotation:dialogueResult.rotation};
+  const setData={itsukiExpressionState:state,itsukiRecentImageIds:nextImages,itsukiRecentDialogueLines:nextLines,itsukiImageCursor:cursor};
   if(event==='water')setData.itsukiLastWaterReminderAt=now;
   await chrome.storage.local.set(setData);
   return {ok:true,state,unchanged:false,imageChanged:state.imageChanged,availableImages:catalog.length};
@@ -1167,10 +1099,6 @@ async function scheduleUtilityAlarms(s){
 
   await chrome.alarms.clear("ascended:backup");
   if(s.settings.autoBackup) await chrome.alarms.create("ascended:backup",{when:nextAlarmAt(s.settings.backupTime||"23:30")});
-  await chrome.alarms.clear("ascended:motivation");
-  // Automatic motivation video popups are intentionally disabled in this build.
-  await chrome.alarms.clear("ascended:motivation-fixed");
-  // Fixed-time motivation popups are intentionally disabled in this build.
   await syncFocusBlocking(s);
 }
 let offscreenCreating=null;
@@ -1264,11 +1192,6 @@ async function maybeSendFocusSessionReminder(){
     }catch(e){console.warn('Study reminder rescheduling failed',e);}
   }
 }
-function inMotivationQuietHours(settings,now=new Date()){const minute=now.getHours()*60+now.getMinutes();const ranges=Array.isArray(settings?.motivationQuietHours)?settings.motivationQuietHours:[];return ranges.some(r=>{const start=timeMinutes(r.start),end=timeMinutes(r.end);if(start==null||end==null)return false;if(start===end)return true;return start<end?minute>=start&&minute<end:minute>=start||minute<end;});}
-function motivationVideoAutoEligible(s,video,day=dateKey()){const url=String(video?.url||"");return Boolean(video&&(video.local===true&&String(video.storageKey||video.id||"")||/^https?:\/\//i.test(url)));}
-function motivationTargetUrl(video){if(video?.local===true){const id=String(video.storageKey||video.id||"");return chrome.runtime.getURL(`motivation-player.html?video=${encodeURIComponent(id)}&title=${encodeURIComponent(String(video.title||"Motivation"))}`);}return String(video?.url||"");}
-function motivationFixedVideo(s){const id=String(s.settings?.motivationFixedVideoId||"");return id?(s.motivationVideos||[]).find(v=>String(v.id)===id):null;}
-function motivationTimeMatches(s,now=new Date()){return String(s.settings?.motivationFixedTime||"")===`${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;}
 async function seed(){ensureRoutineReminderAlarms();const raw=await chrome.storage.local.get(null);if(raw.profile&&Number(raw.schemaVersion||0)<51){raw.settings={...(raw.settings||{}),privacyMode:false,itsukiCompanionEnabled:true,itsukiCompanionNotifications:false};}if(Number(raw.schemaVersion||0)<53){raw.settings={...(raw.settings||{}),notifications:true,taskReminders:true};}if(!raw.profile){const s=normalize(emptyStateSeed());await save(s,{increment:false,backup:true});try{await scheduleAlarms(s)}catch(e){console.warn(e)}return s;}const s=normalize(raw);await save(s,{increment:false,backup:false});try{await scheduleAlarms(s)}catch(e){console.warn(e)}return s;}
 
 
@@ -1330,7 +1253,7 @@ async function syncFocusWidgetVisibility(enabled, companionSettings={}){
       if(!tab?.id||!/^https?$/i.test(String(tab.url||'').split(':')[0]))continue;
       try{
         if(visible)await ensureFocusWidgetAssetsOnTab(tab.id);
-        await chrome.tabs.sendMessage(tab.id,{type:'focusWidgetVisibility',enabled:visible,privacyMode,itsukiCompanionEnabled:companionEnabled,motivationQuietHours:Array.isArray(companionSettings?.motivationQuietHours)?companionSettings.motivationQuietHours:[],position:companionSettings?.focusWidgetPosition||{top:18,right:18}}).catch(()=>{});
+        await chrome.tabs.sendMessage(tab.id,{type:'focusWidgetVisibility',enabled:visible,privacyMode,itsukiCompanionEnabled:companionEnabled,position:companionSettings?.focusWidgetPosition||{top:18,right:18}}).catch(()=>{});
       }catch{}
     }
   }catch{}
@@ -1347,8 +1270,6 @@ async function openRoutineReminder(kind, reason='schedule'){
   try{await chrome.tabs.create({url,active:true});}catch(e){console.warn('Could not open routine reminder page',e);}
 }
 const ROUTINE_REMINDER_SCHEDULE=[
-  {name:'aurestar:routine:wakeup-0530',hour:5,minute:30,type:'wake'},
-  {name:'aurestar:routine:wakeup-0600',hour:6,minute:0,type:'wake'},
   {name:'aurestar:routine:wind-down-2045',hour:20,minute:45,type:'wind-down'},
   {name:'aurestar:routine:sleep-2100',hour:21,minute:0,type:'sleep'}
 ];
@@ -1407,8 +1328,7 @@ chrome.alarms.onAlarm.addListener(async alarm=>{
       const s=await getState();
       if(s.settings?.privacyMode!==true){
         await openRoutineReminder(routine.type,'schedule');
-        const line=routine.type==='wake'?'Good morning. Get up, get ready, and begin your morning study routine.':routine.type==='wind-down'?'It is 8:45 PM. Wind down now, close distractions, and prepare for sleep.':'It is 9:00 PM. Put your devices away and begin your bedtime routine.';
-        await requestItsukiExpression(routine.type==='sleep'||routine.type==='wind-down'?'idle-reminder':'focus-reminder',line).catch(()=>{});
+        await requestItsukiExpression(routine.type).catch(()=>{});
       }
       return;
     }
@@ -1441,13 +1361,12 @@ chrome.alarms.onAlarm.addListener(async alarm=>{
         const endedPhase=String(s.focusEngine.phase||"focus");
         const r=await finishFocusEngine(s);
         if(r.finished){
-          // Auto-open motivation videos removed; focus cycles proceed without popups.
           await syncFocusBlocking(s);await save(s);await scheduleAlarms(s);await ensureFocusWidgetOnTabs(s);await broadcastFocusWidget();
           if(endedPhase==='focus'&&r.phase==='break'&&s.settings?.privacyMode!==true&&s.settings?.itsukiCompanionEnabled!==false){
             await openRoutineReminder('water','focus-break');
             await requestItsukiExpression('water',"Focus session complete. Take a short break, drink some water, and stretch gently.").catch(()=>{});
           }
-          if(s.settings.notifications) await notify(s.settings.itsukiCompanionNotifications!==false?"Itsuki · "+(endedPhase==='focus'?"Focus complete":"Break complete"):"Aurestar · "+(endedPhase==='focus'?"Focus complete":"Break complete"),s.settings.itsukiCompanionNotifications!==false?(endedPhase==='focus'?"Well done! Your Focus session is complete. Take your planned break.":"Your break is over. When you are ready, start the next Focus session."):(endedPhase==='focus'?"Motivation video + break started.":"Motivation video + next focus started.")).catch(()=>{});
+          if(s.settings.notifications) await notify(s.settings.itsukiCompanionNotifications!==false?"Itsuki · "+(endedPhase==='focus'?"Focus complete":"Break complete"):"Aurestar · "+(endedPhase==='focus'?"Focus complete":"Break complete"),s.settings.itsukiCompanionNotifications!==false?(endedPhase==='focus'?"Well done! Your Focus session is complete. Take your planned break.":"Your break is over. When you are ready, start the next Focus session."):(endedPhase==='focus'?"Focus session complete. Take a break.":"Break complete. Start the next Focus session when you are ready.")).catch(()=>{});
         }
       } else await chrome.alarms.clear("ascended:focus-end");
       return;
@@ -1569,6 +1488,13 @@ chrome.runtime.onMessage.addListener((m,sender,sendResponse)=>{(async()=>{
    const rounds=Math.min(20,Math.max(1,Math.floor(Number(m.rounds)||4)));
    s.focusEngine={...f,roundsTarget:rounds,pomodorosCompleted:0};await save(s);result.focus=focusStateSnapshot(s);break;
   }
+  case"focusSelectMode":{
+   const f=s.focusEngine||{},mode=String(m.mode||"focus");if(!["focus","short","long"].includes(mode))throw Error("Choose Focus, Short Break, or Long Break");
+   const workMode=normalizeFocusMinutes(s.settings.focusPreset||f.mode||25),phase=mode==="focus"?"focus":"break",breakKind=mode==="long"?"long":"short";
+   const minutes=mode==="short"?Math.max(1,Number(s.settings.focusShortBreak)||5):mode==="long"?Math.max(1,Number(s.settings.focusLongBreak)||15):workMode;
+   await setFocusEngine(s,{active:false,phase,mode:workMode,startedAt:0,endsAt:0,remaining:Math.floor(minutes*60),paused:false,pomodorosCompleted:Number(f.pomodorosCompleted)||0,roundsTarget:f.roundsTarget||4,taskId:String(f.taskId||""),breakKind,sessionStartedAt:0});
+   await syncFocusBlocking(s);await save(s);await scheduleAlarms(s);await ensureFocusWidgetOnTabs(s);await broadcastFocusWidget();result.focus=focusStateSnapshot(s);break;
+  }
   case"focusStart":{
    const mode=normalizeFocusMinutes(m.mode||s.settings.focusPreset||25),now=Date.now(),f=s.focusEngine||{},roundsTarget=Math.min(20,Math.max(1,Math.floor(Number(m.rounds??f.roundsTarget)||4))),taskId=String(m.taskId??f.taskId??"");
    if(f.active){result.focus=focusStateSnapshot(s);break;}
@@ -1656,7 +1582,6 @@ chrome.runtime.onMessage.addListener((m,sender,sendResponse)=>{(async()=>{
       const r=await finishFocusEngine(s);
       if(r.finished){
         result.finished=r;
-        // Auto-open motivation videos removed; focus cycles proceed without popups.
         await syncFocusBlocking(s);
         await save(s);
         try{await scheduleAlarms(s)}catch{}
@@ -1689,33 +1614,12 @@ chrome.runtime.onMessage.addListener((m,sender,sendResponse)=>{(async()=>{
   case"exchangeCoins":{const amount=Math.max(1,Math.floor(Number(m.amount)||1));const cost=amount*COINS_PER_POINT;if((s.profile.coins||0)<cost)throw Error(`Need ${cost} Coins to exchange for ${amount} Points`);s.profile.coins-=cost;s.profile.points+=amount;s.profile.pointsHistory.push({id:uid("pointx"),type:"exchange",amount,cost,date:today,at:Date.now(),reason:`Exchange ${cost} Coins`});result.exchange={points:amount,cost};break;}
   case"upgradeAttribute":{const key=String(m.attribute||"");const valid=["discipline","ambition","physical","mental","intellect"];if(!valid.includes(key))throw Error("Invalid attribute");const amount=Math.max(1,Math.floor(Number(m.amount)||1));const current=Number(s.profile.attributes[key])||1;if((s.profile.points||0)<amount)throw Error(`Need ${amount} Points`);const actual=amount;s.profile.points-=actual;s.profile.attributes[key]=current+actual;s.profile.pointsHistory.push({id:uid("pointu"),type:"upgrade",attribute:key,amount:actual,cost:actual,date:today,at:Date.now(),reason:`Upgrade ${attributeLabel(key)}`});break;}
   case"importTasks":{const items=Array.isArray(m.items)?m.items:[];if(!items.length)throw Error("No tasks to import");let imported=0;const errors=[];for(let i=0;i<items.length;i++){try{const item=normalizeTaskInput(items[i]||{});item.id=uid("task");item.createdAt=Date.now();item.xp=taskXP(item);item.completedDates=[];item.archived=false;s.tasks.push(item);imported++;}catch(e){errors.push({index:i+1,error:String(e.message||e)})}}if(!imported)throw Error(errors[0]?.error||"Unable to import tasks");result.import={imported,failed:errors.length,errors};break;}
-  case"addMotivationVideo":{
-    const rawUrl=String(m.url||"").trim();
-    const tiktok=/^https?:\/\/(www\.)?tiktok\.com\//i.test(rawUrl)&&/\/video\/(\d+)/.test(rawUrl);
-    const youtubeId=youtubeVideoIdFromUrl(rawUrl);
-    if(!tiktok&&!youtubeId)throw Error("Enter a specific TikTok or YouTube video link");
-    const url=tiktok?rawUrl:normalizeYouTubeUrl(rawUrl);
-    if(s.motivationVideos.some(v=>String(v.url||"")===url))throw Error("This video is already in the feed");
-    s.motivationVideos.push({id:uid("mot"),url,title:String(m.title||(tiktok?"TikTok":"YouTube motivation")).trim()||(tiktok?"TikTok":"YouTube motivation"),tiktok,youtube:!tiktok,local:false,videoId:youtubeId||"",createdAt:Date.now()});break;
-  }
-  case"addMotivationLocalVideo":{
-    const id=String(m.id||"").trim();if(!/^[a-zA-Z0-9_-]{3,120}$/.test(id))throw Error("Invalid local video ID");
-    if(s.motivationVideos.some(v=>String(v.id)===id))throw Error("This local video is already registered");
-    const title=String(m.title||"Local motivation video").trim().slice(0,100)||"Local motivation video";
-    s.motivationVideos.push({id,title,url:"",local:true,tiktok:false,youtube:false,storageKey:id,mimeType:String(m.mimeType||"video/mp4"),size:Math.max(0,Number(m.size)||0),storage:String(m.storage||"chrome-storage"),createdAt:Date.now()});break;
-  }
-  case"deleteMotivationVideo":{
-    const video=s.motivationVideos.find(v=>String(v.id)===String(m.id));
-    s.motivationVideos=s.motivationVideos.filter(v=>String(v.id)!==String(m.id));
-    if(video?.local){const all=await chrome.storage.local.get(null);const prefixes=[`ascended_motivation_video_v2:${String(video.storageKey||video.id)}:`,`ascended_motivation_meta_v2:${String(video.storageKey||video.id)}`];const keys=Object.keys(all).filter(k=>prefixes.some(prefix=>k.startsWith(prefix)));if(keys.length){await chrome.storage.local.remove(keys);for(const key of keys)delete s[key];}}
-    break;
-  }
   case"saveReview":{const i=s.reviews.findIndex(x=>x.date===m.review.date);if(i>=0)s.reviews[i]=m.review;else s.reviews.push(m.review);break;}
   case"saveSettings":{
    s.settings={...s.settings,...m.settings};
-   if(s.settings.privacyMode===true){s.settings.notifications=false;s.settings.taskReminders=false;s.settings.alarmSound=false;s.settings.itsukiCompanionEnabled=false;s.settings.itsukiCompanionNotifications=false;s.settings.itsukiCompanionDailyReminder=false;s.settings.motivationAutoOpen=false;s.settings.motivationFixedEnabled=false;}
+   if(s.settings.privacyMode===true){s.settings.notifications=false;s.settings.taskReminders=false;s.settings.alarmSound=false;s.settings.itsukiCompanionEnabled=false;s.settings.itsukiCompanionNotifications=false;s.settings.itsukiCompanionDailyReminder=false;}
    s.settings.language="en";s.settings.backupTime=String(s.settings.backupTime||"23:30");s.settings.autoBackup=s.settings.autoBackup!==false;
-   s.settings.motivationAutoOpen=false;s.settings.motivationFixedEnabled=false;s.settings.focusAutoBreak=false;s.settings.focusAutoStart=false;s.settings.focusAutoCycle=false;s.settings.focusBanBreak=false;s.settings.focusCountdown=true;
+   s.settings.focusAutoBreak=false;s.settings.focusAutoStart=false;s.settings.focusAutoCycle=false;s.settings.focusBanBreak=false;s.settings.focusCountdown=true;
    s.settings.focusShortBreak=Math.min(30,Math.max(1,Math.floor(Number(s.settings.focusShortBreak)||5)));
    s.settings.focusLongBreak=Math.min(60,Math.max(1,Math.floor(Number(s.settings.focusLongBreak)||15)));
    s.settings.focusLongBreakEvery=Math.min(12,Math.max(1,Math.floor(Number(s.settings.focusLongBreakEvery)||4)));
@@ -1742,8 +1646,7 @@ function ensureItsukiExpressionAlarm(){
 async function migrateItsukiDialogueState(){
   try{
     const stored=await chrome.storage.local.get('itsukiExpressionState');
-    if(Number(stored?.itsukiExpressionState?.schemaVersion||0)<10){
-      await chrome.storage.local.remove(['itsukiExpressionState','itsukiRecentDialogueLines','itsukiRecentImageIds','itsukiImageCursor','itsukiDialogueRotation']);
+    if(Number(stored?.itsukiExpressionState?.schemaVersion||0)<11){
       await requestItsukiExpression('periodic');
     }
   }catch(e){console.warn('Itsuki dialogue migration',e);}

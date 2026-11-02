@@ -1,67 +1,47 @@
 const $=id=>document.getElementById(id);
 let displayedImage='';
-const statusLabels={focus:'Focus',break:'Break',pause:'Break',stop:'Session stopped',care:'Take care',warning:'Back to focus',done:'Completed',encouragement:'Study companion'};
-async function sendItsukiEvent(event='periodic',message=''){
-  try{return await chrome.runtime.sendMessage({type:'itsukiExpressionAction',event,message:String(message||'').slice(0,240)});}
-  catch(error){console.error('Itsuki update failed',error);return null;}
+const approvedMessages={
+  focus:'Choose one clear task and take the first step.',
+  'wind-down':'Wind down now. Close distractions and give yourself time to rest.',
+  sleep:'Your day is complete. Put your devices away and get ready for sleep.'
+};
+function contextFor(record){
+  const context=String(record?.context||record?.event||'').toLowerCase();
+  if(context==='sleep'||context.includes('sleep'))return 'sleep';
+  if(context==='wind-down'||context.includes('wind-down'))return 'wind-down';
+  return 'focus';
+}
+async function sendItsukiEvent(event='periodic'){
+  try{return await chrome.runtime.sendMessage({type:'itsukiExpressionAction',event});}
+  catch(error){console.error('Companion update failed',error);return null;}
 }
 async function refreshItsuki(record){
   try{
-    if(!record){
-      const stored=await chrome.storage.local.get('itsukiExpressionState');
-      record=stored?.itsukiExpressionState;
-    }
+    if(!record){const stored=await chrome.storage.local.get('itsukiExpressionState');record=stored?.itsukiExpressionState;}
     if(!record||typeof record!=='object')return false;
-    if(typeof record.message==='string'&&record.message.trim())$('itsukiLine').textContent=record.message;
-    $('itsukiStatus').textContent=statusLabels[record.kind]||'Study companion';
-    const src=String(record.imageSrc||'');
-    const fileName=src.split('/').pop()||'';
-    const dot=fileName.lastIndexOf('.');
-    const imageNumber=dot>0?fileName.slice(0,dot):'';
-    const imageExt=dot>0?fileName.slice(dot+1).toLowerCase():'';
+    const context=contextFor(record),line=String(record.message||'').trim().replace(/[\r\n\t]+/g,' ').slice(0,220);
+    $('itsukiLine').textContent=line||approvedMessages[context];
+    const status=$('itsukiStatus');status.textContent=context==='wind-down'?'WIND DOWN':context.toUpperCase();status.dataset.context=context;
+    const src=String(record.imageSrc||''),fileName=src.split('/').pop()||'',dot=fileName.lastIndexOf('.');
+    const imageNumber=dot>0?fileName.slice(0,dot):'',imageExt=dot>0?fileName.slice(dot+1).toLowerCase():'';
     if(src.startsWith('assets/itsuki/')&&!src.includes('..')&&/^[0-9]+$/.test(imageNumber)&&['jpg','png'].includes(imageExt)){
       const imageKey=String(record.imageId||imageNumber);
-      if(displayedImage!==imageKey){
-        displayedImage=imageKey;
-        $('itsukiArt').src=await window.aurestarDesktop.getItsukiArtUrl(Number(imageNumber));
-      }
+      if(displayedImage!==imageKey){displayedImage=imageKey;$('itsukiArt').src=await window.aurestarDesktop.getItsukiArtUrl(Number(imageNumber));}
     }
     return true;
-  }catch(error){console.error('Could not display Itsuki state',error);return false;}
+  }catch(error){console.error('Could not display companion state',error);return false;}
 }
 chrome.storage.onChanged.addListener((changes,area)=>{
   if(area==='local'&&changes.itsukiExpressionState?.newValue)refreshItsuki(changes.itsukiExpressionState.newValue);
 });
 async function boot(){
   $('itsukiArt').src=await window.aurestarDesktop.getItsukiArtUrl(1);
-  const shown=await refreshItsuki();
-  if(!shown){
+  const stored=await chrome.storage.local.get('itsukiExpressionState');
+  if(Number(stored?.itsukiExpressionState?.schemaVersion||0)<11)await sendItsukiEvent('periodic');
+  if(!await refreshItsuki()){
     await sendItsukiEvent('periodic');
     await refreshItsuki();
   }
 }
 $('hideItsuki').addEventListener('click',()=>window.aurestarDesktop.hideItsuki());
-const pet=$('itsukiPet');
-let petPointer=null;
-pet.addEventListener('pointerdown',event=>{
-  if(event.button!==0)return;
-  petPointer={id:event.pointerId,x:event.screenX,y:event.screenY,lastX:event.screenX,lastY:event.screenY,moved:false};
-  pet.setPointerCapture(event.pointerId);
-});
-pet.addEventListener('pointermove',event=>{
-  if(!petPointer||petPointer.id!==event.pointerId)return;
-  const dx=event.screenX-petPointer.lastX,dy=event.screenY-petPointer.lastY;
-  if(Math.abs(event.screenX-petPointer.x)+Math.abs(event.screenY-petPointer.y)>5)petPointer.moved=true;
-  if(petPointer.moved&&(dx||dy))window.aurestarDesktop.dragItsukiBy(dx,dy);
-  petPointer.lastX=event.screenX;petPointer.lastY=event.screenY;
-});
-async function finishPetPointer(event){
-  if(!petPointer||petPointer.id!==event.pointerId)return;
-  const wasClick=!petPointer.moved;
-  petPointer=null;
-  if(wasClick){await sendItsukiEvent('click');await refreshItsuki();}
-}
-pet.addEventListener('pointerup',finishPetPointer);
-pet.addEventListener('pointercancel',()=>{petPointer=null;});
-$('openWorkspace').addEventListener('click',()=>window.aurestarDesktop.openWorkspace());
 boot();

@@ -100,7 +100,6 @@ const chromeApi = {
       let p=Promise.resolve(null);
       if(target.protocol==='https:'||target.protocol==='http:')p=ipcRenderer.invoke('app:open-external',target.href).then(ok=>ok?({id:-1,url:target.href,active:options?.active!==false}):null);
       else if(target.protocol==='file:'&&/reminder\.html$/i.test(target.pathname))p=ipcRenderer.invoke('app:reminder',{type:target.searchParams.get('type'),reason:target.searchParams.get('reason')}).then(()=>({id:-2,url:target.href,active:false}));
-      else if(target.protocol==='file:'&&/motivation-player\.html$/i.test(target.pathname))p=ipcRenderer.invoke('app:open-motivation',target.searchParams.get('video')).then(ok=>ok?.ok?({id:-3,url:target.href,active:true}):null);
       else if(target.protocol==='file:'&&/app\.html$/i.test(target.pathname))p=ipcRenderer.invoke('app:show',target.hash.slice(1)||'dashboard').then(()=>({id:1,url:target.href,active:true}));
       return callbackResult(p,callback);
     },
@@ -169,21 +168,14 @@ const desktopApi = {
   getState: () => ipcRenderer.invoke('state:get'),
   saveState: (state) => ipcRenderer.invoke('state:save', state),
   completeTask: (payload) => ipcRenderer.invoke('task:complete', payload),
-  toggleFocus: () => ipcRenderer.invoke('focus:toggle'),
   closePomodoroWidget: () => ipcRenderer.invoke('pomodoro:widget-close'),
   hideItsuki: () => ipcRenderer.invoke('itsuki:hide'),
   showItsuki: () => ipcRenderer.invoke('itsuki:show'),
-  dismissItsuki: () => ipcRenderer.invoke('itsuki:dismiss'),
   openWorkspace: () => ipcRenderer.invoke('app:show'),
   getItsukiArtUrl: (index) => ipcRenderer.invoke('itsuki:art-url', index),
-  dragItsukiBy: (dx, dy) => ipcRenderer.send('itsuki:drag', { dx, dy }),
   getBackgroundScriptUrl: () => ipcRenderer.invoke('chrome:background-script-url'),
   announceBackgroundReady: () => { startupEvent.dispatch(); ipcRenderer.send('chrome:background-ready'); },
   onReminder: (fn) => { const handler=(_event,message)=>fn(message); ipcRenderer.on('reminder:show',handler); return () => ipcRenderer.removeListener('reminder:show',handler); },
-  onItsukiEvent: (fn) => { const handler=(_e,p)=>fn(p); ipcRenderer.on('itsuki:event',handler); return () => ipcRenderer.removeListener('itsuki:event',handler); },
-  onPomodoroState: (fn) => { const handler=(_e,s)=>fn(s); ipcRenderer.on('pomodoro:state',handler); return () => ipcRenderer.removeListener('pomodoro:state',handler); },
-  resetFocus: (minutes) => ipcRenderer.invoke('focus:reset', minutes),
-  finishFocus: (minutes) => ipcRenderer.invoke('focus:finish', minutes),
   exportData: () => ipcRenderer.invoke('data:export'),
   importData: () => ipcRenderer.invoke('data:import'),
   backupNow: () => ipcRenderer.invoke('backup:now'),
