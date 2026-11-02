@@ -23,9 +23,10 @@
   });
   $$('[data-tab]').forEach(button=>button.addEventListener('click',()=>{
     const group=button.closest('[data-tab-group]')||document;
-    $$('[data-tab]',group).forEach(b=>b.classList.toggle('active',b===button));
+    $('[data-tab]',group).forEach(b=>b.classList.toggle('active',b===button));
     const id=button.dataset.tab;
-    $$('[data-tab-panel]',group).forEach(panel=>panel.hidden=panel.dataset.tabPanel!==id);
+    // Tab panels are siblings of the tab bar in these standalone pages.
+    $('[data-tab-panel]').forEach(panel=>panel.hidden=panel.dataset.tabPanel!==id);
   }));
   // Preview-only focus timer.
   let focusLeft=25*60, focusRunning=false, focusInterval=null;
