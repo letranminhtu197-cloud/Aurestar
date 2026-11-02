@@ -60,8 +60,11 @@ jobs:
           $sourceDir = Join-Path $env:RUNNER_TEMP "aurestar-recovered-source"
           if (Test-Path $sourceDir) { Remove-Item $sourceDir -Recurse -Force }
           New-Item -ItemType Directory -Path $sourceDir | Out-Null
-          npx --yes @electron/asar extract $archive $sourceDir
-          if ($LASTEXITCODE -ne 0) { throw "ASAR extraction failed." }
+          $asarTools = Join-Path $env:RUNNER_TEMP "aurestar-asar-tools"
+          npm install --prefix $asarTools --no-save --no-package-lock @electron/asar@4.3.1
+          if ($LASTEXITCODE -ne 0) { throw "Could not install the pinned ASAR inspection utility." }
+          node scripts/ci/extract-packed-asar.mjs $archive $sourceDir $asarTools
+          if ($LASTEXITCODE -ne 0) { throw "Selective ASAR extraction failed." }
           foreach ($file in @("main.cjs", "preload.cjs", "renderer.js", "index.html")) {
             if (-not (Test-Path (Join-Path $sourceDir $file))) {
               throw "Required ASAR entry missing: $file"
