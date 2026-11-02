@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#211217">
+<title>Overview · Aurestar</title>
+<link rel="stylesheet" href="aurestar-ui.css">
+</head>
+<body>
+<div class="app-shell">
+<aside class="sidebar">
+  <a class="brand" href="overview.html"><span class="brand-mark">✦</span><span><span class="brand-name">AURESTAR</span><span class="brand-sub">STUDY SPACE · ONE STEP AT A TIME</span></span></a>
+  <div class="nav-label">WORKSPACE</div>
+  <nav class="nav">
+    <a class="active" href="overview.html"><span class="nav-icon">◫</span>Overview</a>
+    <a class="" href="tasks-habits.html"><span class="nav-icon">☷</span>Tasks &amp; Habits</a>
+    <a class="" href="focus.html"><span class="nav-icon">◉</span>Focus</a>
+    <a class="" href="calendar.html"><span class="nav-icon">▦</span>Calendar</a>
+    <a class="" href="training.html"><span class="nav-icon">↗</span>Training</a>
+    <a class="" href="insights.html"><span class="nav-icon">⌁</span>Insights</a>
+  </nav>
+  <div class="sidebar-bottom"><a class="nav " href="settings.html"><span class="nav-icon">⚙</span>Settings</a><div class="sidebar-note">Local-first workspace<br><span style="color:var(--rose2)">Professional Edition · UI preview</span></div></div>
+</aside>
+<main class="main-area">
+<header class="topbar">
+  <div class="top-title"><div class="crumb">AURESTAR <span>/</span> OVERVIEW</div><h1>Overview</h1></div>
+  <div class="search"><input type="search" placeholder="Search tasks…" aria-label="Search tasks"></div>
+  <div class="top-actions"><button class="icon-btn" type="button" title="Import preview" onclick="alert('UI preview only')">↓</button><button class="icon-btn" type="button" title="Export preview" onclick="alert('UI preview only')">↑</button></div>
+</header>
+<section class="content">
+<header class="page-head"><div><div class="eyebrow">OVERVIEW</div><h2>Today</h2><p>Tuesday, 3 November 2026 · Make today count, one step at a time.</p></div><div class="pill"><i class="pill-dot"></i> Your workspace is ready</div></header>
+<section class="panel streak-card" style="margin-bottom:14px"><div><div class="kicker">CURRENT STREAK</div><div class="streak-number">🔥 12 days</div><div class="tiny muted">Best streak · 18 days</div></div><div class="streak-days"><span class="on">M</span><span class="on">T</span><span class="on">W</span><span class="on">T</span><span class="on">F</span><span>S</span><span>S</span></div></section>
+<section class="stats">
+ <div class="stat"><span class="stat-label">Tasks completed</span><strong class="stat-value">4 <small class="muted">/ 7</small></strong><div class="progress"><i style="width:57%"></i></div><span class="stat-foot">57% complete today</span></div>
+ <div class="stat"><span class="stat-label">Habits checked in</span><strong class="stat-value">3 <small class="muted">/ 5</small></strong><div class="progress green"><i style="width:60%"></i></div><span class="stat-foot">Keep your routine steady</span></div>
+ <div class="stat"><span class="stat-label">Focus time</span><strong class="stat-value">1h 35m</strong><div class="progress gold"><i style="width:79%"></i></div><span class="stat-foot">79% of your 2h daily goal</span></div>
+</section>
+<div class="overview-grid">
+ <section class="panel"><div class="panel-head"><h3>Activity · Last 7 days</h3><span class="tiny muted">31 actions</span></div><div class="bar-chart"><div class="bar-col"><i style="height:42%"></i><b>3</b><span>W</span></div><div class="bar-col"><i style="height:68%"></i><b>5</b><span>T</span></div><div class="bar-col"><i style="height:36%"></i><b>2</b><span>F</span></div><div class="bar-col"><i style="height:84%"></i><b>7</b><span>S</span></div><div class="bar-col"><i style="height:56%"></i><b>4</b><span>S</span></div><div class="bar-col"><i style="height:95%"></i><b>8</b><span>M</span></div><div class="bar-col"><i style="height:62%"></i><b>5</b><span>T</span></div></div><p class="tiny muted">Your momentum is building. Keep the next action small and clear.</p></section>
+ <section class="panel wide"><div class="panel-head"><h3>Today’s tasks</h3><a class="ghost-btn" href="tasks-habits.html">Open tasks →</a></div><div class="item-list" id="taskList">
+  <div class="task-row done"><button class="check checked" data-check="Review biology notes">✓</button><div class="task-copy"><b>Review biology notes</b><div class="task-meta">08:00 · School</div></div><span class="priority">Done</span></div>
+  <div class="task-row"><button class="check" data-check="IELTS Listening practice"></button><div class="task-copy"><b>IELTS Listening practice</b><div class="task-meta">17:00 · 35 min</div></div><span class="priority high">High</span></div>
+  <div class="task-row"><button class="check" data-check="Finish literature outline"></button><div class="task-copy"><b>Finish literature outline</b><div class="task-meta">19:00 · 30 min</div></div><span class="priority medium">Medium</span></div>
+ </div><form class="add-row" id="quickAdd"><input name="task" placeholder="Add a task…" required><button class="btn btn-primary">Add</button></form></section>
+ <section class="panel"><div class="panel-head"><h3>Habits</h3><a class="ghost-btn" href="tasks-habits.html">All →</a></div><div class="item-list">
+  <div class="habit-row"><button class="check checked" data-check="Read 10 pages">✓</button><div class="task-copy"><b>Read 10 pages</b><div class="task-meta">Daily · 12-day streak</div></div></div>
+  <div class="habit-row"><button class="check checked" data-check="Drink enough water">✓</button><div class="task-copy"><b>Drink enough water</b><div class="task-meta">Daily · 8-day streak</div></div></div>
+  <div class="habit-row"><button class="check" data-check="Review vocabulary"></button><div class="task-copy"><b>Review vocabulary</b><div class="task-meta">Daily · 4-day streak</div></div></div>
+ </div></section>
+ <section class="panel"><div class="panel-head"><h3>Goals</h3><a class="ghost-btn" href="insights.html">Progress →</a></div>
+  <div class="goal-row"><div><b>IELTS 7.5</b><div class="progress"><i style="width:42%"></i></div><small class="tiny muted">42% · long-term</small></div></div>
+  <div class="goal-row"><div><b>Read 12 books</b><div class="progress gold"><i style="width:66%"></i></div><small class="tiny muted">8 of 12 books</small></div></div>
+ </section>
+ <section class="panel"><div class="panel-head"><h3>This week</h3><a class="ghost-btn" href="calendar.html">Calendar →</a></div><div class="week-strip"><div class="day "><span>M</span><b>2</b></div><div class="day active"><span>T</span><b>3</b></div><div class="day "><span>W</span><b>4</b></div><div class="day "><span>T</span><b>5</b></div><div class="day "><span>F</span><b>6</b></div><div class="day "><span>S</span><b>7</b></div><div class="day "><span>S</span><b>8</b></div></div><p class="tiny muted">Two upcoming deadlines · one focus goal left</p></section>
+</div>
+</section>
+</main>
+</div>
+<div class="toast" role="status" aria-live="polite"></div>
+<script src="aurestar-ui.js"></script>
+</body></html>
