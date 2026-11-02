@@ -316,7 +316,7 @@ ipcMain.handle('notification:test',()=>{notify(APP_NAME,'Notifications are worki
 ipcMain.handle('app:open-external',async(_e,url)=>{if(typeof url!=='string'||!/^https?:\/\//i.test(url))return false;await shell.openExternal(url);return true;});
 ipcMain.handle('app:version',()=>app.getVersion());
 app.whenReady().then(()=>{
-  state=readState();saveState();createBackgroundWindow();createWindow();createTray();createPomodoroWidget();createItsuki();
+  state=readState();saveState();createBackgroundWindow();createWindow();createTray();if(state.settings?.focusWidgetEnabled!==false)createPomodoroWidget();
   globalShortcut.register('CommandOrControl+Shift+L',toggleFocus);
   globalShortcut.register('CommandOrControl+Shift+K',()=>{if(!win)createWindow();win?.show();win?.webContents.send('aurestar:quick-add');});
   // A bare Alt key is handled by before-input-event while an Aurestar window is focused.
