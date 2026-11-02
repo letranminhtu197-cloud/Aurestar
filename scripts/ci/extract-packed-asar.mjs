@@ -31,6 +31,7 @@ if (!header?.files || typeof header.files !== 'object') {
 
 const extracted = [];
 const omittedUnpacked = [];
+const omittedUnpackedDirectories = [];
 const omittedLinks = [];
 
 function safeDestination(relativePath) {
@@ -43,12 +44,41 @@ function safeDestination(relativePath) {
   return target;
 }
 
+/**
+ * Entries below an ASAR directory flagged "unpacked" are stored outside the
+ * archive. Child entries do not necessarily repeat that flag, so collect
+ * their names recursively and never pass them to extractFile().
+ */
+function collectUnpackedTree(entries, prefix) {
+  for (const [name, entry] of Object.entries(entries)) {
+    const relativePath = prefix ? `${prefix}/${name}` : name;
+
+    if (entry && typeof entry === 'object' && entry.files && typeof entry.files === 'object') {
+      collectUnpackedTree(entry.files, relativePath);
+      continue;
+    }
+
+    if (entry && typeof entry === 'object' && typeof entry.link === 'string') {
+      omittedLinks.push(relativePath);
+      continue;
+    }
+
+    omittedUnpacked.push(relativePath);
+  }
+}
+
 function walk(entries, prefix = '') {
   for (const [name, entry] of Object.entries(entries)) {
     const relativePath = prefix ? `${prefix}/${name}` : name;
     const target = safeDestination(relativePath);
 
     if (entry && typeof entry === 'object' && entry.files && typeof entry.files === 'object') {
+      if (entry.unpacked === true) {
+        omittedUnpackedDirectories.push(relativePath);
+        collectUnpackedTree(entry.files, relativePath);
+        continue;
+      }
+
       fs.mkdirSync(target, { recursive: true });
       walk(entry.files, relativePath);
       continue;
@@ -80,9 +110,11 @@ const report = {
   archive: path.basename(archivePath),
   extractedPackedFiles: extracted.length,
   omittedUnpackedFiles: omittedUnpacked.length,
+  omittedUnpackedDirectories: omittedUnpackedDirectories.length,
   omittedLinks: omittedLinks.length,
   extracted,
   omittedUnpacked,
+  omittedUnpackedDirectories,
   omittedLinks
 };
 fs.writeFileSync(
@@ -90,8 +122,10 @@ fs.writeFileSync(
   JSON.stringify(report, null, 2),
   'utf8'
 );
+
 console.log(JSON.stringify({
   extractedPackedFiles: report.extractedPackedFiles,
   omittedUnpackedFiles: report.omittedUnpackedFiles,
+  omittedUnpackedDirectories: report.omittedUnpackedDirectories,
   omittedLinks: report.omittedLinks
 }, null, 2));
