@@ -1,0 +1,9 @@
+Aurestar 16.16.30 — Natural Itsuki Dialogue Rework
+
+- Rewrote all 30 image-paired lines to fit each portrait more closely and sound like spoken Vietnamese.
+- Rewrote all 248 contextual lines across 15 event pools and four expression tones.
+- Removed robotic UI wording such as asking the user to click/press the character or describing an event as a system reminder.
+- Dialogue is shorter, more conversational, and uses Itsuki’s earnest, blunt, occasionally flustered voice.
+- Updated the app-page direct messages so they do not override the companion with the previous generic copy.
+- Bumped dialogue schema to 7 so stale stored lines/history are cleared on extension update.
+- Preserved the existing image rotation, contextual event routing, and time-based rotation logic.

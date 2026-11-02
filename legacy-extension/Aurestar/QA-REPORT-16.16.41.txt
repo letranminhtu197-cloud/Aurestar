@@ -1,0 +1,12 @@
+Aurestar 16.16.41 QA Report
+
+PASS — Manifest JSON parses and version is 16.16.41
+PASS — Itsuki card visibility now reads explicit itsukiCompanionHiddenByUser setting
+PASS — Legacy itsukiCompanionCollapsed does not cause an unexpected hidden state after update
+PASS — Tab toggle persists explicit hide/show state and synchronizes in-memory state
+PASS — Minimize button persists explicit hidden state
+PASS — Empty Itsuki messages are ignored rather than clearing the dialogue
+PASS — Existing companion fallback dialogue remains available
+PASS — ZIP integrity checked
+
+Scope: static checks and JavaScript syntax validation. Live Chrome UI was not run in this environment.

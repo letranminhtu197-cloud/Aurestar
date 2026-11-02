@@ -1,0 +1,7 @@
+Aurestar 16.16.50 — Routine reminder pages
+
+- Adds a dedicated reminder page styled like the existing blocked.html page.
+- Opens a wake-up reminder daily at 05:30, a study-start reminder at 06:10, and sleep reminders at 20:45 and 22:00.
+- Opens a hydration and stretch reminder whenever a completed Focus phase transitions into Break.
+- Reminder pages are suppressed when Privacy Mode or Itsuki companion/widget is disabled.
+- Reminder actions open the Aurestar Focus/study workspace; dismiss closes the reminder tab.

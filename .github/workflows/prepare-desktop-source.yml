@@ -1,0 +1,80 @@
+name: Prepare Aurestar source for desktop rebuild
+
+on:
+  push:
+    branches: [desktop-rebuild]
+    paths:
+      - '.github/workflows/prepare-desktop-source.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: prepare-aurestar-desktop-source
+  cancel-in-progress: false
+
+jobs:
+  extract-source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout desktop rebuild branch
+        uses: actions/checkout@v4
+        with:
+          ref: desktop-rebuild
+          fetch-depth: 0
+
+      - name: Select and extract the newest available Aurestar archive
+        id: extract
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Prefer 16.16.60 if it has been added to the branch. The current main
+          # branch only contains the 16.16.59 archive, so that is the fallback.
+          archive=""
+          if [[ -f "Aurestar-16.16.60-Faster-Background-Checks.zip" ]]; then
+            archive="Aurestar-16.16.60-Faster-Background-Checks.zip"
+          else
+            archive="$(find . -maxdepth 1 -type f -name 'Aurestar-*.zip' -printf '%f\n' | sort -V | tail -n 1)"
+          fi
+          if [[ -z "$archive" || ! -f "$archive" ]]; then
+            echo "::error::No Aurestar ZIP archive found in the repository root."
+            exit 1
+          fi
+          if [[ -d legacy-extension ]]; then
+            echo "::error::legacy-extension already exists; refusing to overwrite extracted source."
+            exit 1
+          fi
+          mkdir -p legacy-extension
+          unzip -q "$archive" -d legacy-extension
+          test "$(find legacy-extension -type f | wc -l)" -gt 0
+          sha256sum "$archive" | tee /tmp/archive-sha.txt
+          {
+            echo "# Source extraction record"
+            echo
+            echo "- Archive: `$archive`"
+            echo "- SHA-256: `$(cut -d ' ' -f 1 /tmp/archive-sha.txt)`"
+            echo "- Extraction: GitHub Actions, branch `desktop-rebuild`"
+            echo "- Original archive is retained unchanged in the repository root."
+            if [[ "$archive" == "Aurestar-16.16.60-Faster-Background-Checks.zip" ]]; then
+              echo "- Baseline: 16.16.60 (requested latest build)."
+            else
+              echo "- Baseline: fallback archive found in the repository: `$archive`."
+              echo "- Note: the requested 16.16.60 archive was not present in the repository when this workflow ran."
+            fi
+          } > SOURCE_EXTRACTION.md
+          echo "archive=$archive" >> "$GITHUB_OUTPUT"
+
+      - name: Commit extracted source without changing main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add legacy-extension SOURCE_EXTRACTION.md
+          if git diff --cached --quiet; then
+            echo "No extracted-source changes to commit."
+            exit 0
+          fi
+          git commit -m "Extract Aurestar source for desktop rebuild"
+          git push origin HEAD:desktop-rebuild

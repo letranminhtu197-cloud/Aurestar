@@ -1,0 +1,8 @@
+Static QA report — Aurestar 16.16.42
+
+- ZIP integrity checked after packaging.
+- manifest.json parses as valid JSON; version is 16.16.42.
+- focus-widget.js passes node --check.
+- Verified that automatic 18–30 second bubble-hide timers were removed from the dialogue update and scheduling paths.
+- Verified explicit × hides and persists itsukiDialogueHiddenByUser=true; clicking Itsuki clears the flag and reveals dialogue.
+- Live Chrome UI testing was not available in this environment.

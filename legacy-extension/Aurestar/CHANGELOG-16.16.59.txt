@@ -1,0 +1,12 @@
+Aurestar 16.16.59 — Background Reminder Reliability
+
+- Reconciles routine and idle-study alarms whenever the Manifest V3 service worker starts, in addition to install and browser startup.
+- Preserves an existing one-minute recurring alarm instead of resetting its first tick on every reconciliation.
+- Awaits alarm creation for the daily wake-up, wind-down, and sleep reminders.
+- Recovers the focus-session reminder schedule after service-worker startup.
+- Keeps the quote-only reminder page design from 16.16.58.
+
+Important Chrome limitation:
+- Manifest V3 background service workers are event-driven and may be suspended by Chrome; Chrome alarms wake the worker to handle scheduled events.
+- Chrome must be running and the extension must remain enabled. Reminders cannot reliably open pages while Chrome is fully closed or the computer is asleep.
+- Static checks do not substitute for testing the unpacked extension in Chrome.

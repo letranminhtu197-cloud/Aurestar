@@ -1,0 +1,6 @@
+Aurestar 16.16.33 — verification report
+Manifest version: 16.16.33
+Dialogue catalog schema: 9
+Stored expression state schema: 10
+Checks to run: JavaScript syntax, JSON parsing, ZIP integrity, all local image paths.
+Browser runtime test: not performed in this environment.

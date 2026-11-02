@@ -1,0 +1,6 @@
+Aurestar 16.16.35
+- Removed the visible gamification interface and disabled XP/coin/level reward awards.
+- Removed XP rewards from task, habit, focus-history, calendar, and progress displays.
+- Added background study reminders every 30 minutes from 06:00 through 21:30 local time.
+- Enabled system and task reminders by default on upgrade; privacy mode can still suppress notifications.
+- Reminder alarms are scheduled by the Manifest V3 service worker and do not require the Aurestar window to be open. Chrome itself must remain running.

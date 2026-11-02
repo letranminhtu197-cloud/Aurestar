@@ -1,0 +1,15 @@
+Aurestar 16.16.32 — verification report
+
+Manifest version: 16.16.32
+Expression catalog schema: 8
+Numbered portraits: 30/30
+Unique image-paired dialogue lines: 30/30
+Contextual dialogue event groups: 15
+Contextual dialogue lines: 392 (unique within contextual pools: 392)
+Click responses: 12 (3 per tone)
+Focus-reminder lines: 68 (direct study-accountability wording)
+Idle-reminder lines: 64 (direct study-accountability wording)
+Distraction lines: 40
+
+Passed: JavaScript syntax checks for top-level .js files; manifest/catalog JSON parsing; all numbered image paths exist; 30 unique portrait dialogues; 392 unique contextual pool lines; click pool remains limited to 12 lines; legacy argument/crosstalk wording removed from background.js and the image catalog; extension schema migration upgraded to 9.
+Not tested: live behavior in a real Chrome session.

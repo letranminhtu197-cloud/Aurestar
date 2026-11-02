@@ -1,0 +1,4 @@
+Aurestar 16.16.56
+- Removed visible “Itsuki” branding from app and reminder pages.
+- Replaced visible character name labels with neutral “Study Companion” labels.
+- Preserved internal storage keys and asset paths for compatibility with existing settings and data.

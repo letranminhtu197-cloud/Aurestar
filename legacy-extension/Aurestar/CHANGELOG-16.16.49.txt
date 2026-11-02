@@ -1,0 +1,6 @@
+Aurestar 16.16.49 — Wake-Up Dialogue Until 06:10
+
+- Itsuki uses wake-up-and-start-studying dialogue from 05:30 until 06:10.
+- Normal study motivation begins at 06:10.
+- The timed rotation scheduler now recognizes 06:10 as a schedule boundary.
+- Wake-up dialogue rotates every 10 minutes.

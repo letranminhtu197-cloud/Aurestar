@@ -1,0 +1,6 @@
+Aurestar 16.16.44 — Branding cleanup
+- Updated manifest version_name and extension description to Aurestar.
+- Replaced legacy visible backup/export names that used Aurestar with Aurestar.
+- Updated the user-facing milestone label “Aurestar Sovereign” to “Aurestar Sovereign”.
+- Replaced extension icons at 16/32/48/128px with a consistent Aurestar monogram icon.
+- Kept legacy internal storage keys and DOM IDs unchanged to avoid breaking saved data and existing selectors.

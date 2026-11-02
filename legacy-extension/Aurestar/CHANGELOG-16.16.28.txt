@@ -1,0 +1,13 @@
+Aurestar 16.16.28 — Itsuki Contextual Rotation and Events
+
+- Fixed root cause of the stuck image: `itsukiImageCursor` was being saved but omitted from the storage read, so each request fell back to cursor 0 and reselected portrait 1. The cursor is now read and persisted as one loop.
+- Timed portrait + paired dialogue rotation is now scheduled by the service worker every 2 minutes 30 seconds (not a random per-tab timer).
+- Every timed rotation uses a 30-entry circular catalog. Portraits 1–30 retain their visual-matched Vietnamese lines.
+- Clicking Itsuki now selects an expression that fits the interaction and changes both portrait and contextual dialogue.
+- Switching browser tabs triggers a dedicated tab-change portrait/dialogue, with per-expression tone matching.
+- Focus start, pause, resume, stop, break start and completion have event-specific dialogue matched to the selected expression.
+- The existing no-Focus reminder now updates Itsuki as well as the notification after the scheduled inactivity interval.
+- Hydration reminders are no longer restricted to an active Focus session: while Chrome reports the computer as active, Itsuki reminds the user to drink water after 45 minutes, then spaces reminders by another 45 minutes.
+- A shared state record synchronizes portrait and dialogue across tabs. Only the foreground tab reveals the bubble; background tabs update their current state without opening popups.
+- Expression state/catalog schema bumped to 5 to invalidate stale portrait/dialogue records.
+- Syntax/package checks performed. Real-time Chrome behavior still needs confirmation in the target browser.

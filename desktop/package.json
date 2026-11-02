@@ -1,0 +1,94 @@
+{
+  "name": "aurestar-desktop",
+  "version": "1.0.1",
+  "description": "Aurestar Windows desktop study planner",
+  "private": true,
+  "main": "main.cjs",
+  "author": "Aurestar",
+  "scripts": {
+    "prestart": "npm run prepare-assets",
+    "start": "electron .",
+    "prepare-assets": "node prepare-assets.cjs",
+    "dist": "npm run prepare-assets && electron-builder --win nsis portable",
+    "dist:nsis": "electron-builder --win nsis",
+    "dist:portable": "electron-builder --win portable",
+    "test": "node --test tests/*.test.cjs"
+  },
+  "devDependencies": {
+    "electron": "^37.2.0",
+    "electron-builder": "^26.0.12",
+    "sharp": "^0.34.5"
+  },
+  "build": {
+    "extraResources": [
+      {
+        "from": "../legacy-extension/Aurestar/assets/itsuki/itsuki-pet.png",
+        "to": "itsuki/itsuki-pet.png"
+      },
+      {
+        "from": "../legacy-extension/Aurestar/assets/itsuki",
+        "to": "itsuki/expressions",
+        "filter": [
+          "*.jpg",
+          "expressions.json"
+        ]
+      },
+      {
+        "from": "../legacy-extension/Aurestar/background.js",
+        "to": "aurestar-chrome/background.js"
+      }
+    ],
+    "appId": "com.aurestar.desktop",
+    "productName": "Aurestar",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.cjs",
+      "preload.cjs",
+      "index.html",
+      "renderer.js",
+      "styles.css",
+      "pomodoro-widget.html",
+      "pomodoro-widget.js",
+      "itsuki.html",
+      "itsuki.js",
+      "assets/**/*",
+      "icons/**/*",
+      "logo-star.svg",
+      "icon.svg",
+      "background-host.html",
+      "bridge-alias.js"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "icons/icon256.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "portable": {
+      "artifactName": "Aurestar-Portable-${version}.${ext}"
+    }
+  },
+  "dependencies": {
+    "uiohook-napi": "1.5.4"
+  }
+}

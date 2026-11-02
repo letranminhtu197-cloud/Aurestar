@@ -1,0 +1,7 @@
+Aurestar 16.16.42 — Persistent Itsuki Dialogue
+
+- Fixed the actual floating Itsuki speech bubble in focus-widget.js, which still had 18–30 second auto-hide timers in 16.16.41.
+- Dialogue no longer auto-hides after clicks, periodic events, or focus events.
+- Press × to hide the dialogue; this choice persists across reloads. Click Itsuki to show it again.
+- “Quiet today” remains a separate user-controlled snooze action.
+- Existing companion visibility, focus widget, tasks, habits, and workout grouping are retained.

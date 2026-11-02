@@ -1,0 +1,8 @@
+Aurestar 16.16.48 — 05:30 Wake-up Dialogue
+
+- Sleep/rest dialogue remains active until 05:30.
+- From 05:30 to 06:00, Itsuki uses dedicated English wake-up-and-study dialogue, rotating every 10 minutes.
+- From 06:00 to 20:45, normal study dialogue rotates every 10 minutes.
+- From 20:45 to 22:00, sleep reminders rotate every 5 minutes.
+- From 22:00 to 05:30, sleep/rest reminders rotate every 15 minutes.
+- The rotation scheduler now wakes at the 05:30, 06:00, 20:45, and 22:00 schedule boundaries.

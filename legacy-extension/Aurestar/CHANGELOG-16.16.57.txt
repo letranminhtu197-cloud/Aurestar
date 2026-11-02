@@ -1,0 +1,6 @@
+Aurestar 16.16.57
+- Replaced reminder pages with a single large, centered quote and no extra labels, instructions, buttons, or steps.
+- Quote changes randomly by reminder category (wake, study, water, wind-down, sleep).
+- Clicking the Start Studying quote opens the password unlock screen; after successful unlock it opens the Focus view.
+- Other reminder pages are quote-only and do not show controls.
+- Static validation performed; not live-tested in Chrome.

@@ -1,0 +1,7 @@
+Aurestar 16.16.33 — Natural Itsuki Dialogue Cleanup
+
+- Removed unnatural dialogue referring to clicking/tapping Itsuki, buttons, and app controls.
+- Rewrote 12 click reactions so a click only prompts a short, ordinary in-character line.
+- Reworked browser-distraction remarks to describe the student’s behaviour naturally rather than narrating tabs or interface events.
+- Removed the final image dialogue that treated calling the companion as an excuse to avoid studying.
+- Bumped stored expression state schema to 10 and clear old cached dialogue on extension update.

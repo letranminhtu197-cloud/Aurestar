@@ -1,0 +1,5 @@
+Aurestar 16.16.38 — Startup hotfix
+
+- Restored missing core task/habit helpers: plannedFor, taskDone, habitDone, completionsOn, listName, and listIcon.
+- Fixes the startup ReferenceError: plannedFor is not defined in renderDashboard.
+- Preserves boot retry/error details and background reminder scheduling from 16.16.37.

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Aurestar</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="app-body">
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Navigation">
+      <div class="brand-row">
+        <div class="brand-mark" aria-label="Aurestar">★</div>
+        <div class="brand-copy"><strong>Aurestar</strong><small>STUDY SPACE · ONE STEP AT A TIME</small></div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-label">WORKSPACE</div>
+        <nav id="nav" class="smart-nav compact-nav">
+          <button data-view="dashboard" type="button"><i class="nav-icon" aria-hidden="true">◫</i><span>Overview</span><em></em></button>
+          <button data-view="tasks" type="button"><i class="nav-icon" aria-hidden="true">☷</i><span>Tasks &amp; Habits</span><em></em></button>
+          <button data-view="calendar" type="button"><i class="nav-icon" aria-hidden="true">▦</i><span>Calendar</span><em></em></button>
+          <button data-view="gym" type="button"><i class="nav-icon" aria-hidden="true">↗</i><span>Training</span><em></em></button>
+        </nav>
+      </div>
+
+      <div class="sidebar-bottom">
+        <button id="appSettings" data-view="settings" class="settings-link" type="button"><i class="nav-icon" aria-hidden="true">⚙</i><span>Settings</span></button>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <div class="top-title">
+          <div class="crumb">AURESTAR <span>/</span> STUDY SPACE</div>
+          <h1 id="pageTitle">Today</h1>
+        </div>
+        <div class="top-search">
+          <span class="search-mark">⌕</span>
+          <input id="globalSearch" type="search" placeholder="Search tasks…" autocomplete="off" aria-label="Search tasks">
+          <kbd>Ctrl K</kbd>
+        </div>
+        <div class="top-actions">
+          <button class="top-action" id="importTop" title="Import data" aria-label="Import data">↓</button>
+          <button class="top-action" id="exportTop" title="Export data" aria-label="Export data">↑</button>
+        </div>
+      </header>
+      <section id="view" class="view"></section>
+    </main>
+  </div>
+  <aside class="itsuki-companion" id="itsukiCompanion" aria-label="Study Companion">
+    <button class="itsuki-companion-tab" id="itsukiCompanionTab" type="button" aria-expanded="true" aria-controls="itsukiCompanionCard" title="Toggle Study Companion"><span class="itsuki-tab-star">★</span><span>COMPANION</span><i>−</i></button>
+    <section class="itsuki-companion-card" id="itsukiCompanionCard">
+      <div class="itsuki-companion-head"><div class="itsuki-art-wrap"><img src="assets/itsuki/itsuki-pet.png" alt="Study companion" loading="lazy" referrerpolicy="no-referrer"><span class="itsuki-online-dot"></span></div><div class="itsuki-companion-heading"><small>STUDY COMPANION</small><strong>Study Companion</strong><span id="itsukiCompanionStatus">Sẵn sàng học</span></div><button id="itsukiCompanionClose" type="button" aria-label="Minimize Study Companion">−</button></div>
+      <div class="itsuki-dialogue" id="itsukiCompanionDialogue">Kế hoạch sẵn sàng rồi! Chọn một việc rõ ràng rồi mình làm từng bước nhé.</div>
+      <div class="itsuki-companion-progress"><span id="itsukiStudyProgressLabel">TODAY'S PROGRESS</span><b id="itsukiStudyProgressValue">0% complete</b><i><em id="itsukiStudyProgressBar" style="width:0%"></em></i></div>
+      <div class="itsuki-companion-actions"><button class="itsuki-primary-action" id="itsukiStartFocus" type="button">▶ Start Focus</button><button id="itsukiOpenTasks" type="button">View tasks</button></div>
+      <div class="itsuki-companion-foot"><span>★ ONE STEP AT A TIME</span><button id="itsukiCompanionSettings" type="button">Settings ↗</button></div>
+    </section>
+  </aside>
+  <button class="floating-add-task" id="globalAddTask" type="button"><span>+</span> Add task</button>
+  <script src="auth-guard.js"></script>
+</body>
+</html>

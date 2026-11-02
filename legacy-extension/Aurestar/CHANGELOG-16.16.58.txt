@@ -1,0 +1,6 @@
+Aurestar 16.16.58
+
+- Reminder pages now display exactly one large quote line only.
+- Removed the Start Studying button, click behavior, password-gate link, button styling, and reminder-page controls.
+- Quote selection remains randomized by reminder type (wake, study, water, wind-down, sleep).
+- Password protection for the main study workspace is unchanged; only reminder pages no longer provide a Start Studying action.

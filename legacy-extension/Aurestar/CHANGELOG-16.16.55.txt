@@ -1,0 +1,5 @@
+Aurestar 16.16.55
+- Replaced one-shot study reminder re-arming with a recurring one-minute Chrome alarm.
+- Removes the legacy five-minute alarm and recreates the canonical one-minute alarm on startup/update.
+- Keeps the 06:00–20:45 gate and suppresses study prompts during Focus, Break, paused timers, and Privacy Mode.
+- Performed static QA for JavaScript syntax, manifest/HTML resource references, reminder content, and scheduler invariants.

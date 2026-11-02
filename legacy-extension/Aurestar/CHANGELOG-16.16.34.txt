@@ -1,0 +1,8 @@
+Aurestar 16.16.34 — Unified Tasks & Habits / Standalone Calendar
+
+- Combined habit check-ins and quick-add into the Tasks & Habits page.
+- Kept task quick-add, task filters, list controls, priority queue, and existing task actions.
+- Promoted Calendar to a primary navigation page separate from the combined work page.
+- Removed the old Tasks / Habits / Calendar sub-navigation to reduce switching and duplication.
+- Kept old `#habits` routes compatible by directing them to the combined workspace, including direct hash changes.
+- Added compact responsive habit cards with completion, streak/frequency metadata, and delete action.

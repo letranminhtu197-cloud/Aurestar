@@ -1,0 +1,6 @@
+Aurestar 16.16.27 — Itsuki Rotation Crash Fix
+
+- Fixed a ReferenceError in the shared expression update path: the recent-image list now comes from stored.itsukiRecentImageIds.
+- Bumped expression-state schema to 4 and clear stale expression/cursor data on update/startup.
+- Kept strict circular rotation through the 30 verified local portraits and their paired Vietnamese dialogue.
+- No live Chrome runtime test has been performed; package and syntax checks are run before delivery.

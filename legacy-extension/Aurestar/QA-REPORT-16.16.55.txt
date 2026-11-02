@@ -1,0 +1,27 @@
+Aurestar 16.16.55 — QA audit report
+
+Result: 17 passed, 0 failed.
+
+Checks:
+PASS — Manifest JSON — version 16.16.55
+PASS — Manifest/HTML/resource references — no missing local references
+PASS — JavaScript syntax — 11 JS files checked
+PASS — One-minute recurring alarm configured — PASS
+PASS — Legacy five-minute alarm removed — PASS
+PASS — Study reminder time window 06:00–20:45 — PASS
+PASS — Focus and Break protected — PASS
+PASS — Paused timer protected — PASS
+PASS — Privacy Mode respected — PASS
+PASS — Wake/wind-down/sleep alarms present — PASS
+PASS — Water reminder on focus-to-break — PASS
+PASS — Reminder content: wake — content key present
+PASS — Reminder content: study — content key present
+PASS — Reminder content: wind-down — content key present
+PASS — Reminder content: sleep — content key present
+PASS — Reminder content: water — content key present
+PASS — ZIP integrity — 109 entries; testzip=None
+
+Limitations:
+- Static validation and local resource checks only; this is not a live Chrome profile test.
+- Actual alarm delivery and opening/focusing tabs depend on Chrome being running, permissions/policies, OS focus settings, and whether Privacy Mode is enabled.
+- Chrome may throttle or delay alarms under system sleep or resource pressure; one-minute cadence is a best-effort reminder, not a hard real-time guarantee.

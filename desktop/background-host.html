@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Aurestar background service</title></head>
+<body>
+<script src="bridge-alias.js"></script>
+<script>
+(async()=>{
+  const url=await window.aurestarDesktop.getBackgroundScriptUrl();
+  const script=document.createElement('script');
+  script.src=url;
+  script.onload=()=>window.aurestarDesktop.announceBackgroundReady();
+  script.onerror=()=>console.error('Could not load the original Aurestar background engine:',url);
+  document.body.appendChild(script);
+})();
+</script>
+</body>
+</html>

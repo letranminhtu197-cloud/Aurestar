@@ -1,0 +1,7 @@
+Aurestar 16.16.46 — Itsuki Star Branding
+
+- Replaced the extension action and toolbar PNG icons with the gold Itsuki star artwork from logo-star.svg.
+- Kept Aurestar as the extension display name and corrected version_name to 16.16.46.
+- Updated stale visible brand references in changelog/QA documentation and CSS comments.
+- Preserved the manifest public key and legacy internal storage/database/alarm identifiers to avoid changing the Chrome extension ID or breaking existing user data.
+- Note: Windows/Chrome pinned shortcut icon caches may require unpinning and repinning after reloading the unpacked extension.

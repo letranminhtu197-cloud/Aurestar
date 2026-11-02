@@ -1,0 +1,9 @@
+Aurestar 16.16.31 — Study Banter Dialogue Expansion
+
+- Reduced click interaction to three concise lines per expression tone; each deliberate click shows one line, and rapid repeated clicks are ignored for 2.2 seconds.
+- Added original Vietnamese study reminders and procrastination call-outs to focus-reminder and idle-reminder pools.
+- Added sharper, playful argument/bickering lines to fit Itsuki’s blunt, earnest, easily-irritated-but-caring personality. No manga dialogue was copied.
+- Expanded distraction and break-end study nudges so the companion challenges tab-hopping and overlong breaks.
+- Made the click event eligible for serious/displeased/angry portraits as well as cheerful/shy expressions, keeping image and tone aligned.
+- Bumped image-catalog schema to 7 and shared companion-state schema to 8, so stale persisted rotation data is refreshed.
+- Preserved periodic 2 min 30 sec rotation and all existing app functionality.

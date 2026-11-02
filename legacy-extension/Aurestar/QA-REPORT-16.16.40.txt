@@ -1,0 +1,20 @@
+Aurestar 16.16.40 QA Report
+
+PASS — Manifest parses
+PASS — Version is 16.16.40 (16.16.40)
+PASS — MV3 service worker configured
+PASS — All JS syntax checks pass (10/10)
+PASS — Workout aggregate helpers exist
+PASS — Normal planned-task list excludes individual workout exercises
+PASS — Task card renders one aggregate Workout row
+PASS — Gym page presents one workout task
+PASS — Workout engine records one task completion
+PASS — Legacy per-exercise completions migrated/deduplicated
+PASS — Workout exercise timers retained
+PASS — Background reminder scheduler retained
+PASS — HTML local references resolve ([])
+PASS — ZIP integrity (None)
+PASS — Manifest at ZIP root
+PASS — ZIP contains all expected package files (86 files)
+
+Scope: static checks only; a live Chrome UI/session was not run in this environment.

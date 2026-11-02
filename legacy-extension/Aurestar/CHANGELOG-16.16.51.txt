@@ -1,0 +1,8 @@
+Aurestar 16.16.51 — Scheduled and Idle Study Reminders
+
+- Wake Up reminder page scheduled daily at 05:30 and 06:00.
+- Start Study reminder page checked every 5 minutes from 06:00 until 20:45 when no Focus or Break session is actively running and the Focus timer is not paused.
+- Wind Down reminder page scheduled once at 20:45.
+- Time to Sleep reminder page scheduled once at 21:00.
+- Completing a Focus phase and entering Break continues to open the water reminder page.
+- Reminder page text now includes practical anti-procrastination prompts.

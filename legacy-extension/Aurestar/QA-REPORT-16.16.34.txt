@@ -1,0 +1,21 @@
+Aurestar 16.16.34 — UI Consolidation QA
+
+Scope
+- Combine Tasks and Habits on one working page.
+- Make Calendar a separate top-level navigation destination.
+- Remove the Tasks / Habits / Calendar sub-navigation that encouraged page switching.
+- Preserve direct task and habit actions and route old #habits links to the combined workspace.
+
+Checks completed
+- node --check passed for all 10 JavaScript files.
+- manifest.json parses successfully and reports version 16.16.34.
+- ZIP integrity test passed.
+- Main navigation includes Tasks & Habits and Calendar separately.
+- renderTasks contains compact habit cards, today's completed habit count, and a quick-add form.
+- Habit toggle/delete handlers remain bound through bindGlobal.
+- Legacy #habits route is mapped to Tasks & Habits on startup and hash navigation.
+- Old Tasks / Habits / Calendar section navigation has been removed; Progress sub-navigation remains intact.
+- All 30 numbered Itsuki JPG assets are included in the package.
+
+Limitations
+- Not launched in a live Chrome profile; checks are static syntax, structure, and package-integrity tests.

@@ -1,0 +1,7 @@
+Aurestar 16.16.36
+- Fixed upgrade migration so existing schema-version-52 installs enable notifications and task reminders by default, unless Privacy Mode is enabled.
+- Bumped storage schema to 53 so the reminder migration runs exactly once on upgrade.
+- Hardened the half-hour reminder scheduler around local-time boundaries and end-of-day handling.
+- Clears and recreates the reminder notification so repeated reminders can alert again without accumulating duplicate cards.
+- Reduced the companion's periodic background alarm from every 2.5 minutes to every 30 minutes to reduce unnecessary service-worker wakeups.
+- Keeps scheduling one-shot Chrome alarms; no background polling loops or permanent timers.

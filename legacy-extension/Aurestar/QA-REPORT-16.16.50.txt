@@ -1,0 +1,16 @@
+Aurestar 16.16.50 — Reminder Page QA
+
+PASS — background.js syntax check
+PASS — reminder.js syntax check
+PASS — manifest JSON parse
+PASS — Dedicated reminder page resources are present
+PASS — Daily schedule definitions: 05:30 wake, 06:10 study, 20:45 sleep prep, 22:00 sleep
+PASS — Focus-end handler opens hydration reminder when a completed focus phase transitions to break
+PASS — Reminder UI provides next-step checklist, Focus/study action, and dismiss action
+
+Not verified in this environment:
+- Real Chrome alarm firing at the exact wall-clock minute.
+- Actual foreground tab opening on the user's Chrome profile.
+- Focus timer completing interactively in Chrome.
+
+Chrome may delay alarms while the device is asleep or Chrome is suspended. The extension requests the schedule and opens the page when Chrome dispatches the alarm.

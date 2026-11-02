@@ -1,0 +1,7 @@
+Aurestar 16.16.26 — Itsuki Dialogue Rewrite
+
+- Replaced all 30 old numbered-portrait dialogue lines with new, original Vietnamese dialogue.
+- Voice direction: serious, earnest, polite/formal, stubborn, easily flustered, caring, hardworking, and fond of food; includes firm but supportive study nudges.
+- Dialogue is newly written and inspired by character traits, not copied from manga panels or wiki quote lists.
+- Kept the 30-image sequential circular rotation logic and all existing extension features/assets.
+- expressions.json schemaVersion: 4.

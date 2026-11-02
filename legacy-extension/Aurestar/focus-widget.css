@@ -1,0 +1,118 @@
+
+#ascended-focus-widget{position:fixed;top:18vh;right:18vw;width:260px;z-index:2147483647;box-sizing:border-box;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#f5f5f7;background:rgba(18,18,23,.94);border:1px solid rgba(255,255,255,.12);border-radius:16px;box-shadow:0 16px 50px rgba(0,0,0,.35),0 0 0 1px rgba(130,88,255,.08);backdrop-filter:blur(18px);user-select:none;overflow:hidden}
+#ascended-focus-widget *{box-sizing:border-box}
+#ascended-focus-widget[hidden]{display:none!important}
+#ascended-focus-widget .afw-head{height:42px;padding:0 10px 0 13px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.08);cursor:move}
+#ascended-focus-widget .afw-brand{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:.14em}.afw-brand small{font-size:8px;opacity:.45;letter-spacing:.12em}.afw-dot{width:7px;height:7px;border-radius:50%;background:#e11d48;box-shadow:0 0 12px rgba(225,29,72,.9)}
+#ascended-focus-widget .afw-actions{display:flex;gap:2px}.afw-icon{border:0;background:transparent;color:#aaa;width:26px;height:26px;border-radius:7px;font-size:17px;cursor:pointer}.afw-icon:hover{background:rgba(255,255,255,.08);color:#fff}
+#ascended-focus-widget .afw-body{padding:14px 15px 12px}.afw-phase{text-align:center;font-size:9px;letter-spacing:.18em;color:#ff9aaa;font-weight:800}.afw-time{text-align:center;font-variant-numeric:tabular-nums;font-size:42px;line-height:1.05;font-weight:750;letter-spacing:-.045em;margin:7px 0 8px}.afw-task-select{display:block;width:100%;height:30px;margin-top:8px;padding:0 8px;border:1px solid rgba(255,255,255,.09);border-radius:8px;background:rgba(255,255,255,.045);color:#ddd;font-size:10px;outline:none}.afw-task-select:disabled{opacity:.55}.afw-progress{height:3px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;margin:13px 0 12px}.afw-progress i{display:block;height:100%;width:0;background:#e11d48;border-radius:4px;transition:width .25s linear}
+#ascended-focus-widget .afw-controls{display:grid;grid-template-columns:minmax(0,1fr) 56px 56px;gap:6px}.afw-controls button{min-width:0;height:34px;border:0;border-radius:9px;font-size:9px;font-weight:800;letter-spacing:.08em;cursor:pointer}.afw-main{background:#e11d48;color:#fff}.afw-main:hover:not(:disabled){background:#ff8295}.afw-secondary{background:rgba(255,255,255,.07);color:#ddd}.afw-controls button:disabled{opacity:.35;cursor:default}.afw-breaks{display:grid;grid-template-columns:auto 1fr 1fr 52px;gap:5px;align-items:center;margin-top:8px}.afw-breaks>span{font-size:8px;letter-spacing:.12em;color:#666;font-weight:900}.afw-break{height:27px;border:1px solid rgba(255,255,255,.08);border-radius:7px;background:rgba(255,255,255,.045);color:#aaa;font-size:8px;font-weight:800;cursor:pointer}.afw-break:hover:not(:disabled){border-color:rgba(225,29,72,.4);color:#fff}.afw-break:disabled{opacity:.3;cursor:default}.afw-meta{display:flex;justify-content:space-between;margin-top:10px;color:#777;font-size:9px}.afw-minimized{display:none;height:42px;align-items:center;justify-content:space-between;padding:0 8px 0 13px}.afw-minimized span{font-variant-numeric:tabular-nums;font-size:18px;font-weight:750}.afw-minimized button{width:28px;height:28px;border:0;border-radius:7px;background:#e11d48;color:#fff;cursor:pointer}
+#ascended-focus-widget.is-min .afw-body,#ascended-focus-widget.is-min .afw-head .afw-actions{display:none}#ascended-focus-widget.is-min .afw-head{display:none}#ascended-focus-widget.is-min .afw-minimized{display:flex}
+@media(max-width:600px){#ascended-focus-widget{width:225px}.afw-time{font-size:34px}}
+
+/* ITSUKI EDITION focus widget */
+#ascended-focus-widget{background:rgba(30,13,21,.96)!important;border-color:rgba(255,100,124,.3)!important;box-shadow:0 16px 50px rgba(0,0,0,.4),0 0 0 1px rgba(255,100,124,.1)!important}
+#ascended-focus-widget .afw-brand::before{content:'★';color:#ffc2cc;font-size:13px;margin-right:3px}
+#ascended-focus-widget .afw-phase{color:#ff9aaa!important}
+#ascended-focus-widget .afw-main,#ascended-focus-widget .afw-minimized button{background:#e11d48!important}
+#ascended-focus-widget .afw-dot{background:#ff647c!important;box-shadow:0 0 12px rgba(255,100,124,.8)!important}
+#ascended-focus-widget .afw-progress i{background:linear-gradient(90deg,#ff9aaa,#e11d48)!important}
+/* Itsuki companion identity carried into the floating Focus widget */
+#ascended-focus-widget .afw-brand span:nth-child(2){letter-spacing:.1em}
+#ascended-focus-widget .afw-brand small::after{content:' ★';color:#ffd27d}
+
+/* Itsuki desktop-style pet: always coupled to the Focus widget. */
+#itsuki-page-pet{position:fixed;left:14px;top:calc(100vh - 158px);right:auto;bottom:auto;z-index:2147483646;display:flex;align-items:flex-end;gap:8px;max-width:min(370px,calc(100vw - 20px));font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:#fff;pointer-events:none;contain:layout style;transition:none}
+#itsuki-page-pet[hidden]{display:none!important}
+#itsuki-page-pet *{box-sizing:border-box}
+#itsuki-page-pet .ipp-art{pointer-events:auto;flex:0 0 auto;border:0!important;background:transparent!important;padding:0!important;margin:0!important;width:154px;height:218px;display:flex;align-items:flex-end;justify-content:center;cursor:grab;touch-action:none;user-select:none;filter:drop-shadow(0 6px 14px rgba(0,0,0,.2));outline-offset:3px}
+#itsuki-page-pet .ipp-art:active{cursor:grabbing}
+#itsuki-page-pet .ipp-art img{display:block;width:100%;height:100%;object-fit:contain;object-position:center bottom;pointer-events:none;user-select:none;transition:transform .25s ease;will-change:transform}
+#itsuki-page-pet .ipp-bubble{pointer-events:auto;position:relative;display:grid;gap:8px;width:242px;max-width:calc(100vw - 140px);padding:14px 12px 12px;margin:0 0 8px;border-radius:15px;background:rgba(37,14,24,.96);border:1px solid rgba(255,126,153,.42);box-shadow:0 12px 35px rgba(0,0,0,.28),0 0 0 1px rgba(255,194,204,.06);color:#fff;backdrop-filter:blur(12px);font-family:Inter,ui-sans-serif,system-ui,sans-serif;text-align:left}
+#itsuki-page-pet .ipp-bubble[hidden]{display:none!important}
+#itsuki-page-pet .ipp-bubble b{display:block;margin:0;padding:0;color:#ffd2dc;font-size:12px;font-weight:850;line-height:1.3;letter-spacing:.02em}
+#itsuki-page-pet .ipp-dialogue-text{display:block;color:#f8e9ed;font-size:12px;line-height:1.48;overflow-wrap:anywhere}
+#itsuki-page-pet .ipp-bubble button{appearance:none;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:7px 8px;background:rgba(255,255,255,.08);color:#fff;font-family:inherit;font-size:10px;font-weight:750;line-height:1.2;cursor:pointer}
+#itsuki-page-pet .ipp-bubble button:hover{background:rgba(255,255,255,.15)}
+#itsuki-page-pet .ipp-bubble .ipp-close{position:absolute;right:5px;top:5px;width:24px;height:24px;padding:0;border:0;background:transparent;font-size:17px;line-height:1}
+#itsuki-page-pet .ipp-bubble-actions{display:flex;gap:6px;flex-wrap:wrap}
+#itsuki-page-pet .ipp-bubble .ipp-open{background:#bd3b5b;border-color:#d95d79}
+#itsuki-page-pet .ipp-bubble .ipp-snooze{color:#f2ccd5}
+#itsuki-page-pet.ipp-walking .ipp-art img{animation:ipp-walk-bob .38s ease-in-out infinite alternate}
+@keyframes ipp-walk-bob{from{translate:0 0}to{translate:0 -4px}}
+@media(max-width:600px){#itsuki-page-pet .ipp-art{width:92px;height:140px}#itsuki-page-pet .ipp-bubble{width:204px;max-width:calc(100vw - 88px);padding:11px 10px 10px}#itsuki-page-pet .ipp-dialogue-text{font-size:11px}}
+@media(prefers-reduced-motion:reduce){#itsuki-page-pet .ipp-art,#itsuki-page-pet .ipp-art img{animation:none!important;transition:none!important}}
+
+/* Discreet Mode keeps the timer usable without Itsuki branding. */
+#ascended-focus-widget.afw-discreet .afw-brand::before{content:none!important}
+#ascended-focus-widget.afw-discreet .afw-brand small::after{content:''!important}
+
+/* 16.9.0 interaction/accessibility fixes */
+#ascended-focus-widget .afw-task-label{display:block;margin-top:8px;color:#bca8ad;font-size:9px;font-weight:750;letter-spacing:.05em}
+#ascended-focus-widget .afw-task-select{margin-top:4px}
+#itsuki-page-pet .ipp-art-fallback{display:none;align-items:center;justify-content:center;flex-direction:column;gap:4px;width:100%;height:100%;border-radius:42% 42% 32% 32%;background:radial-gradient(ellipse at 50% 25%,rgba(255,210,220,.24),rgba(68,18,35,.92) 72%);border:1px solid rgba(255,210,220,.45);box-shadow:0 8px 25px rgba(0,0,0,.25);color:#ffd27d;text-shadow:0 2px 8px #300;
+}
+#itsuki-page-pet .ipp-art-fallback b{font-size:36px;line-height:1}
+#itsuki-page-pet .ipp-art-fallback small{font-size:10px;color:#ffe8ed;font-weight:800;letter-spacing:.08em}
+#itsuki-page-pet.ipp-art-unavailable .ipp-art-fallback{display:flex}
+#itsuki-page-pet .ipp-bubble{flex:0 1 242px}
+#itsuki-page-pet.ipp-right-side .ipp-bubble{order:-1}
+#itsuki-page-pet .ipp-art img[hidden]{display:none!important}
+
+/* 16.9.0: transparent, local full-body art; spoken line stays beside Itsuki and changes silently. */
+#itsuki-page-pet{width:max-content;max-width:min(372px,calc(100vw - 20px));align-items:flex-end;gap:9px;}
+#itsuki-page-pet .ipp-art{filter:drop-shadow(0 6px 14px rgba(20,4,12,.28));}
+#itsuki-page-pet .ipp-art img{object-fit:contain;object-position:center bottom;}
+#itsuki-page-pet .ipp-bubble{box-shadow:0 12px 35px rgba(0,0,0,.34),0 0 0 1px rgba(255,194,204,.06);}
+#itsuki-page-pet .ipp-bubble::after{content:'';position:absolute;bottom:18px;left:-7px;width:12px;height:12px;background:rgba(37,14,24,.96);border-left:1px solid rgba(255,126,153,.42);border-bottom:1px solid rgba(255,126,153,.42);transform:rotate(45deg);}
+#itsuki-page-pet.ipp-right-side .ipp-bubble::after{left:auto;right:-7px;transform:rotate(225deg);}
+#itsuki-page-pet .ipp-bubble[hidden]{display:none!important}
+#itsuki-page-pet .ipp-art:focus-visible{outline:2px solid #ff9aaa!important;outline-offset:3px;border-radius:20px;}
+#itsuki-page-pet.ipp-walking .ipp-art{animation:ipp-pet-step .38s ease-in-out infinite alternate;}
+@keyframes ipp-pet-step{from{transform:translateY(0) rotate(-1deg)}to{transform:translateY(-4px) rotate(1deg)}}
+@media(max-width:600px){#itsuki-page-pet{gap:7px;max-width:calc(100vw - 16px)}#itsuki-page-pet .ipp-bubble{flex-basis:204px}}
+@media(prefers-reduced-motion:reduce){#itsuki-page-pet.ipp-walking .ipp-art{animation:none!important}}
+
+/* Discreet, low-emphasis companion visibility toggle. */
+#ascended-focus-widget .afw-companion-toggle{width:20px;height:20px;font-size:13px;opacity:.38;padding:0;line-height:20px}#ascended-focus-widget .afw-companion-toggle:hover,#ascended-focus-widget .afw-companion-toggle:focus-visible{opacity:1}#ascended-focus-widget .afw-companion-toggle.is-companion-hidden{opacity:.8;color:#d5d5d5}
+
+
+/* AURESTAR 16.14.0 — unified Wine/Pink widget palette */
+#ascended-focus-widget{background:rgba(43,24,30,.97)!important;border-color:rgba(242,139,156,.26)!important;box-shadow:0 16px 44px rgba(17,5,10,.35),0 0 0 1px rgba(242,139,156,.06)!important;color:#f3e8eb!important}
+#ascended-focus-widget .afw-main,#ascended-focus-widget .afw-minimized button{background:linear-gradient(135deg,#d94e67,#bf3b54)!important;color:#fff8fa!important}
+#ascended-focus-widget .afw-main:hover:not(:disabled),#ascended-focus-widget .afw-minimized button:hover{background:#e7667d!important}
+#ascended-focus-widget .afw-progress i{background:linear-gradient(90deg,#d94e67,#f28b9c)!important}
+#ascended-focus-widget .afw-phase{color:#f28b9c!important}
+#ascended-focus-widget .afw-task-select{background:rgba(61,34,42,.75)!important;border-color:rgba(242,139,156,.14)!important;color:#f3e8eb!important}
+#ascended-focus-widget .afw-icon:hover,#ascended-focus-widget .afw-secondary:hover{background:rgba(217,78,103,.14)!important;color:#fff4f6!important}
+
+/* 16.15.0 — manual Itsuki drag: no autonomous movement; cursor indicates repositioning. */
+#itsuki-page-pet .ipp-art{cursor:grab;touch-action:none;-webkit-user-drag:none;}
+#itsuki-page-pet .ipp-art:active,#itsuki-page-pet.ipp-dragging .ipp-art{cursor:grabbing;}
+#itsuki-page-pet.ipp-dragging{user-select:none!important;}
+#itsuki-page-pet .ipp-art img{pointer-events:none;-webkit-user-drag:none;}
+
+/* 16.16.3: larger, clearer Itsuki art and more readable dialogue */
+#itsuki-page-pet .ipp-art{width:154px;height:218px;}
+#itsuki-page-pet .ipp-art img{object-fit:contain;image-rendering:auto;filter:drop-shadow(0 8px 18px rgba(20,4,12,.32));}
+#itsuki-page-pet .ipp-bubble{width:270px;padding:16px 14px 13px;gap:10px;}
+#itsuki-page-pet .ipp-dialogue-text{font-size:13px;line-height:1.55;}
+@media(max-width:600px){#itsuki-page-pet .ipp-art{width:92px;height:140px;}#itsuki-page-pet .ipp-bubble{width:218px;max-width:calc(100vw - 112px);padding:12px 10px;}#itsuki-page-pet .ipp-dialogue-text{font-size:12px;}}
+
+/* Global visibility hotkeys: Alt+F6 hides the widget and Itsuki; Ctrl+Alt+F6 restores them. */
+html.aurestar-distraction-hidden #ascended-focus-widget,
+html.aurestar-distraction-hidden #itsuki-page-pet{display:none!important;visibility:hidden!important;pointer-events:none!important}
+
+/* Aurestar 16.16.14 visibility state for Alt+F6 / Ctrl+Alt+F6. */
+html[data-aurestar-overlays-hidden="true"] #ascended-focus-widget,
+html[data-aurestar-overlays-hidden="true"] #itsuki-page-pet,
+html.aurestar-distraction-hidden #ascended-focus-widget,
+html.aurestar-distraction-hidden #itsuki-page-pet{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}
+
+/* Aurestar 16.16.20 — stable overlay geometry across pages with hostile site CSS. */
+#ascended-focus-widget{width:260px!important;min-width:260px!important;max-width:calc(100vw - 16px)!important;box-sizing:border-box!important;transform:none!important;margin:0!important;line-height:normal!important;font-size:12px!important;contain:layout style!important}
+#ascended-focus-widget *{box-sizing:border-box!important}
+#itsuki-page-pet{width:max-content!important;max-width:calc(100vw - 16px)!important;box-sizing:border-box!important;transform:none!important;line-height:normal!important;font-size:12px!important}
+#itsuki-page-pet .ipp-art{width:154px!important;height:218px!important;min-width:154px!important;min-height:218px!important;max-width:154px!important;max-height:218px!important;flex:0 0 154px!important;box-sizing:border-box!important}
+#itsuki-page-pet .ipp-art img{width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;box-sizing:border-box!important}
+#itsuki-page-pet .ipp-bubble{width:270px!important;min-width:270px!important;max-width:calc(100vw - 180px)!important;flex:0 1 270px!important;box-sizing:border-box!important}

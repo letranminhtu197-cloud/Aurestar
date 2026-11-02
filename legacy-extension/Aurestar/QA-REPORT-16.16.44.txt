@@ -1,0 +1,6 @@
+QA report — Aurestar 16.16.44
+- Manifest JSON parses successfully.
+- All four icon files exist and are valid PNGs at their declared dimensions.
+- JavaScript syntax checks are run during packaging.
+- Important: Chrome may cache the icon/name of an already pinned taskbar shortcut. After loading the updated extension, remove the old pinned shortcut and pin Aurestar again if the taskbar still shows the legacy icon/name.
+- No live Chrome UI test was performed in this environment.

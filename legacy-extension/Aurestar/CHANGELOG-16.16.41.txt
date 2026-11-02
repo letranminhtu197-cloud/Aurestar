@@ -1,0 +1,5 @@
+Aurestar 16.16.41 — Itsuki Dialogue Persistence Fix
+- Itsuki's dialogue card now defaults to visible after updating, ignoring stale legacy collapse state.
+- The card is hidden only through an explicit user action (the Itsuki tab toggle or minimize button); that explicit choice is saved in itsukiCompanionHiddenByUser.
+- Empty dialogue events no longer clear the current speech bubble.
+- Keeps the existing Itsuki message, expression, task, habit, focus, and workout behavior.

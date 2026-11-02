@@ -1,0 +1,9 @@
+Aurestar 16.16.36 QA report (static + simulated tests)
+- JavaScript syntax: node --check passed for all packaged JavaScript files.
+- manifest.json: valid JSON, Manifest V3, version 16.16.36.
+- Storage schema bumped to 53; upgrade migration enables notifications/task reminders for earlier schemas unless Privacy Mode is enabled.
+- Simulated scheduler tests passed: before 06:00, exact slot startup, ordinary half-hour alignment, 21:30 final slot, and next-day 06:00.
+- Simulated failure test passed: when notification creation throws, the next study alarm is still scheduled.
+- No polling loop or permanent timer added; study reminders use one-shot Chrome alarms. Companion periodic alarm reduced from 2.5 to 30 minutes.
+- ZIP integrity checked after packaging.
+- Not live-tested in Chrome in this environment. Final delivery still requires checking OS notification permission and verifying one actual notification with the Aurestar UI closed.

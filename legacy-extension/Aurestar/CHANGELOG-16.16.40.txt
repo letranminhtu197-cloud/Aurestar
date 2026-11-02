@@ -1,0 +1,5 @@
+Aurestar 16.16.40
+- Group all scheduled workout exercises into one aggregate Workout task in task counts and the regular task list.
+- Exercise items remain internal steps in the Training view; individual sets and exercises no longer create separate task-completion records.
+- Completing the full scheduled workout records one task completion for the day.
+- Preserves workout exercise configuration, session history, timer and reminder behavior.

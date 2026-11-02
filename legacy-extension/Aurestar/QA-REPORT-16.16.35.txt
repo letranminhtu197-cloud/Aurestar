@@ -1,0 +1,8 @@
+Aurestar 16.16.35 QA report (static checks)
+- JavaScript syntax: node --check passed for every packaged .js file.
+- manifest.json: valid JSON; Manifest V3 retained; version is 16.16.35.
+- Gamification UI: removed from navigation, dashboard, task/habit cards, calendar, and progress metrics; XP/coin/level awards are disabled.
+- Background reminders: one-shot Chrome alarm is scheduled for the next local half-hour slot from 06:00 through 21:30 and rescheduled after each reminder; the Aurestar window need not be open.
+- Upgrade migration: notifications and task reminders enabled by default for schema versions below 52. Privacy Mode continues to suppress notifications.
+- ZIP integrity: checked after packaging.
+- Limitation: no live Chrome runtime test was possible here. Reload the extension from chrome://extensions and verify notification permission and delivery with Chrome running while Aurestar's UI is closed.

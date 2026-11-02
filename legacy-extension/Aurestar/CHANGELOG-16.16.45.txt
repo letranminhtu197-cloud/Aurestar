@@ -1,0 +1,8 @@
+Aurestar 16.16.45 — English-only Itsuki dialogue
+
+- Replaced the active timed study and sleep dialogue pools with English lines.
+- Removed the obsolete Vietnamese contextual dialogue table and its unused selector.
+- All Itsuki expression updates now ignore legacy event-specific message overrides and use the current time-band pool.
+- Updated the packaged Itsuki expression catalog dialogue strings to English study motivation / bedtime reminders.
+- Updated dashboard fallback speech and companion status labels to English.
+- Kept the existing cadence: 05:00–20:45 every 10 minutes; 20:45–22:00 every 5 minutes; 22:00–05:00 every 15 minutes.

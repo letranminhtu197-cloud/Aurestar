@@ -1,0 +1,9 @@
+Aurestar 16.16.32 — Itsuki Firm Study-Coach Rework
+
+- Reframed Itsuki's voice: she directly calls out procrastination and avoidance, rather than trading arguments with the user.
+- Rewrote the 30 image-paired dialogue lines with stronger study accountability while matching expression notes.
+- Retained 392 unique contextual lines across 15 event groups while keeping clicks brief (12 total lines across four tones) and removed argumentative click banter.
+- Strengthened tab-change, focus-start, pause, resume, stop, break-end, focus-reminder, idle-reminder, and distraction dialogue.
+- Reminder portrait selection now prefers primary portrait expressions, keeping stricter dialogue paired with serious, determined, displeased, or angry portraits.
+- Bumped companion state schema to 9 so cached prior dialogue/portrait state is cleared after update.
+- Original Vietnamese dialogue; no manga dialogue copied.

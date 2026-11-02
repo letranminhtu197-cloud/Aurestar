@@ -1,0 +1,7 @@
+Aurestar 16.16.47 — Fresh Extension Identity
+
+- Removed the pinned public key from manifest.json so an unpacked installation can receive a new extension ID based on its loading path.
+- Kept legacy storage/database keys intact to avoid breaking access to existing data in the old installation.
+- Kept Aurestar display name and Itsuki star icons.
+
+IMPORTANT: Chrome generates the unpacked extension ID based on the directory path when no manifest key is present. Keep this folder in a stable location. This does not automatically change an existing Windows taskbar shortcut; remove the old shortcut and create/pin a new one after loading this extension. Data in the old extension ID is not automatically migrated.

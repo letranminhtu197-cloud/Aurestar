@@ -1,0 +1,49 @@
+name: Build Aurestar Desktop
+
+concurrency:
+  group: aurestar-desktop-${{ github.ref }}
+  cancel-in-progress: true
+on:
+  workflow_dispatch:
+  push:
+    branches: [desktop-rebuild]
+    paths:
+      - 'desktop/**'
+      - 'legacy-extension/Aurestar/**'
+      - '.github/workflows/build-desktop.yml'
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        working-directory: desktop
+        run: npm install
+      - name: Validate JavaScript syntax
+        working-directory: desktop
+        run: |
+          node --check main.cjs
+          node --check preload.cjs
+          node --check renderer.js
+          node --check ../legacy-extension/Aurestar/background.js
+          node -e "JSON.parse(require('node:fs').readFileSync('package.json','utf8')); console.log('package.json valid')"
+      - name: Run startup regression tests
+        working-directory: desktop
+        run: npm test
+      - name: Package Windows app
+        working-directory: desktop
+        run: npm run dist
+      - name: Upload installer and portable app
+        uses: actions/upload-artifact@v4
+        with:
+          name: Aurestar-Windows
+          path: desktop/release/*
+          if-no-files-found: error
+          retention-days: 14

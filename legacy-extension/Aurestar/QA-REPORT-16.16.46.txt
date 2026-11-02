@@ -1,0 +1,8 @@
+QA Report — Aurestar 16.16.46
+
+- manifest.json parses as JSON.
+- Extension version and display name verified.
+- Gold Itsuki star rendered to 16, 32, 48 and 128 px icon assets.
+- JavaScript syntax checks are run during packaging.
+- Chrome taskbar/pinned shortcut behavior has not been live-tested on the user machine.
+- Legacy internal identifiers remain intentionally for compatibility; they are not user-facing app names.

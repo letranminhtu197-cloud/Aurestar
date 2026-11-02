@@ -1,0 +1,5 @@
+Aurestar 16.16.39 — Activity intensity contrast
+
+- Increased the visibility of the low-activity (level 1) squares in Activity intensity.
+- Adjusted the full activity heatmap and legend to use a clearer, progressively brighter rose palette.
+- No activity calculations, stored data, or reminder scheduling changed.

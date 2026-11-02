@@ -1,0 +1,5 @@
+Aurestar 16.16.37
+- Fixed startup contention: existing installs can read their saved state without waiting for optional background bootstrap/alarm/widget work.
+- Fresh installs still wait for the one-time seed and reread storage before initializing a clean state.
+- Added bounded retries for the dashboard state request, a five-second request timeout, and visible stack details plus a Retry button instead of a generic boot failure.
+- Preserved Manifest V3 one-shot Chrome alarm reminders from 06:00 through 21:30 local time; no polling loop added.

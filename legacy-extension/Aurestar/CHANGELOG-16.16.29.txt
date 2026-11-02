@@ -1,0 +1,9 @@
+Aurestar 16.16.29 — Itsuki dialogue pool and Break-End fix
+
+- Replaced single fixed context lines with rotating, per-event/per-expression dialogue pools.
+- Main themes expanded: study motivation, stern/tsundere reminders, distraction warnings, Focus pause/stop/resume, tab switching, Break start/end, water reminders, and returning to study.
+- Recent lines are tracked per event/expression tone, so a repeated event does not immediately produce the same line.
+- Periodic rotation continues to use the unique dialogue paired with each of the 30 local portrait assets.
+- Added a distinct break-end event when a Break is skipped, ends, or transitions back to Focus/idle.
+- Bumped expression-state schema to 6 and resets stale dialogue history when the extension updates.
+- No manga dialogue has been copied verbatim; the Vietnamese lines are newly written character-inspired text.

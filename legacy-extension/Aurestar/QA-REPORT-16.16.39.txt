@@ -1,0 +1,7 @@
+Aurestar 16.16.39 QA report
+
+- PASS: manifest JSON parses and version is 16.16.39.
+- PASS: Activity intensity heatmap and legend have explicit, matching colors for levels 0–4.
+- PASS: low-activity level 1 uses a lighter rose fill (#a85d70) and brighter border (#e08a9d), distinct from level 0.
+- PASS: JavaScript source files remain unchanged from 16.16.38.
+- Note: visual behavior should still be confirmed in Chrome after loading the unpacked extension.
