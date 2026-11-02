@@ -277,9 +277,6 @@ function repositionWidgetsForDisplayChange(){
   }
   separateWidgets();
 }
-screen.on('display-metrics-changed',repositionWidgetsForDisplayChange);
-screen.on('display-added',repositionWidgetsForDisplayChange);
-screen.on('display-removed',repositionWidgetsForDisplayChange);
 function createItsuki(options={}){
   if(state?.settings?.privacyMode===true||state?.settings?.itsukiCompanionEnabled===false)return;
   if(options.startup&&state?.settings?.itsukiWidgetHiddenByUser===true)return;
@@ -451,6 +448,10 @@ function initializeNativeServices(){
   powerMonitor.on('unlock-screen',()=>{lastIdleState='idle';pollSystemIdle();});
 }
 app.whenReady().then(()=>{
+  // Electron's screen APIs are only available after the app is ready.
+  screen.on('display-metrics-changed',repositionWidgetsForDisplayChange);
+  screen.on('display-added',repositionWidgetsForDisplayChange);
+  screen.on('display-removed',repositionWidgetsForDisplayChange);
   initializeNativeServices();state=readState();saveState();createBackgroundWindow();createWindow();createTray();createApplicationMenu();if(state.settings?.focusWidgetEnabled!==false)createPomodoroWidget();if(state.settings?.itsukiCompanionEnabled!==false&&state.settings?.privacyMode!==true)createItsuki({startup:true});
   globalShortcut.register('CommandOrControl+Shift+L',toggleFocus);
   globalShortcut.register('CommandOrControl+Shift+K',()=>{if(!win)createWindow();win?.show();win?.webContents.send('aurestar:quick-add');});
