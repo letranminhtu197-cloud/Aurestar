@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#211217">
+<title>Settings · Aurestar</title>
+<link rel="stylesheet" href="aurestar-ui.css">
+</head>
+<body>
+<div class="app-shell">
+<aside class="sidebar">
+  <a class="brand" href="overview.html"><span class="brand-mark">✦</span><span><span class="brand-name">AURESTAR</span><span class="brand-sub">STUDY SPACE · ONE STEP AT A TIME</span></span></a>
+  <div class="nav-label">WORKSPACE</div>
+  <nav class="nav">
+    <a class="" href="overview.html"><span class="nav-icon">◫</span>Overview</a>
+    <a class="" href="tasks-habits.html"><span class="nav-icon">☷</span>Tasks &amp; Habits</a>
+    <a class="" href="focus.html"><span class="nav-icon">◉</span>Focus</a>
+    <a class="" href="calendar.html"><span class="nav-icon">▦</span>Calendar</a>
+    <a class="" href="training.html"><span class="nav-icon">↗</span>Training</a>
+    <a class="" href="insights.html"><span class="nav-icon">⌁</span>Insights</a>
+  </nav>
+  <div class="sidebar-bottom"><a class="nav active" href="settings.html"><span class="nav-icon">⚙</span>Settings</a><div class="sidebar-note">Local-first workspace<br><span style="color:var(--rose2)">Professional Edition · UI preview</span></div></div>
+</aside>
+<main class="main-area">
+<header class="topbar">
+  <div class="top-title"><div class="crumb">AURESTAR <span>/</span> SETTINGS</div><h1>Settings</h1></div>
+  <div class="search"><input type="search" placeholder="Search tasks…" aria-label="Search tasks"></div>
+  <div class="top-actions"><button class="icon-btn" type="button" title="Import preview" onclick="alert('UI preview only')">↓</button><button class="icon-btn" type="button" title="Export preview" onclick="alert('UI preview only')">↑</button></div>
+</header>
+<section class="content">
+<header class="page-head"><div><div class="eyebrow">SYSTEM</div><h2>Settings</h2><p>Configure reminders, focus intervals and local data preferences.</p></div><button class="btn btn-primary" onclick="toast('Settings saved in preview only')">Save changes</button></header>
+<div class="settings-layout">
+ <section class="panel"><div class="panel-head"><h3>Notifications &amp; reminders</h3><span class="tiny muted">Local device</span></div>
+  <div class="setting-row"><div class="setting-copy"><b>System notifications</b><small>Show desktop notifications</small></div><input class="switch" type="checkbox" checked></div>
+  <div class="setting-row"><div class="setting-copy"><b>Task reminders</b><small>Notify when tasks are due</small></div><input class="switch" type="checkbox" checked></div>
+  <div class="setting-row"><div class="setting-copy"><b>Itsuki companion</b><small>Show the study companion</small></div><input class="switch" type="checkbox" checked></div>
+  <div class="field"><label>Daily reminder</label><input type="time" value="06:00"></div>
+ </section>
+ <section class="panel"><div class="panel-head"><h3>Focus engine</h3><span class="tiny muted">Pomodoro</span></div>
+  <div class="field-grid"><div class="field"><label>Focus interval (minutes)</label><input type="number" value="25" min="15" max="120"></div><div class="field"><label>Short break</label><input type="number" value="5" min="1" max="30"></div><div class="field"><label>Long break</label><input type="number" value="15" min="1" max="60"></div><div class="field"><label>Long break every</label><input type="number" value="4" min="1" max="12"></div></div>
+ </section>
+ <section class="panel"><div class="panel-head"><h3>Data &amp; backup</h3><span class="tiny muted">Local JSON</span></div>
+  <div class="setting-row"><div class="setting-copy"><b>Automatic daily backup</b><small>Keep a local recovery copy</small></div><input class="switch" type="checkbox" checked></div>
+  <div class="field"><label>Backup time</label><input type="time" value="20:30"></div>
+  <div class="grid grid-2"><button class="ghost-btn" onclick="toast('Backup preview only')">Backup now</button><button class="ghost-btn" onclick="toast('Export preview only')">Export JSON</button></div>
+ </section>
+ <section class="panel"><div class="panel-head"><h3>Application</h3><span class="pill">Desktop</span></div>
+  <div class="goal-row"><span class="muted">Application</span><b>Aurestar</b></div><div class="goal-row"><span class="muted">Version</span><b>2.0.0</b></div><div class="goal-row"><span class="muted">Engine</span><b>Electron 45</b></div><div class="goal-row"><span class="muted">Storage</span><b>Local JSON</b></div>
+  <p class="tiny muted">Website blocking is unavailable in this desktop preview. This build does not modify Windows networking or browser settings. Auto-update and code signing are not enabled.</p>
+ </section>
+</div>
+</section>
+</main>
+</div>
+<div class="toast" role="status" aria-live="polite"></div>
+<script src="aurestar-ui.js"></script>
+</body></html>
