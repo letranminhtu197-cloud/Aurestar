@@ -424,9 +424,9 @@ function renderGym(el){
   bindGlobal();
   $('#gymStartToday')?.addEventListener('click',()=>startGymWorkout());
   $('#gymAddExercise')?.addEventListener('click',()=>openTaskForm(null,{dueDate:day,workoutConfig:{enabled:true,mode:"reps",sets:3,repsMin:8,repsMax:12,restSeconds:60}}));
-  $('[data-gym-single]').forEach(b=>b.addEventListener('click',()=>startGymWorkout()));
-  $('[data-gym-edit]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();openTaskForm(b.dataset.gymEdit)}));
-  $('[data-gym-new-task]').forEach(b=>b.addEventListener('click',()=>openTaskForm(null,{dueDate:day,workoutConfig:{enabled:true,mode:"reps",sets:3,repsMin:8,repsMax:12,restSeconds:60}})));
+  $$('[data-gym-single]').forEach(b=>b.addEventListener('click',()=>startGymWorkout()));
+  $$('[data-gym-edit]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();openTaskForm(b.dataset.gymEdit)}));
+  $$('[data-gym-new-task]').forEach(b=>b.addEventListener('click',()=>openTaskForm(null,{dueDate:day,workoutConfig:{enabled:true,mode:"reps",sets:3,repsMin:8,repsMax:12,restSeconds:60}})));
 }
 async function startGymWorkout(){
   const day=today();
@@ -826,8 +826,8 @@ function bindGlobal(){
   $$(`[data-open-task]`).forEach(card=>card.onclick=e=>{if(e.target.closest("button"))return;openTaskForm(card.dataset.openTask)});
   $$('[data-task-toggle]').forEach(b=>b.onclick=async()=>{const r=await action("toggleTask",{id:b.dataset.taskToggle,date:b.dataset.date});if(r)renderShell()});
   $$('[data-delete-task]').forEach(b=>b.onclick=async()=>{if(confirm("Delete this task?")){const r=await action("deleteTask",{id:b.dataset.deleteTask});if(r)renderShell()}});
-  $('[data-edit-task]').forEach(b=>b.onclick=e=>{e.stopPropagation();openTaskForm(b.dataset.editTask)});
-  $('[data-task-menu]').forEach(b=>b.onclick=e=>{e.stopPropagation();openTaskMenu(b.dataset.taskMenu)});
+  $$('[data-edit-task]').forEach(b=>b.onclick=e=>{e.stopPropagation();openTaskForm(b.dataset.editTask)});
+  $$('[data-task-menu]').forEach(b=>b.onclick=e=>{e.stopPropagation();openTaskMenu(b.dataset.taskMenu)});
   $$('[data-focus-task]').forEach(b=>b.onclick=async e=>{e.stopPropagation();const r=await action('focusSetTask',{taskId:b.dataset.focusTask});if(r){window.location.hash='#focus';activeView='focus';renderShell();}});
   $$('[data-gym-task]').forEach(b=>b.onclick=async e=>{e.stopPropagation();await startGymFromTask(b.dataset.gymTask);});
   $$('[data-checklist]').forEach(b=>b.onclick=async e=>{e.stopPropagation();const r=await action("toggleChecklist",{id:b.dataset.checklist,index:Number(b.dataset.index)});if(r)renderShell()});
