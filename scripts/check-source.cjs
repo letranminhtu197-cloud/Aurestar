@@ -32,7 +32,7 @@ for (const page of ['index.html', 'background-host.html', 'pomodoro-widget.html'
 const mainProcess = fs.readFileSync(path.join(root, 'src', 'main.cjs'), 'utf8');
 const readyStart = mainProcess.indexOf('app.whenReady().then(()=>{');
 const readyEnd = mainProcess.indexOf('\n});', readyStart);
-const displaySubscriptions = [...mainProcess.matchAll(/screen\\.on\\(['\"]display-(?:metrics-changed|added|removed)['\"]/g)];
+const displaySubscriptions = [...mainProcess.matchAll(/screen\.on\(['"]display-(?:metrics-changed|added|removed)['"]/g)];
 if (readyStart < 0 || readyEnd < 0 || displaySubscriptions.length !== 3 || displaySubscriptions.some(match => match.index < readyStart || match.index > readyEnd)) {
   throw new Error('Electron screen event subscriptions must be registered after app.whenReady().');
 }
