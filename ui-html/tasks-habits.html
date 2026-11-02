@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#211217">
+<title>Tasks & Habits · Aurestar</title>
+<link rel="stylesheet" href="aurestar-ui.css">
+</head>
+<body>
+<div class="app-shell">
+<aside class="sidebar">
+  <a class="brand" href="overview.html"><span class="brand-mark">✦</span><span><span class="brand-name">AURESTAR</span><span class="brand-sub">STUDY SPACE · ONE STEP AT A TIME</span></span></a>
+  <div class="nav-label">WORKSPACE</div>
+  <nav class="nav">
+    <a class="" href="overview.html"><span class="nav-icon">◫</span>Overview</a>
+    <a class="active" href="tasks-habits.html"><span class="nav-icon">☷</span>Tasks &amp; Habits</a>
+    <a class="" href="focus.html"><span class="nav-icon">◉</span>Focus</a>
+    <a class="" href="calendar.html"><span class="nav-icon">▦</span>Calendar</a>
+    <a class="" href="training.html"><span class="nav-icon">↗</span>Training</a>
+    <a class="" href="insights.html"><span class="nav-icon">⌁</span>Insights</a>
+  </nav>
+  <div class="sidebar-bottom"><a class="nav " href="settings.html"><span class="nav-icon">⚙</span>Settings</a><div class="sidebar-note">Local-first workspace<br><span style="color:var(--rose2)">Professional Edition · UI preview</span></div></div>
+</aside>
+<main class="main-area">
+<header class="topbar">
+  <div class="top-title"><div class="crumb">AURESTAR <span>/</span> TASKS & HABITS</div><h1>Tasks & Habits</h1></div>
+  <div class="search"><input type="search" placeholder="Search tasks…" aria-label="Search tasks"></div>
+  <div class="top-actions"><button class="icon-btn" type="button" title="Import preview" onclick="alert('UI preview only')">↓</button><button class="icon-btn" type="button" title="Export preview" onclick="alert('UI preview only')">↑</button></div>
+</header>
+<section class="content">
+<header class="page-head"><div><div class="eyebrow">WORKSPACE</div><h2>Tasks &amp; Habits</h2><p>Plan the next action. Build consistency through small daily check-ins.</p></div><button class="btn btn-primary" onclick="document.querySelector('#taskInput')?.focus()">＋ Add task</button></header>
+<div class="tabs" data-tab-group><button class="tab active" data-tab="tasks">Tasks <span class="tiny">7</span></button><button class="tab" data-tab="habits">Habits <span class="tiny">5</span></button></div>
+<div data-tab-panel="tasks">
+ <div class="task-layout">
+  <section class="panel"><div class="section-title"><h3>Today · Tuesday, 3 November</h3><span class="pill">4 of 7 completed</span></div><div class="progress"><i style="width:57%"></i></div><div class="list-section" id="taskList">
+   <div class="task-row done"><button class="check checked" data-check="Review biology notes">✓</button><div class="task-copy"><b>Review biology notes</b><div class="task-meta">08:00 · 25 min</div></div><span class="priority">Done</span></div>
+   <div class="task-row"><button class="check" data-check="IELTS Listening practice"></button><div class="task-copy"><b>IELTS Listening practice</b><div class="task-meta">17:00 · 35 min</div></div><span class="priority high">High</span></div>
+   <div class="task-row"><button class="check" data-check="Finish literature outline"></button><div class="task-copy"><b>Finish literature outline</b><div class="task-meta">19:00 · 30 min</div></div><span class="priority medium">Medium</span></div>
+   <div class="task-row"><button class="check" data-check="Revise chemistry formulas"></button><div class="task-copy"><b>Revise chemistry formulas</b><div class="task-meta">20:00 · 20 min</div></div><span class="priority">Low</span></div>
+  </div><form class="add-row" id="quickAdd"><input id="taskInput" name="task" placeholder="Add a task…" required><button class="btn btn-primary">Add</button></form></section>
+  <aside class="panel"><div class="panel-head"><h3>Task details</h3><span class="tiny muted">Preview</span></div><div class="field"><label>Task title</label><input value="IELTS Listening practice"></div><div class="field-grid"><div class="field"><label>Priority</label><select><option>High</option><option>Medium</option><option>Low</option></select></div><div class="field"><label>Estimated time</label><input value="35 min"></div></div><div class="field"><label>Due date</label><input type="date" value="2026-11-03"></div><div class="field"><label>Notes</label><textarea rows="3" placeholder="Add notes or checklist…"></textarea></div><button class="btn btn-primary" style="width:100%" onclick="alert('UI preview only')">Save changes</button></aside>
+ </div>
+</div>
+<div data-tab-panel="habits" hidden>
+ <div class="grid grid-3">
+  <section class="panel"><div class="panel-head"><h3>Read 10 pages</h3><button class="check checked" data-check="Read 10 pages">✓</button></div><p class="small muted">Daily · 12-day streak</p><div class="progress green"><i style="width:100%"></i></div><small class="tiny muted">Today's check-in</small></section><section class="panel"><div class="panel-head"><h3>Drink enough water</h3><button class="check checked" data-check="Drink enough water">✓</button></div><p class="small muted">Daily · 8-day streak</p><div class="progress green"><i style="width:100%"></i></div><small class="tiny muted">Today's check-in</small></section><section class="panel"><div class="panel-head"><h3>Review vocabulary</h3><button class="check " data-check="Review vocabulary"></button></div><p class="small muted">Daily · 4-day streak</p><div class="progress green"><i style="width:35%"></i></div><small class="tiny muted">Today's check-in</small></section><section class="panel"><div class="panel-head"><h3>Stretch and move</h3><button class="check checked" data-check="Stretch and move">✓</button></div><p class="small muted">Daily · 6-day streak</p><div class="progress green"><i style="width:100%"></i></div><small class="tiny muted">Today's check-in</small></section><section class="panel"><div class="panel-head"><h3>Plan tomorrow</h3><button class="check " data-check="Plan tomorrow"></button></div><p class="small muted">Daily · 2-day streak</p><div class="progress green"><i style="width:35%"></i></div><small class="tiny muted">Today's check-in</small></section><section class="panel"><div class="panel-head"><h3>Sleep routine</h3><button class="check checked" data-check="Sleep routine">✓</button></div><p class="small muted">Daily · 5-day streak</p><div class="progress green"><i style="width:100%"></i></div><small class="tiny muted">Today's check-in</small></section>
+ </div>
+</div>
+</section>
+</main>
+</div>
+<div class="toast" role="status" aria-live="polite"></div>
+<script src="aurestar-ui.js"></script>
+</body></html>
