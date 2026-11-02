@@ -1,0 +1,28 @@
+name: Export Aurestar HTML interfaces
+
+on:
+  push:
+    branches: ["ui-html-export/**"]
+    paths:
+      - "ui-html/**"
+      - "resources/itsuki/itsuki-pet.png"
+      - ".github/workflows/ui-html-export.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  package-html:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package standalone HTML interfaces
+        run: |
+          mkdir -p dist
+          zip -r dist/Aurestar-2.0.0-HTML-Interfaces.zip ui-html resources/itsuki/itsuki-pet.png
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Aurestar-2.0.0-HTML-Interfaces
+          path: dist/Aurestar-2.0.0-HTML-Interfaces.zip
+          if-no-files-found: error
+          retention-days: 30
