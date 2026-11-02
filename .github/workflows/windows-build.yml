@@ -88,6 +88,40 @@ jobs:
           node --test tests/*.test.cjs
           if ($LASTEXITCODE -ne 0) { throw "Aurestar source regression tests failed." }
 
+      - name: Inspect version ZIP contents
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $zip = Get-ChildItem -Path $env:GITHUB_WORKSPACE -Filter "Aurestar-*.zip" -File | Select-Object -First 1
+          if (-not $zip) {
+            "No version ZIP found in repository root." | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+            exit 0
+          }
+          $zipDir = Join-Path $env:RUNNER_TEMP "aurestar-version-zip-inventory"
+          if (Test-Path $zipDir) { Remove-Item $zipDir -Recurse -Force }
+          New-Item -ItemType Directory -Path $zipDir | Out-Null
+          Expand-Archive -Path $zip.FullName -DestinationPath $zipDir -Force
+          "## Version ZIP source inventory" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          "Archive: $($zip.Name)" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          "Top-level entries:" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          foreach ($entry in (Get-ChildItem $zipDir | Select-Object -First 60)) {
+            "- $($entry.Name) [$($entry.GetType().Name)]" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          }
+          "Relevant build/source files:" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          $patterns = @("package.json","package-lock.json","yarn.lock","pnpm-lock.yaml","main.cjs","main.js","preload.cjs","renderer.js","index.html","electron-builder.yml","electron-builder.json","*.node")
+          $found = @(Get-ChildItem -Path $zipDir -Recurse -File -ErrorAction SilentlyContinue | Where-Object {
+            $name = $_.Name
+            foreach ($pattern in $patterns) { if ($name -like $pattern) { return $true } }
+            return $false
+          } | Select-Object -First 150)
+          if ($found.Count -eq 0) {
+            "- No recognised build manifest or Electron source files found." | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          } else {
+            foreach ($file in $found) {
+              "- $($file.FullName.Substring($zipDir.Length + 1))" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+            }
+          }
+
       - name: Inspect packaging prerequisites
         id: inspect
         shell: pwsh
