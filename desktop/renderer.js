@@ -815,7 +815,7 @@ function bindGlobal(){
   $$(`[data-open-task]`).forEach(card=>card.onclick=e=>{if(e.target.closest("button"))return;openTaskForm(card.dataset.openTask)});
   $$('[data-task-toggle]').forEach(b=>b.onclick=async()=>{const r=await action("toggleTask",{id:b.dataset.taskToggle,date:b.dataset.date});if(r)renderShell()});
   $$('[data-delete-task]').forEach(b=>b.onclick=async()=>{if(confirm("Delete this task?")){const r=await action("deleteTask",{id:b.dataset.deleteTask});if(r)renderShell()}});
-  $('[data-edit-task]').forEach(b=>b.onclick=()=>openTaskForm(b.dataset.editTask));
+  $('[data-edit-task]').forEach(b=>b.onclick=e=>{e.stopPropagation();openTaskForm(b.dataset.editTask)});
   $('[data-task-menu]').forEach(b=>b.onclick=e=>{e.stopPropagation();openTaskMenu(b.dataset.taskMenu)});
   $$('[data-focus-task]').forEach(b=>b.onclick=async e=>{e.stopPropagation();const r=await action('focusSetTask',{taskId:b.dataset.focusTask});if(r){window.location.hash='#focus';activeView='focus';renderShell();}});
   $$('[data-gym-task]').forEach(b=>b.onclick=async e=>{e.stopPropagation();await startGymFromTask(b.dataset.gymTask);});
