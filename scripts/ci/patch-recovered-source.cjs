@@ -29,7 +29,7 @@ for (const item of replacements) {
   const afterCount = renderer.split(item.after).length - 1;
 
   if (beforeCount === 1 && afterCount === 0) {
-    renderer = renderer.replace(item.before, item.after);
+    renderer = renderer.replace(item.before, () => item.after);
   } else if (beforeCount === 0 && afterCount === 1) {
     // Already patched; keep the operation idempotent.
   } else {
