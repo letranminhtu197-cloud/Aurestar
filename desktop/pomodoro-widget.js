@@ -7,15 +7,12 @@ function render(response){
   latestState=response.state||latestState;
   const f=response.result.focus,s=latestState?.settings||{};
   const isBreak=f.phase==='break',active=Boolean(f.active),paused=Boolean(f.paused);
-  const seconds=isBreak?f.remaining:(f.countdown===false?f.elapsed:f.remaining);
+  const seconds=Math.max(0,Number(f.remaining)||0);
+  const target=Math.max(1,Number(f.roundsTarget)||4),completed=Math.min(target,Math.max(0,Number(f.pomodorosCompleted)||0));
   $('time').textContent=formatSeconds(seconds);
-  $('phase').textContent=(isBreak?'BREAK':f.phase==='idle'?'FOCUS':'FOCUS')+' · '+(active?'RUNNING':paused?'PAUSED':'READY');
-  $('detail').textContent=isBreak
-    ? (f.breakKind==='long'?'Long break':'Short break')+' · '+Number(f.pomodorosCompleted||0)+' focus cycles completed'
-    : (f.countdown===false?'Count-up':'Countdown')+' · '+(Number(f.mode)||Number(s.focusPreset)||25)+' min focus';
-  $('toggle').textContent=active?'Pause':paused?'Resume':isBreak?'Start break':'Start focus';
-  $('break').disabled=active||paused||isBreak;
-  $('break').textContent=isBreak?'Skip break':'Start break';
+  $('phase').textContent=(isBreak?(f.breakKind==='long'?'LONG BREAK':'SHORT BREAK'):'FOCUS')+' · '+(active?'RUNNING':paused?'PAUSED':'READY');
+  $('detail').textContent='Round '+Math.max(1,Math.min(target,completed+(isBreak?0:1)))+' of '+target;
+  $('toggle').textContent=active?'Pause':paused?'Resume':isBreak?'Resume break':'Start focus';
   $('reset').textContent=(active||paused)?'Stop':'Reset';
 }
 async function refresh(){
@@ -34,15 +31,12 @@ async function act(type,payload={}){
 }
 $('toggle').addEventListener('click',()=>{
   const f=latestState?.focusEngine||{};
-  act(f.active?'focusPause':'focusStart',{mode:latestState?.settings?.focusPreset||25});
-});
-$('break').addEventListener('click',()=>{
-  const isBreak=latestState?.focusEngine?.phase==='break';
-  act(isBreak?'focusSkipBreak':'focusStartBreak',isBreak?{}:{kind:'short'});
+  if(f.active){act('focusPause');return;}
+  act('focusStart',{mode:latestState?.settings?.focusPreset||25,rounds:f.roundsTarget||4,taskId:f.taskId||''});
 });
 $('reset').addEventListener('click',()=>{
   const f=latestState?.focusEngine||{};
-  act(f.active||f.paused?'focusStop':'focusReset',{mode:latestState?.settings?.focusPreset||25});
+  act(f.active||f.paused?'focusStop':'focusReset',{mode:latestState?.settings?.focusPreset||25,rounds:f.roundsTarget||4});
 });
 $('close').addEventListener('click',()=>window.aurestarDesktop.closePomodoroWidget());
 chrome.storage.onChanged.addListener((changes,area)=>{if(area==='local'&&changes.focusEngine)refresh();});

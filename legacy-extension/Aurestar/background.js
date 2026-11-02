@@ -74,7 +74,7 @@ const DEFAULT_STATE = {
   profile:DEFAULT_PROFILE,
   lists:DEFAULT_LISTS,
   tasks:[], habits:[], challenges:[], goals:[], focusSessions:[],
-  completions:[], achievements:[], reviews:[], motivationVideos:[], workoutSessions:[], workoutEngine:{active:false,phase:"idle",paused:false,date:"",startedAt:0,phaseStartedAt:0,endsAt:0,remaining:0,taskIds:[],taskIndex:0,setIndex:0,circuitRound:0,circuitIndex:0,session:null,timerKind:"countdown"}, focusPresence:{active:false,lastHeartbeat:0,startedAt:0}, focusEngine:{active:false,phase:"idle",mode:25,startedAt:0,endsAt:0,remaining:0,paused:false,pomodorosCompleted:0,taskId:"",breakKind:"short",free:false,sessionStartedAt:0}, motivationLastVideoId:"", motivationLastOpenedAt:0,
+  completions:[], achievements:[], reviews:[], motivationVideos:[], workoutSessions:[], workoutEngine:{active:false,phase:"idle",paused:false,date:"",startedAt:0,phaseStartedAt:0,endsAt:0,remaining:0,taskIds:[],taskIndex:0,setIndex:0,circuitRound:0,circuitIndex:0,session:null,timerKind:"countdown"}, focusPresence:{active:false,lastHeartbeat:0,startedAt:0}, focusEngine:{active:false,phase:"idle",mode:25,startedAt:0,endsAt:0,remaining:0,paused:false,pomodorosCompleted:0,roundsTarget:4,taskId:"",breakKind:"short",free:false,sessionStartedAt:0}, motivationLastVideoId:"", motivationLastOpenedAt:0,
   dataMeta:{revision:0,updatedAt:0,deviceId:""}
 };
 const uid=p=>`${p}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,8)}`;
@@ -139,10 +139,10 @@ function normalize(raw){
   s.settings.focusAutoStart=false;
   s.settings.focusAutoCycle=s.settings.focusAutoCycle===true;
   s.settings.focusBanBreak=s.settings.focusBanBreak===true;
-  s.settings.focusCountdown=s.settings.focusCountdown!==false;
+  s.settings.focusCountdown=true;
   s.settings.focusShortBreak=Math.min(30,Math.max(1,Math.floor(Number(s.settings.focusShortBreak)||5)));
   s.settings.focusLongBreak=Math.min(60,Math.max(s.settings.focusShortBreak,Math.floor(Number(s.settings.focusLongBreak)||15)));
-  s.settings.focusLongBreakEvery=Math.min(12,Math.max(2,Math.floor(Number(s.settings.focusLongBreakEvery)||4)));
+  s.settings.focusLongBreakEvery=Math.min(12,Math.max(1,Math.floor(Number(s.settings.focusLongBreakEvery)||4)));
   s.settings.focusWidgetEnabled=s.settings.focusWidgetEnabled!==false;
   const fp=s.settings.focusWidgetPosition||{}; const fpTop=fp.top==null?NaN:Number(fp.top),fpRight=fp.right==null?NaN:Number(fp.right); s.settings.focusWidgetPosition={top:Math.min(80,Math.max(0,Number.isFinite(fpTop)?fpTop:18)),right:Math.min(80,Math.max(0,Number.isFinite(fpRight)?fpRight:18))};
   s.settings.dailyFocusGoalMin=Math.min(600,Math.max(15,Math.floor(Number(s.settings.dailyFocusGoalMin)||120)));
@@ -177,7 +177,7 @@ function normalize(raw){
   s.profile.xp=Number(s.profile.xp)||0;s.profile.level=levelForXP(s.profile.xp);s.profile.totalFocusMinutes=Number(s.profile.totalFocusMinutes)||0;
   if(s.profile.level>1)grantMilestoneCoins(s,0,s.profile.level);
   s.focusPresence={active:Boolean(raw?.focusPresence?.active),lastHeartbeat:Number(raw?.focusPresence?.lastHeartbeat)||0,startedAt:Number(raw?.focusPresence?.startedAt)||0};
-  const fe=raw?.focusEngine||{}; s.focusEngine={active:Boolean(fe.active),phase:["focus","break","idle"].includes(String(fe.phase))?String(fe.phase):"idle",mode:normalizeFocusMinutes(fe.mode||25),startedAt:Number(fe.startedAt)||0,endsAt:Number(fe.endsAt)||0,remaining:Math.max(0,Number(fe.remaining)||0),paused:Boolean(fe.paused),pomodorosCompleted:Math.max(0,Math.floor(Number(fe.pomodorosCompleted)||0)),taskId:String(fe.taskId||""),breakKind:["short","long"].includes(String(fe.breakKind))?String(fe.breakKind):"short",free:Boolean(fe.free),sessionStartedAt:Number(fe.sessionStartedAt||fe.startedAt)||0,countdown:s.settings.focusCountdown!==false};
+  const fe=raw?.focusEngine||{}; s.focusEngine={active:Boolean(fe.active),phase:["focus","break","idle"].includes(String(fe.phase))?String(fe.phase):"idle",mode:normalizeFocusMinutes(fe.mode||25),startedAt:Number(fe.startedAt)||0,endsAt:Number(fe.endsAt)||0,remaining:Math.max(0,Number(fe.remaining)||0),paused:Boolean(fe.paused),pomodorosCompleted:Math.max(0,Math.floor(Number(fe.pomodorosCompleted)||0)),roundsTarget:Math.min(20,Math.max(1,Math.floor(Number(fe.roundsTarget)||4))),taskId:String(fe.taskId||""),breakKind:["short","long"].includes(String(fe.breakKind))?String(fe.breakKind):"short",free:false,sessionStartedAt:Number(fe.sessionStartedAt||fe.startedAt)||0,countdown:true};
   s.motivationLastVideoId=String(raw?.motivationLastVideoId||"");s.motivationLastOpenedAt=Number(raw?.motivationLastOpenedAt)||0;
   s.settings.motivationAutoOpen=false;
   s.settings.motivationIntervalMinutes=10;
@@ -1087,47 +1087,27 @@ function occurrenceDates(t, fromDay, count=8){
   return out;
 }
 function focusStateSnapshot(s){
-  const f=s.focusEngine||{},now=Date.now(),mode=normalizeFocusMinutes(f.mode);
-  const workSeconds=focusWorkSeconds(mode);
-  let remaining=Math.max(0,Number(f.remaining)||0);
-  // A fresh idle countdown must show the configured work duration, not 00:00.
-  // Count-up mode intentionally remains at 00:00 until started.
-  if(!f.active && !f.paused && String(f.phase||"idle")==="idle" && s.settings.focusCountdown!==false && remaining<=0){
-    remaining=workSeconds;
-  }
-  let elapsed=0;
-  if(f.free){
-    if(f.active&&f.startedAt) elapsed=Math.max(0,Math.floor((now-f.startedAt)/1000)+Math.max(0,Number(f.remaining)||0));
-    else elapsed=Math.max(0,Number(f.remaining)||0);
-    remaining=0;
-  }else{
-    if(f.active&&Number(f.endsAt)>0) remaining=Math.max(0,Math.ceil((Number(f.endsAt)-now)/1000));
-    if(f.active&&Number(f.startedAt)>0) elapsed=Math.max(0,Math.floor((now-Number(f.startedAt))/1000))+Math.max(0,Number(f.remaining)||0);
-    else if(f.paused&&s.settings.focusCountdown===false) elapsed=remaining;
-    else elapsed=Math.max(0,workSeconds-remaining);
-  }
-  const todayMinutes=Math.floor((s.focusSessions||[]).filter(x=>x.date===dateKey()).reduce((n,x)=>n+Number(x.minutes||0),0)+(f.active&&f.phase==="focus"&&f.free?elapsed/60:0));
-  return {active:Boolean(f.active),phase:String(f.phase||"idle"),mode,startedAt:Number(f.startedAt)||0,endsAt:Number(f.endsAt)||0,remaining,elapsed,paused:Boolean(f.paused),pomodorosCompleted:Math.max(0,Math.floor(Number(f.pomodorosCompleted)||0)),taskId:String(f.taskId||""),taskTitle:(s.tasks||[]).find(t=>String(t.id)===String(f.taskId||""))?.title||"",breakKind:["short","long"].includes(String(f.breakKind))?String(f.breakKind):"short",countdown:s.settings.focusCountdown!==false,free:Boolean(f.free),sessionStartedAt:Number(f.sessionStartedAt)||0,dailyFocusGoalMin:Number(s.settings.dailyFocusGoalMin)||120,todayFocusMinutes:Math.floor(todayMinutes)};
+ const f=s.focusEngine||{},now=Date.now(),mode=normalizeFocusMinutes(f.mode),workSeconds=focusWorkSeconds(mode);
+ let remaining=Math.max(0,Number(f.remaining)||0);
+ if(!f.active&&!f.paused&&String(f.phase||"idle")==="idle"&&remaining<=0)remaining=workSeconds;
+ if(f.active&&Number(f.endsAt)>0)remaining=Math.max(0,Math.ceil((Number(f.endsAt)-now)/1000));
+ const elapsed=f.active&&Number(f.startedAt)>0?Math.max(0,Math.floor((now-Number(f.startedAt))/1000)):Math.max(0,workSeconds-remaining);
+ const todayMinutes=Math.floor((s.focusSessions||[]).filter(x=>x.date===dateKey()).reduce((n,x)=>n+Number(x.minutes||0),0));
+ return {active:Boolean(f.active),phase:String(f.phase||"idle"),mode,startedAt:Number(f.startedAt)||0,endsAt:Number(f.endsAt)||0,remaining,elapsed,paused:Boolean(f.paused),pomodorosCompleted:Math.max(0,Math.floor(Number(f.pomodorosCompleted)||0)),roundsTarget:Math.min(20,Math.max(1,Number(f.roundsTarget)||4)),taskId:String(f.taskId||""),taskTitle:(s.tasks||[]).find(t=>String(t.id)===String(f.taskId||""))?.title||"",breakKind:["short","long"].includes(String(f.breakKind))?String(f.breakKind):"short",countdown:true,free:false,sessionStartedAt:Number(f.sessionStartedAt)||0,dailyFocusGoalMin:Number(s.settings.dailyFocusGoalMin)||120,todayFocusMinutes:todayMinutes};
 }
-async function setFocusEngine(s,{active,phase="idle",mode=25,startedAt=0,endsAt=0,remaining=0,paused=false,pomodorosCompleted=0,taskId="",breakKind="short",free=false,sessionStartedAt=0}){
-  s.focusEngine={active:Boolean(active),phase:String(phase),mode:normalizeFocusMinutes(mode),startedAt:Number(startedAt)||0,endsAt:Number(endsAt)||0,
-    remaining:Math.max(0,Math.floor(Number(remaining)||0)),paused:Boolean(paused),pomodorosCompleted:Math.max(0,Math.floor(Number(pomodorosCompleted)||0)),
-    taskId:String(taskId||""),breakKind:["short","long"].includes(String(breakKind))?String(breakKind):"short",free:Boolean(free),sessionStartedAt:Number(sessionStartedAt)||0,countdown:Boolean(s.settings.focusCountdown!==false)};
-  s.focusPresence={active:Boolean(active&&phase==="focus"),lastHeartbeat:Date.now(),startedAt:Number(sessionStartedAt||startedAt)||0};
-  if(active&&phase==="focus"&&(Number(sessionStartedAt)||Number(startedAt))>0){
-    const startedDate=dateKey(new Date(Number(sessionStartedAt||startedAt)));
-    await chrome.storage.local.set({aurestarFocusStartedDate:startedDate});
-    await chrome.notifications.clear(FOCUS_SESSION_REMINDER_NOTIFICATION).catch(()=>{});
-  }
-  return focusStateSnapshot(s);
+async function setFocusEngine(s,{active,phase="idle",mode=25,startedAt=0,endsAt=0,remaining=0,paused=false,pomodorosCompleted=0,roundsTarget=4,taskId="",breakKind="short",free=false,sessionStartedAt=0}){
+ s.focusEngine={active:Boolean(active),phase:String(phase),mode:normalizeFocusMinutes(mode),startedAt:Number(startedAt)||0,endsAt:Number(endsAt)||0,remaining:Math.max(0,Math.floor(Number(remaining)||0)),paused:Boolean(paused),pomodorosCompleted:Math.max(0,Math.floor(Number(pomodorosCompleted)||0)),roundsTarget:Math.min(20,Math.max(1,Math.floor(Number(roundsTarget)||4))),taskId:String(taskId||""),breakKind:["short","long"].includes(String(breakKind))?String(breakKind):"short",free:false,sessionStartedAt:Number(sessionStartedAt)||0,countdown:true};
+ s.focusPresence={active:Boolean(active&&phase==="focus"),lastHeartbeat:Date.now(),startedAt:Number(sessionStartedAt||startedAt)||0};
+ if(active&&phase==="focus"&&(Number(sessionStartedAt)||Number(startedAt))>0){const startedDate=dateKey(new Date(Number(sessionStartedAt||startedAt)));await chrome.storage.local.set({aurestarFocusStartedDate:startedDate});await chrome.notifications.clear(FOCUS_SESSION_REMINDER_NOTIFICATION).catch(()=>{});}
+ return focusStateSnapshot(s);
 }
 function focusWorkSeconds(mode){return normalizeFocusMinutes(mode)*60;}
-function focusBreakSeconds(s,completedCount,mode=25){
-  const every=Math.max(2,Math.floor(Number(s.settings.focusLongBreakEvery)||4));
-  const isLong=completedCount>0&&completedCount%every===0;
-  const mins=isLong?Math.max(1,Number(s.settings.focusLongBreak)||15):Math.max(1,Number(s.settings.focusShortBreak)||5);
-  return {seconds:Math.floor(mins*60),kind:isLong?"long":"short"};
+function focusBreakSeconds(s,completedCount){
+ const every=Math.max(1,Math.floor(Number(s.settings.focusLongBreakEvery)||4)),isLong=completedCount>0&&completedCount%every===0;
+ const mins=isLong?Math.max(1,Number(s.settings.focusLongBreak)||15):Math.max(1,Number(s.settings.focusShortBreak)||5);
+ return {seconds:Math.floor(mins*60),kind:isLong?"long":"short"};
 }
+
 function focusElapsedSeconds(f,now=Date.now()){
   if(!f) return 0;
   if(f.active&&f.startedAt) return Math.max(0,Math.floor((now-Number(f.startedAt))/1000)+Math.max(0,Number(f.remaining)||0));
@@ -1152,41 +1132,26 @@ async function recordFocusSegment(s,seconds,taskId,startedAt,mode){
 }
 async function completeFocusSession(s,minutes,mode="focus",taskId="",startedAt=0){ return recordFocusSegment(s,Math.floor(Number(minutes)||0)*60,taskId,startedAt,mode); }
 async function finishFocusEngine(s){
-  const f=s.focusEngine||{};
-  if(!f.active||f.free||Date.now()<Number(f.endsAt||0)) return {finished:false};
-  const now=Date.now(),mode=normalizeFocusMinutes(f.mode),taskId=String(f.taskId||"");
-  if(f.phase==="focus"){
-    const result=await completeFocusSession(s,mode,"focus",taskId,f.sessionStartedAt||f.startedAt);
-    const completed=(Number(f.pomodorosCompleted)||0)+1;
-    const br=s.settings.focusAutoCycle===true?{seconds:300,kind:"short"}:focusBreakSeconds(s,completed,mode);
-    s.focusEngine.pomodorosCompleted=completed;
-    if(s.settings.focusBanBreak && s.settings.focusAutoCycle!==true){
-      if(s.settings.focusAutoStart){
-        const work=focusWorkSeconds(s.settings.focusAutoCycle===true?25:mode),countdown=s.settings.focusCountdown!==false;
-        await setFocusEngine(s,{active:true,phase:"focus",mode,startedAt:now,endsAt:countdown?now+work*1000:0,remaining:countdown?work:0,paused:false,pomodorosCompleted:completed,taskId,breakKind:"short",free:false,sessionStartedAt:now});
-        return {finished:true,phase:"focus",result};
-      }
-      await setFocusEngine(s,{active:false,phase:"idle",mode,startedAt:0,endsAt:0,remaining:focusWorkSeconds(mode),paused:false,pomodorosCompleted:completed,taskId,breakKind:"short"});
-      return {finished:true,phase:"idle",result};
-    }
-    if(s.settings.focusAutoBreak || s.settings.focusAutoCycle===true){
-      await setFocusEngine(s,{active:true,phase:"break",mode,startedAt:now,endsAt:now+br.seconds*1000,remaining:br.seconds,paused:false,pomodorosCompleted:completed,taskId,breakKind:br.kind});
-    }else{
-      await setFocusEngine(s,{active:false,phase:"break",mode,startedAt:0,endsAt:0,remaining:br.seconds,paused:false,pomodorosCompleted:completed,taskId,breakKind:br.kind});
-    }
-    return {finished:true,phase:"break",result};
+ const f=s.focusEngine||{};if(!f.active||f.free||Date.now()<Number(f.endsAt||0))return {finished:false};
+ const now=Date.now(),mode=normalizeFocusMinutes(f.mode),taskId=String(f.taskId||""),completed=Math.max(0,Number(f.pomodorosCompleted)||0),target=Math.min(20,Math.max(1,Number(f.roundsTarget)||4));
+ if(f.phase==="focus"){
+  const result=await completeFocusSession(s,mode,"focus",taskId,f.sessionStartedAt||f.startedAt),nextCompleted=completed+1,br=focusBreakSeconds(s,nextCompleted);
+  await setFocusEngine(s,{active:true,phase:"break",mode,startedAt:now,endsAt:now+br.seconds*1000,remaining:br.seconds,paused:false,pomodorosCompleted:nextCompleted,roundsTarget:target,taskId,breakKind:br.kind,sessionStartedAt:0});
+  return {finished:true,phase:"break",round:nextCompleted,target,breakKind:br.kind,result};
+ }
+ if(f.phase==="break"){
+  if(completed>=target){
+   await setFocusEngine(s,{active:false,phase:"idle",mode,startedAt:0,endsAt:0,remaining:focusWorkSeconds(mode),paused:false,pomodorosCompleted:completed,roundsTarget:target,taskId,breakKind:"short"});
+   return {finished:true,phase:"idle",round:completed,target,result:{levelUp:false,levelPoints:0,coinAwarded:0}};
   }
-  if(f.phase==="break"){
-    if(s.settings.focusAutoStart || s.settings.focusAutoCycle===true){
-      const work=focusWorkSeconds(s.settings.focusAutoCycle===true?25:mode),countdown=s.settings.focusCountdown!==false;
-      await setFocusEngine(s,{active:true,phase:"focus",mode,startedAt:now,endsAt:countdown?now+work*1000:0,remaining:countdown?work:0,paused:false,pomodorosCompleted:Number(f.pomodorosCompleted)||0,taskId,breakKind:"short",sessionStartedAt:now});
-      return {finished:true,phase:"focus",result:{levelUp:false,levelPoints:0,coinAwarded:0}};
-    }
-    await setFocusEngine(s,{active:false,phase:"idle",mode,startedAt:0,endsAt:0,remaining:focusWorkSeconds(mode),paused:false,pomodorosCompleted:Number(f.pomodorosCompleted)||0,taskId,breakKind:"short"});
-    return {finished:true,phase:"idle",result:{levelUp:false,levelPoints:0,coinAwarded:0}};
-  }
-  return {finished:false};
+  const work=focusWorkSeconds(mode);
+  await setFocusEngine(s,{active:true,phase:"focus",mode,startedAt:now,endsAt:now+work*1000,remaining:work,paused:false,pomodorosCompleted:completed,roundsTarget:target,taskId,breakKind:"short",sessionStartedAt:now});
+  await chrome.storage.local.set({aurestarFocusSessionReferenceAt:now,aurestarFocusReminderLastSentAt:0});
+  return {finished:true,phase:"focus",round:completed+1,target,result:{levelUp:false,levelPoints:0,coinAwarded:0}};
+ }
+ return {finished:false};
 }
+
 async function scheduleAlarms(s){
   await chrome.alarms.clear("ascended:focus-end");
   await chrome.alarms.clear("ascended:workout-end");
@@ -1599,38 +1564,42 @@ chrome.runtime.onMessage.addListener((m,sender,sendResponse)=>{(async()=>{
 
   case"getState":sendResponse({ok:true,state:s,result});return;
   case"openApp":await openApp(m.hash||"today");break;
-  case"focusStart":{
-    const mode=s.settings.focusAutoCycle===true?25:normalizeFocusMinutes(m.mode||s.settings.focusPreset||25),now=Date.now(),f=s.focusEngine||{};
-    const taskId=String(m.taskId??f.taskId??"");
-    if(f.active){result.focus=focusStateSnapshot(s);break;}
-    if(f.paused){
-      const isCountdown=f.phase==="break"||s.settings.focusCountdown!==false;
-      const duration=Math.max(1,Number(f.remaining)||0);
-      await setFocusEngine(s,{active:true,phase:f.phase||"focus",mode,startedAt:now,endsAt:isCountdown?now+duration*1000:0,remaining:duration,paused:false,pomodorosCompleted:Number(f.pomodorosCompleted)||0,taskId:f.taskId||taskId,breakKind:f.breakKind||"short",free:false,sessionStartedAt:f.sessionStartedAt||now});
-      result.focus=focusStateSnapshot(s);break;
-    }
-    if(f.phase==="break"&&Number(f.remaining)>0){
-      const remaining=Math.max(1,Number(f.remaining)||focusBreakSeconds(s,Number(f.pomodorosCompleted)||0,mode).seconds);
-      await setFocusEngine(s,{active:true,phase:"break",mode,startedAt:now,endsAt:now+remaining*1000,remaining,paused:false,pomodorosCompleted:Number(f.pomodorosCompleted)||0,taskId:f.taskId||taskId,breakKind:f.breakKind||"short"});
-    }else{
-      const work=focusWorkSeconds(mode),countdown=s.settings.focusCountdown!==false;
-      await setFocusEngine(s,{active:true,phase:"focus",mode,startedAt:now,endsAt:countdown?now+work*1000:0,remaining:countdown?work:0,paused:false,pomodorosCompleted:Number(f.pomodorosCompleted)||0,taskId,breakKind:"short",sessionStartedAt:now});
-    }
-    if(s.focusEngine?.phase==='focus')await chrome.storage.local.set({aurestarFocusSessionReferenceAt:now,aurestarFocusReminderLastSentAt:0});
-    await chrome.notifications.clear(FOCUS_SESSION_REMINDER_NOTIFICATION).catch(()=>{});
-    await syncFocusBlocking(s);await save(s);await scheduleAlarms(s);await ensureFocusWidgetOnTabs(s);await broadcastFocusWidget();result.focus=focusStateSnapshot(s);break;
+  case"focusSetRounds":{
+   const f=s.focusEngine||{};if(f.active||f.paused||f.phase==="break")throw Error("Finish the current Focus plan before changing rounds");
+   const rounds=Math.min(20,Math.max(1,Math.floor(Number(m.rounds)||4)));
+   s.focusEngine={...f,roundsTarget:rounds,pomodorosCompleted:0};await save(s);result.focus=focusStateSnapshot(s);break;
   }
+  case"focusStart":{
+   const mode=normalizeFocusMinutes(m.mode||s.settings.focusPreset||25),now=Date.now(),f=s.focusEngine||{},roundsTarget=Math.min(20,Math.max(1,Math.floor(Number(m.rounds??f.roundsTarget)||4))),taskId=String(m.taskId??f.taskId??"");
+   if(f.active){result.focus=focusStateSnapshot(s);break;}
+   if(f.paused){
+    const duration=Math.max(1,Number(f.remaining)||0);
+    await setFocusEngine(s,{active:true,phase:f.phase||"focus",mode:f.mode||mode,startedAt:now,endsAt:now+duration*1000,remaining:duration,paused:false,pomodorosCompleted:Number(f.pomodorosCompleted)||0,roundsTarget:f.roundsTarget||roundsTarget,taskId:f.taskId||taskId,breakKind:f.breakKind||"short",sessionStartedAt:f.phase==="focus"?(f.sessionStartedAt||now):0});
+    result.focus=focusStateSnapshot(s);break;
+   }
+   if(f.phase==="break"&&Number(f.remaining)>0){
+    const remaining=Math.max(1,Number(f.remaining)||focusBreakSeconds(s,Number(f.pomodorosCompleted)||0).seconds);
+    await setFocusEngine(s,{active:true,phase:"break",mode:f.mode||mode,startedAt:now,endsAt:now+remaining*1000,remaining,paused:false,pomodorosCompleted:Number(f.pomodorosCompleted)||0,roundsTarget:f.roundsTarget||roundsTarget,taskId:f.taskId||taskId,breakKind:f.breakKind||"short"});
+   }else{
+    const work=focusWorkSeconds(mode);
+    await setFocusEngine(s,{active:true,phase:"focus",mode,startedAt:now,endsAt:now+work*1000,remaining:work,paused:false,pomodorosCompleted:0,roundsTarget,taskId,breakKind:"short",sessionStartedAt:now});
+   }
+   await chrome.storage.local.set({aurestarFocusSessionReferenceAt:now,aurestarFocusReminderLastSentAt:0});
+   await chrome.notifications.clear(FOCUS_SESSION_REMINDER_NOTIFICATION).catch(()=>{});
+   await syncFocusBlocking(s);await save(s);await scheduleAlarms(s);await ensureFocusWidgetOnTabs(s);await broadcastFocusWidget();result.focus=focusStateSnapshot(s);break;
+  }
+
   case"focusPause":{
     const f=s.focusEngine||{};
     if(f.active){
       const now=Date.now(),isCountdown=f.phase==="break"||s.settings.focusCountdown!==false;
       const left=isCountdown?Math.max(0,Math.ceil((Number(f.endsAt||0)-now)/1000)):0;
       const elapsed=isCountdown?left:focusElapsedSeconds(f,now);
-      await setFocusEngine(s,{active:false,phase:f.phase,mode:f.mode,startedAt:0,endsAt:0,remaining:elapsed,paused:true,pomodorosCompleted:f.pomodorosCompleted,taskId:f.taskId,breakKind:f.breakKind,free:false,sessionStartedAt:f.sessionStartedAt||f.startedAt});
+      await setFocusEngine(s,{active:false,phase:f.phase,mode:f.mode,startedAt:0,endsAt:0,remaining:elapsed,paused:true,pomodorosCompleted:f.pomodorosCompleted,roundsTarget:f.roundsTarget||4,taskId:f.taskId,breakKind:f.breakKind,free:false,sessionStartedAt:f.sessionStartedAt||f.startedAt});
     }else if(f.paused){
       const now=Date.now(),seconds=Math.max(0,Number(f.remaining)||0);
       const countdown=f.phase==="break"||s.settings.focusCountdown!==false;
-      await setFocusEngine(s,{active:true,phase:f.phase,mode:f.mode,startedAt:now,endsAt:countdown?now+seconds*1000:0,remaining:seconds,paused:false,pomodorosCompleted:f.pomodorosCompleted,taskId:f.taskId,breakKind:f.breakKind,free:false,sessionStartedAt:f.sessionStartedAt||now});
+      await setFocusEngine(s,{active:true,phase:f.phase,mode:f.mode,startedAt:now,endsAt:countdown?now+seconds*1000:0,remaining:seconds,paused:false,pomodorosCompleted:f.pomodorosCompleted,roundsTarget:f.roundsTarget||4,taskId:f.taskId,breakKind:f.breakKind,free:false,sessionStartedAt:f.sessionStartedAt||now});
     }
     await syncFocusBlocking(s);await save(s);await scheduleAlarms(s);await ensureFocusWidgetOnTabs(s);await broadcastFocusWidget();result.focus=focusStateSnapshot(s);break;
   }
@@ -1645,14 +1614,15 @@ chrome.runtime.onMessage.addListener((m,sender,sendResponse)=>{(async()=>{
         result.levelUp=!!r.levelUp;result.levelPoints=Number(r.levelPoints||0);result.coinAwarded=Number(r.coinAwarded||0);
       }
     }
-    await setFocusEngine(s,{active:false,phase:"idle",mode:normalizeFocusMinutes(f.mode||s.settings.focusPreset||25),startedAt:0,endsAt:0,remaining:focusWorkSeconds(f.mode||25),paused:false,pomodorosCompleted:Number(f.pomodorosCompleted)||0,taskId:String(f.taskId||""),breakKind:"short"});
+    await setFocusEngine(s,{active:false,phase:"idle",mode:normalizeFocusMinutes(f.mode||s.settings.focusPreset||25),startedAt:0,endsAt:0,remaining:focusWorkSeconds(f.mode||25),paused:false,pomodorosCompleted:0,roundsTarget:f.roundsTarget||4,taskId:String(f.taskId||""),breakKind:"short"});
     await syncFocusBlocking(s);await save(s);await scheduleAlarms(s);await ensureFocusWidgetOnTabs(s);await broadcastFocusWidget();result.focus=focusStateSnapshot(s);break;
   }
   case"focusReset":{
-    const mode=normalizeFocusMinutes(m.mode||s.settings.focusPreset||25);
-    await setFocusEngine(s,{active:false,phase:"idle",mode,startedAt:0,endsAt:0,remaining:focusWorkSeconds(mode),paused:false,pomodorosCompleted:0,taskId:String(m.taskId??s.focusEngine?.taskId??""),breakKind:"short"});
-    s.settings.focusPreset=mode;await syncFocusBlocking(s);await save(s);await scheduleAlarms(s);await ensureFocusWidgetOnTabs(s);await broadcastFocusWidget();result.focus=focusStateSnapshot(s);break;
+   const mode=normalizeFocusMinutes(m.mode||s.settings.focusPreset||25),f=s.focusEngine||{},roundsTarget=Math.min(20,Math.max(1,Math.floor(Number(m.rounds||f.roundsTarget)||4)));
+   await setFocusEngine(s,{active:false,phase:"idle",mode,startedAt:0,endsAt:0,remaining:focusWorkSeconds(mode),paused:false,pomodorosCompleted:0,roundsTarget,taskId:String(m.taskId??f.taskId??""),breakKind:"short"});
+   s.settings.focusPreset=mode;await syncFocusBlocking(s);await save(s);await scheduleAlarms(s);await ensureFocusWidgetOnTabs(s);await broadcastFocusWidget();result.focus=focusStateSnapshot(s);break;
   }
+
   case"focusStartBreak":{
     const f=s.focusEngine||{};
     if(f.active) throw Error("Pause or stop the current focus session before starting a break");
@@ -1675,7 +1645,7 @@ chrome.runtime.onMessage.addListener((m,sender,sendResponse)=>{(async()=>{
   case"focusSetTask":{
     if(s.focusEngine?.active) throw Error("Pause the timer before changing the task");
     const taskId=String(m.taskId||""); if(taskId&&!s.tasks.some(t=>String(t.id)===taskId)) throw Error("Task not found");
-    s.focusEngine={...(s.focusEngine||{}),taskId};result.focus=focusStateSnapshot(s);break;
+    s.focusEngine={...(s.focusEngine||{}),taskId};await save(s);result.focus=focusStateSnapshot(s);break;
   }
   case"focusSetPreset":{
     const mode=normalizeFocusMinutes(m.mode||25);if(s.focusEngine?.active)throw Error("Pause the timer before changing the timer");s.settings.focusPreset=mode;result.focus=focusStateSnapshot(s);break;
@@ -1741,9 +1711,19 @@ chrome.runtime.onMessage.addListener((m,sender,sendResponse)=>{(async()=>{
     break;
   }
   case"saveReview":{const i=s.reviews.findIndex(x=>x.date===m.review.date);if(i>=0)s.reviews[i]=m.review;else s.reviews.push(m.review);break;}
-  case"saveSettings":s.settings={...s.settings,...m.settings};if(s.settings.privacyMode===true){s.settings.notifications=false;s.settings.taskReminders=false;s.settings.alarmSound=false;s.settings.itsukiCompanionEnabled=false;s.settings.itsukiCompanionNotifications=false;s.settings.itsukiCompanionDailyReminder=false;s.settings.motivationAutoOpen=false;s.settings.motivationFixedEnabled=false;}s.settings.language="en";s.settings.backupTime=String(s.settings.backupTime||"23:30");s.settings.autoBackup=s.settings.autoBackup!==false;s.settings.motivationAutoOpen=false;s.settings.motivationIntervalMinutes=10;s.settings.motivationFixedEnabled=false;s.settings.motivationFixedVideoId=String(s.settings.motivationFixedVideoId||"");s.settings.motivationFixedTime=/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(String(s.settings.motivationFixedTime||""))?String(s.settings.motivationFixedTime):"18:00";s.settings.focusAutoBreak=false;s.settings.focusAutoStart=false;s.settings.focusAutoCycle=s.settings.focusAutoCycle===true;s.settings.focusBanBreak=s.settings.focusBanBreak===true;s.settings.focusCountdown=s.settings.focusCountdown!==false;s.settings.focusShortBreak=Math.min(30,Math.max(1,Math.floor(Number(s.settings.focusShortBreak)||5)));s.settings.focusLongBreak=Math.min(60,Math.max(s.settings.focusShortBreak,Math.floor(Number(s.settings.focusLongBreak)||15)));s.settings.focusLongBreakEvery=Math.min(12,Math.max(2,Math.floor(Number(s.settings.focusLongBreakEvery)||4)));s.settings.dailyFocusGoalMin=Math.min(600,Math.max(15,Math.floor(Number(s.settings.dailyFocusGoalMin)||120)));s.settings.focusPreset=normalizeFocusMinutes(s.settings.focusPreset||25);s.settings.blockedWebsites=Array.isArray(s.settings.blockedWebsites)?[...new Set(s.settings.blockedWebsites.map(normalizeBlockedDomain).filter(Boolean))].slice(0,100):[...DEFAULT_SETTINGS.blockedWebsites];
-  s.settings.dailyFocusGoalMin=Math.min(600,Math.max(15,Math.floor(Number(s.settings.dailyFocusGoalMin)||120)));
-  s.settings.focusPreset=Math.min(120,Math.max(15,Math.floor(Number(s.settings.focusPreset)||25)));s.settings.motivationQuietHours=Array.isArray(s.settings.motivationQuietHours)?s.settings.motivationQuietHours.map(x=>({start:String(x?.start||""),end:String(x?.end||"")})).filter(x=>/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(x.start)&&/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(x.end)):[];await syncFocusWidgetVisibility(s.settings.focusWidgetEnabled!==false,s.settings);break;
+  case"saveSettings":{
+   s.settings={...s.settings,...m.settings};
+   if(s.settings.privacyMode===true){s.settings.notifications=false;s.settings.taskReminders=false;s.settings.alarmSound=false;s.settings.itsukiCompanionEnabled=false;s.settings.itsukiCompanionNotifications=false;s.settings.itsukiCompanionDailyReminder=false;s.settings.motivationAutoOpen=false;s.settings.motivationFixedEnabled=false;}
+   s.settings.language="en";s.settings.backupTime=String(s.settings.backupTime||"23:30");s.settings.autoBackup=s.settings.autoBackup!==false;
+   s.settings.motivationAutoOpen=false;s.settings.motivationFixedEnabled=false;s.settings.focusAutoBreak=false;s.settings.focusAutoStart=false;s.settings.focusAutoCycle=false;s.settings.focusBanBreak=false;s.settings.focusCountdown=true;
+   s.settings.focusShortBreak=Math.min(30,Math.max(1,Math.floor(Number(s.settings.focusShortBreak)||5)));
+   s.settings.focusLongBreak=Math.min(60,Math.max(1,Math.floor(Number(s.settings.focusLongBreak)||15)));
+   s.settings.focusLongBreakEvery=Math.min(12,Math.max(1,Math.floor(Number(s.settings.focusLongBreakEvery)||4)));
+   s.settings.dailyFocusGoalMin=Math.min(600,Math.max(15,Math.floor(Number(s.settings.dailyFocusGoalMin)||120)));
+   s.settings.focusPreset=normalizeFocusMinutes(s.settings.focusPreset||25);
+   await syncFocusWidgetVisibility(s.settings.focusWidgetEnabled!==false,s.settings);break;
+  }
+
   case"testAlarm":if(s.settings.alarmSound)await playAlarm();break;
   case"saveAll":if(!m.data?.profile||!Array.isArray(m.data.tasks))throw Error("Invalid backup file");{const restoreData={...m.data};delete restoreData.itsukiPasswordRecord;Object.assign(s,normalize(restoreData));}break;
   default:throw Error(`Unsupported action: ${m.type}`);

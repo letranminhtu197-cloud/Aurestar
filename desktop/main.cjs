@@ -60,7 +60,17 @@ function chromeStorageSet(items){
       store[key]=newValue;
     }
   }
-  saveChromeStorage();broadcastChromeStorage(changes);return true;
+  saveChromeStorage();
+  const settingsChange=changes.settings;
+  if(settingsChange){
+    const previous=settingsChange.oldValue||{},settings=store.settings||{};
+    const wasWidgetEnabled=previous.focusWidgetEnabled!==false,nextWidgetEnabled=settings.focusWidgetEnabled!==false;
+    if(wasWidgetEnabled!==nextWidgetEnabled){if(nextWidgetEnabled)createPomodoroWidget();else closePomodoroWidget();}
+    const wasCompanionEnabled=previous.privacyMode!==true&&previous.itsukiCompanionEnabled!==false;
+    const nextCompanionEnabled=settings.privacyMode!==true&&settings.itsukiCompanionEnabled!==false;
+    if(wasCompanionEnabled!==nextCompanionEnabled){if(nextCompanionEnabled)createItsuki();else hideItsuki();}
+  }
+  broadcastChromeStorage(changes);return true;
 }
 function chromeStorageRemove(keys){
   const store=readChromeStorage(),changes={};
@@ -312,7 +322,7 @@ app.whenReady().then(()=>{
   // A bare Alt key is handled by before-input-event while an Aurestar window is focused.
   installItsukiHotkeys();
   if(process.platform==='win32' && state.settings.startWithWindows){app.setLoginItemSettings({openAtLogin:true});}
-  app.on('activate',()=>{if(!win)createWindow();else win.show();if(!pomodoroWidget)createPomodoroWidget();});
+  app.on('activate',()=>{if(!win)createWindow();else win.show();const prefs=chromeStorageGet('settings').settings||{};if(!pomodoroWidget&&prefs.focusWidgetEnabled!==false)createPomodoroWidget();});
 });
 app.on('before-quit',()=>{app.isQuitting=true;if(reminderTimer)clearInterval(reminderTimer);if(focusTickTimer)clearInterval(focusTickTimer);globalShortcut.unregisterAll();saveState();});
 app.on('window-all-closed',()=>{if(process.platform!=='darwin' && !state?.settings?.minimizeToTray)app.quit();});

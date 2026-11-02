@@ -226,7 +226,7 @@ function renderShell(){
   document.body.classList.toggle("privacy-mode",state.settings?.privacyMode===true);
   if(!$("#view"))throw new Error("Invalid app layout: missing #view");
   if(!$("#nav")){renderView("settings");return;}
-  const primaryForView=v=>({today:"dashboard",focus:"dashboard",motivation:"dashboard",tasks:"tasks",habits:"tasks",calendar:"calendar",gym:"gym",analytics:"dashboard",settings:""}[v]||v);
+  const primaryForView=v=>({today:"dashboard",motivation:"dashboard",tasks:"tasks",habits:"tasks",calendar:"calendar",gym:"gym",analytics:"dashboard",settings:""}[v]||v);
   $$('[data-view]').forEach(b=>{
     const active=b.dataset.view===primaryForView(activeView);
     b.classList.toggle("active",active);
@@ -248,7 +248,7 @@ function renderShell(){
   renderView(activeView);renderListsSidebar();localizeDOM();refreshItsukiCompanion();bindItsukiCompanion();
 }
 function navigate(view){if(view==="habits")view="tasks";if(!viewTitles[view])return;activeView=view;history.replaceState(null,"",`#${view}`);renderShell()}
-function renderView(view){const el=$("#view");if(clockInterval){clearInterval(clockInterval);clockInterval=null;}if(view!=="focus"&&focusUiTimer){clearInterval(focusUiTimer);focusUiTimer=null;}if(view!=="gym"&&gymUiTimer){clearInterval(gymUiTimer);gymUiTimer=null;gymLastStateKey="";}const renderer={dashboard:renderDashboard,today:renderToday,tasks:renderTasks,habits:renderTasks,focus:renderFocus,gym:renderGym,calendar:renderCalendar,analytics:renderAnalytics,motivation:renderMotivation,settings:renderSettings}[view]||renderToday;renderer(el);injectSectionNav(view,el);localizeDOM(el)}
+function renderView(view){const el=$("#view");document.body.classList.toggle("view-settings",view==="settings");if(clockInterval){clearInterval(clockInterval);clockInterval=null;}if(view!=="focus"&&focusUiTimer){clearInterval(focusUiTimer);focusUiTimer=null;}if(view!=="gym"&&gymUiTimer){clearInterval(gymUiTimer);gymUiTimer=null;gymLastStateKey="";}const renderer={dashboard:renderDashboard,today:renderToday,tasks:renderTasks,habits:renderTasks,focus:renderFocus,gym:renderGym,calendar:renderCalendar,analytics:renderAnalytics,motivation:renderMotivation,settings:renderSettings}[view]||renderToday;renderer(el);injectSectionNav(view,el);localizeDOM(el)}
 function injectSectionNav(view,el){
   // Tasks and habits now live together on one workspace. Calendar is a first-class
   // page in the main sidebar, so only the related Progress sub-navigation remains.
@@ -267,26 +267,11 @@ function renderListsSidebar(){
   $$('[data-list]').forEach(b=>b.onclick=()=>{selectedList=b.dataset.list;taskMode="list";navigate("tasks")});
 }
 function taskXPClient(){return 50;}
-function taskCard(t,k=today()){
-  if(t.workoutAggregate){const done=taskDone(t,k);return `<article class="task-row workout-aggregate-row ${done?"done":""}"><button type="button" class="check task-check ${done?"checked":""}" data-nav="gym" aria-label="${done?"Workout completed":"Open workout"}">${done?"✓":""}</button><div class="task-main-copy" data-nav="gym"><div class="task-title-line"><b>🏋 Workout</b><span class="${done?"gym-done-chip":"badge"}">${done?"DONE":"ONE TASK"}</span></div><div class="task-meta"><span class="list-meta">${esc(listIcon(t.listId))} ${esc(listName(t.listId))}</span><span>${Number(t.exerciseCount)||1} exercises · tracked as one task</span>${t.dueTime?`<span>◷ ${esc(t.dueTime)}</span>`:""}</div></div><span class="task-estimate">${Number(t.estimate)||25}m</span><div class="task-actions"><button class="icon-btn" data-nav="gym" title="Open Training">⚒</button></div></article>`}
-  const done=taskDone(t,k),overdue=!done&&t.dueDate&&t.dueDate<k&&!t.repeat?.type,check=t.checklist||[],cc=check.filter(x=>x.done).length;
-  const repeat=t.repeat?.type; const repeatText=repeat==="daily"?"Daily":repeat==="weekly"?`↻ ${(t.repeat.weekdays||[]).map(d=>["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d]).join(" · ")}`:"";
-  const priority=t.priority||"medium";
-  return `<article class="task-row ${done?"done":""} ${overdue?"overdue":""}" data-open-task="${esc(t.id)}" data-open-date="${esc(k)}">
-    <button class="check task-check ${done?"checked":""}" data-task-toggle="${esc(t.id)}" data-date="${esc(k)}" aria-label="${done?"Mark incomplete":"Complete"}">${done?"✓":""}</button>
-    <div class="task-main-copy">
-      <div class="task-title-line"><b>${esc(t.title)}</b></div>
-      <div class="task-meta">
-        <span class="list-meta">${esc(listIcon(t.listId))} ${esc(listName(t.listId))}</span>
-        ${t.dueTime?`<span>◷ ${esc(t.dueTime)}</span>`:""}
-        ${repeatText?`<span>${esc(repeatText)}</span>`:""}
-        ${check.length?`<span>☷ ${cc}/${check.length}</span>`:""}${Number(t.estimate)>0?`<span>◉ ${Number(t.pomodorosDone)||0} focus</span>`:""}
-      </div>
-    </div>
-    <span class="priority-mark ${esc(priority)}" title="${esc(priorityLabel[priority]||priority)}"></span>
-    <span class="task-estimate">${Number(t.estimate)||25}m</span>
-    <div class="task-actions">${t.workoutConfig?.enabled?`<button class="icon-btn" data-gym-task="${esc(t.id)}" title="Open Gym Timer">⚒</button>`:""}<button class="icon-btn" data-focus-task="${esc(t.id)}" title="Focus on this task">◉</button><button class="icon-btn" data-edit-task="${esc(t.id)}" title="Edit">···</button></div>
-  </article>`
+function taskCard(t,k=today(),completedView=false){
+  if(t.workoutAggregate){const done=taskDone(t,k);return `<article class="task-row workout-aggregate-row ${done?"done":""}"><button type="button" class="check task-check ${done?"checked":""}" data-nav="gym" aria-label="Open Training">${done?"✓":""}</button><div class="task-main-copy" data-nav="gym"><div class="task-title-line"><b>Workout</b></div><div class="task-meta"><span class="priority-label">Priority · Medium</span></div></div><div class="task-actions"><button class="icon-btn" data-nav="gym" title="Open Training">⋮</button></div></article>`;}
+  const latestCompleted=(t.completedDates||[]).slice().sort().at(-1)||k;
+  const displayDate=completedView?latestCompleted:k,done=completedView||taskDone(t,k),overdue=!done&&t.dueDate&&t.dueDate<k&&!t.repeat?.type,priority=t.priority||"medium";
+  return `<article class="task-row ${done?"done":""} ${overdue?"overdue":""}" data-open-task="${esc(t.id)}" data-open-date="${esc(displayDate)}"><button class="check task-check ${done?"checked":""}" data-task-toggle="${esc(t.id)}" data-date="${esc(displayDate)}" aria-label="${done?"Mark incomplete":"Complete"}">${done?"✓":""}</button><div class="task-main-copy"><div class="task-title-line"><b>${esc(t.title)}</b></div><div class="task-meta"><span class="priority-label ${esc(priority)}">Priority · ${esc(priorityLabel[priority]||priority)}</span></div></div><div class="task-actions"><button class="icon-btn" data-task-menu="${esc(t.id)}" title="More actions" aria-label="More actions">⋮</button></div></article>`;
 }
 function quickTaskForm(){return `<form id="quickTask" class="quick-add"><button type="button" class="quick-plus">+</button><input name="title" placeholder="Add a task…" autocomplete="off" required><button type="submit" class="quick-submit">Add</button><button type="button" class="ghost quick-more" id="moreTask">Details</button></form>`}
 function bindQuickTask(){const f=$("#quickTask");if(!f)return;$("#moreTask")?.addEventListener("click",()=>openTaskForm());$(".quick-plus")?.addEventListener("click",()=>openTaskForm());f.addEventListener("submit",async e=>{e.preventDefault();const title=String(new FormData(f).get("title")||"").trim();if(!title)return;const r=await action("addTask",{item:{title,listId:selectedList==="all"?"inbox":selectedList,priority:"medium",estimate:25,dueDate:today(),dueTime:"",repeat:{type:"none",weekdays:[],startDate:""},notes:"",reminderAt:null,reminderEnabled:false,checklist:[]}});if(r){toast("Added to Today","success");renderShell()}})}
@@ -294,79 +279,22 @@ function bindQuickTask(){const f=$("#quickTask");if(!f)return;$("#moreTask")?.ad
 function timeWidgetMarkup(){const now=new Date();const locale="en-US";const tz=Intl.DateTimeFormat().resolvedOptions().timeZone||"Local time";const time=now.toLocaleTimeString(locale,{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false});const date=now.toLocaleDateString(locale,{weekday:"long",day:"numeric",month:"long",year:"numeric"});return `<section class="time-widget" aria-label="Current time"><div class="time-widget-main"><span class="section-kicker">${esc(tr("CURRENT TIME"))}</span><div class="time-widget-clock" id="timeWidgetClock">${esc(time)}</div><div class="time-widget-date" id="timeWidgetDate">${esc(date)}</div></div><div class="time-widget-meta"><span class="time-widget-dot"></span><b id="timeWidgetZone">${esc(tz)}</b><small>${esc(tr("Local device time"))}</small></div></section>`}
 function startTimeWidget(){const render=()=>{const el=$("#timeWidgetClock"),dateEl=$("#timeWidgetDate"),zoneEl=$("#timeWidgetZone");if(!el)return;const now=new Date();const locale="en-US";el.textContent=now.toLocaleTimeString(locale,{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false});if(dateEl)dateEl.textContent=now.toLocaleDateString(locale,{weekday:"long",day:"numeric",month:"long",year:"numeric"});if(zoneEl)zoneEl.textContent=Intl.DateTimeFormat().resolvedOptions().timeZone||"Local time"};render();clockInterval=setInterval(render,1000)}
 function renderDashboard(el){
-  const k=today();
-  const todayTasks=plannedFor(k).filter(t=>!t.archived);
-  const open=todayTasks.filter(t=>!taskDone(t,k));
-  const done=todayTasks.filter(t=>taskDone(t,k));
-  const overdue=state.tasks.filter(t=>!t.archived&&!t.workoutConfig?.enabled&&!taskDone(t,k)&&t.dueDate&&t.dueDate<k&&!t.repeat?.type);
-  const upcoming=state.tasks.filter(t=>!t.archived&&!t.workoutConfig?.enabled&&t.dueDate&&t.dueDate>k).sort((a,b)=>`${a.dueDate} ${a.dueTime||''}`.localeCompare(`${b.dueDate} ${b.dueTime||''}`)).slice(0,5);
-  const focusToday=state.focusSessions.filter(x=>x.date===k);
-  const focusMinutes=focusToday.reduce((n,x)=>n+Number(x.minutes||0),0);
-  const completionPct=todayTasks.length?Math.round(done.length/todayTasks.length*100):0;
-  const savedStreak=state.profile?.studyStreak||{current:0,best:0,activeToday:false};
-  const streakDates=new Set((state.completions||[])
-    .filter(x=>["task","habit","focus"].includes(String(x.kind||""))&&x.date)
-    .map(x=>String(x.date)));
-  (state.workoutSessions||[]).filter(x=>x?.completed===true&&x.date).forEach(x=>streakDates.add(String(x.date)));
-  const streakMonday=addDays(k,-((fromKey(k).getDay()+6)%7));
-  const streakWeek=Array.from({length:7},(_,i)=>{
-    const day=addDays(streakMonday,i);
-    return {day,active:streakDates.has(day),isToday:day===k};
-  });
-  const streakMessage=savedStreak.activeToday
-    ?"You've protected today's streak. Keep your rhythm going."
-    :Number(savedStreak.current)>0
-      ?"Complete one task, habit or focus session today to extend your streak."
-      :"Complete one task, habit or focus session to start your streak.";
-  const streakDaysMarkup=streakWeek.map(x=>
-    '<div class="study-streak-day '+(x.active?'is-active ':'')+(x.isToday?'is-today':'')+'">'+
-    '<span class="study-streak-day-name">'+fromKey(x.day).toLocaleDateString('en-US',{weekday:'narrow'})+'</span>'+
-    '<span class="study-streak-day-mark">'+(x.active?'🔥':'·')+'</span></div>'
-  ).join('');
-  const week=Array.from({length:7},(_,i)=>addDays(k,i-6)).map(d=>({d,c:state.completions.filter(x=>x.date===d).length}));
-  const max=Math.max(1,...week.map(x=>x.c));
-  const next=open.slice().sort((a,b)=>{const pa={urgent:0,high:1,medium:2,low:3};return (pa[a.priority]??2)-(pa[b.priority]??2)}).slice(0,4);
-  el.innerHTML=`
-  <div class="command-center">
-    <section class="command-hero">
-      <div class="command-hero-copy">
-        <span class="badge">AURESTAR · HOME</span>
-        <h2>Build focus. Make progress..</h2>
-        <p>${fromKey(k).toLocaleDateString("en-US",{weekday:"long",day:"numeric",month:"long"})} · Your workspace is local-first, focused, and ready for the next action.</p>
-        <div class="command-actions"><button class="primary" id="dashboardAdd">＋ Add task</button><button class="ghost" data-nav="focus">▶ Start focus</button>${gymTasksForDay(k).some(t=>!taskDone(t,k))?`<button class="dashboard-workout-cta" id="dashboardStartWorkout">🏋 Start today’s workout</button>`:""}</div>
-      </div>
-      <div class="command-core"><div class="command-core-ring"><strong>${focusToday.length}</strong><span>FOCUS</span></div><small>${formatDuration(focusMinutes)} focused today</small><div class="command-xp"><i style="width:${Math.min(100,Math.round(focusMinutes/Math.max(1,Number(state.settings.dailyFocusGoalMin)||120)*100))}%"></i></div><span>Daily focus goal: ${Number(state.settings.dailyFocusGoalMin)||120} min</span></div>
-      ${timeWidgetMarkup()}
-    </section>
-
-    <section class="command-kpis">
-      <button class="command-kpi" data-nav="today"><span>Today</span><strong>${done.length}/${todayTasks.length}</strong><small>${completionPct}% complete</small><i><em style="width:${completionPct}%"></em></i></button>
-      <button class="command-kpi" data-nav="focus"><span>Focus</span><strong>${focusMinutes}/${Number(state.settings.dailyFocusGoalMin)||120}m</strong><small>${focusToday.length} session${focusToday.length===1?'':'s'} today</small><i><em style="width:${Math.min(100,Math.round(focusMinutes/Math.max(1,Number(state.settings.dailyFocusGoalMin)||120)*100))}%"></em></i></button>
-      
-    </section>
-
-    <section class="study-streak-card" aria-label="Daily study streak">
-      <div class="study-streak-summary">
-        <span class="section-kicker">DAILY STUDY STREAK</span>
-        <div class="study-streak-number"><span class="study-streak-flame">🔥</span><strong>${Math.max(0,Number(savedStreak.current)||0)}</strong><small>days</small></div>
-        <div class="study-streak-message">${esc(streakMessage)}</div>
-      </div>
-      <div class="study-streak-week" aria-label="This week's activity">${streakDaysMarkup}</div>
-      <div class="study-streak-best"><span>BEST STREAK</span><strong>${Math.max(Number(savedStreak.best)||0,Number(savedStreak.current)||0)} days</strong></div>
-    </section>
-
-    <div class="command-grid">
-      <section class="command-panel command-next command-itsuki-queue"><div class="command-panel-head"><div><span class="section-kicker">NEXT ACTIONS</span><h3>Priority queue</h3></div><button class="ghost" data-nav="tasks">View all →</button></div>${overdue.length?`<div class="command-alert"><b>${overdue.length} overdue</b><span>Clear the oldest blocker first.</span></div>`:''}<div class="command-task-list">${next.map(t=>taskCard(t,k)).join('')||`<div class="empty">No tasks scheduled for today. Add your next action to start the queue.</div>`}</div></section>
-      <section class="command-panel command-momentum-panel"><div class="command-panel-head"><div><span class="section-kicker">MOMENTUM</span><h3>Last 7 days</h3></div><strong class="command-panel-value">${state.completions.filter(x=>x.date>=addDays(k,-6)).length}</strong></div><div class="command-bars">${week.map(x=>`<button class="command-bar-day" data-cal-day="${x.d}"><i style="height:${Math.max(8,Math.round(x.c/max*100))}%"></i><b>${x.c}</b><small>${fromKey(x.d).toLocaleDateString('en-US',{weekday:'narrow'})}</small></button>`).join('')}</div><div class="command-bar-caption"><span>Activity recorded</span><button class="ghost" data-nav="calendar">Open calendar →</button></div></section>
-      <section class="command-panel"><div class="command-panel-head"><div><span class="section-kicker">UP NEXT</span><h3>Scheduled</h3></div></div><div class="command-upcoming">${upcoming.map(t=>`<button class="command-upcoming-row" data-open-task="${esc(t.id)}"><span>${esc(t.dueDate)}</span><b>${esc(t.title)}</b><small>${esc(t.dueTime||'No time')}</small></button>`).join('')||`<div class="empty tiny-empty">No future tasks yet.</div>`}</div></section>
-      <section class="command-panel command-review"><div class="command-panel-head"><div><span class="section-kicker">SYSTEM STATUS</span><h3>Aurestar overview</h3></div><button class="ghost" data-nav="analytics">Progress →</button></div><div class="command-status-grid"><div><span>Focus today</span><strong>${formatDuration(focusMinutes)}</strong><small>${focusToday.length} sessions</small></div><div><span>Tasks</span><strong>${state.tasks.filter(t=>!t.archived).length}</strong><small>${done.length} done today</small></div><div><span>Habits</span><strong>${state.habits.length}</strong><small>${state.habits.filter(h=>habitDone(h,k)).length} completed today</small></div></div></section>
-    </div>
-  </div>`;
-  bindGlobal();
-  $('#dashboardAdd')?.addEventListener('click',()=>openTaskForm());
-  $('#dashboardStartWorkout')?.addEventListener('click',()=>startGymWorkout());
-  $$('[data-cal-day]').forEach(b=>b.addEventListener('click',()=>{selectedDate=b.dataset.calDay;calendarDate=fromKey(selectedDate);navigate('calendar')}));
-  startTimeWidget();
+ const k=today(),todayTasks=plannedFor(k).filter(t=>!t.archived),taskDoneCount=todayTasks.filter(t=>taskDone(t,k)).length,taskPct=todayTasks.length?Math.round(taskDoneCount/todayTasks.length*100):0;
+ const habits=state.habits||[],habitDoneCount=habits.filter(h=>habitDone(h,k)).length,habitPct=habits.length?Math.round(habitDoneCount/habits.length*100):0;
+ const focusToday=(state.focusSessions||[]).filter(x=>x.date===k),focusMinutes=focusToday.reduce((n,x)=>n+Math.max(0,Number(x.minutes)||0),0),focusGoal=Math.max(1,Number(state.settings.dailyFocusGoalMin)||120),focusPct=Math.min(100,Math.round(focusMinutes/focusGoal*100));
+ const streak=state.profile?.studyStreak||{current:0,best:0},activeDates=new Set((state.completions||[]).filter(x=>["task","habit","focus"].includes(String(x.kind||""))&&x.date).map(x=>String(x.date)));
+ (state.workoutSessions||[]).filter(x=>x?.completed&&x.date).forEach(x=>activeDates.add(String(x.date)));if(focusMinutes)activeDates.add(k);
+ const days=Array.from({length:7},(_,i)=>addDays(k,i-6)),momentum=days.map(day=>({day,count:(state.completions||[]).filter(x=>x.date===day).length})),maxMomentum=Math.max(1,...momentum.map(x=>x.count));
+ const goals=(state.goals||[]).slice(0,5),openTasks=todayTasks.filter(t=>!taskDone(t,k)),todayTaskRows=todayTasks.map(t=>taskCard(t,k)).join("");
+ const habitRows=habits.map(h=>{const done=habitDone(h,k);return `<article class="overview-habit-row ${done?"done":""}"><button type="button" class="check ${done?"checked":""}" data-habit-toggle="${esc(h.id)}" aria-label="${done?"Mark incomplete":"Complete habit"}">${done?"✓":""}</button><b>${esc(h.title)}</b><span>${done?"Done":"Open"}</span></article>`}).join("");
+ const goalRows=goals.map(g=>`<div class="overview-goal-row"><div><b>${esc(g.title)}</b><small>${goalProgress(g)}/${Number(g.target)||0} days</small></div><button type="button" class="icon-btn danger-icon" data-delete-goal="${esc(g.id)}" title="Delete goal">×</button></div>`).join("");
+ const weekDays=days.map(day=>`<button type="button" class="overview-calendar-day ${day===k?"today":""}" data-cal-day="${day}"><b>${fromKey(day).getDate()}</b><small>${fromKey(day).toLocaleDateString("en-US",{weekday:"short"})}</small><i class="${activeDates.has(day)?"active":""}"></i></button>`).join("");
+ el.innerHTML=`<div class="overview-v2"><header class="overview-v2-head"><div><span class="eyebrow">OVERVIEW</span><h2>Today</h2><small>${fromKey(k).toLocaleDateString("en-US",{weekday:"long",day:"numeric",month:"long"})}</small></div><section class="overview-streak"><div><span>Streak</span><strong>🔥 ${Math.max(0,Number(streak.current)||0)}</strong><small>Best ${Math.max(Number(streak.best)||0,Number(streak.current)||0)} days</small></div><div class="overview-streak-days">${days.map(day=>`<i class="${activeDates.has(day)?"active":""}">${fromKey(day).toLocaleDateString("en-US",{weekday:"narrow"})}</i>`).join("")}</div></section></header>
+ <section class="overview-progress"><button type="button" class="overview-progress-card" data-nav="tasks"><span>Tasks</span><strong>${taskDoneCount}<small> / ${todayTasks.length}</small></strong><div class="overview-progress-track"><i style="width:${taskPct}%"></i></div><small>${taskPct}% complete</small></button><button type="button" class="overview-progress-card" data-nav="tasks"><span>Habits</span><strong>${habitDoneCount}<small> / ${habits.length}</small></strong><div class="overview-progress-track"><i style="width:${habitPct}%"></i></div><small>${habitPct}% complete</small></button><button type="button" class="overview-progress-card" data-nav="focus"><span>Focus time</span><strong>${formatDuration(focusMinutes)}<small> / ${formatDuration(focusGoal)}</small></strong><div class="overview-progress-track"><i style="width:${focusPct}%"></i></div><small>${focusPct}% of daily goal</small></button></section>
+ <div class="overview-v2-grid"><section class="overview-panel overview-momentum"><div class="overview-panel-head"><h3>Activity</h3><button type="button" class="ghost" data-nav="calendar">Calendar →</button></div><div class="overview-momentum-total"><strong>${momentum.reduce((n,x)=>n+x.count,0)}</strong><span>actions · last 7 days</span></div><div class="overview-bars">${momentum.map(x=>`<button type="button" class="overview-bar-day" data-cal-day="${x.day}" title="${x.day} · ${x.count} actions"><span><i style="height:${x.count?Math.max(8,Math.round(x.count/maxMomentum*100)):3}%"></i></span><b>${x.count}</b><small>${fromKey(x.day).toLocaleDateString("en-US",{weekday:"narrow"})}</small></button>`).join("")}</div></section>
+ <section class="overview-panel overview-today-actions"><div class="overview-panel-head"><h3>Today</h3><span>${openTasks.length} tasks left</span></div><div class="overview-action-columns"><div class="overview-action-group"><div class="overview-subhead"><b>Tasks</b><button type="button" class="ghost" data-nav="tasks">All →</button></div><div class="overview-scroll-list">${todayTaskRows||'<div class="empty">No tasks</div>'}</div></div><div class="overview-action-group"><div class="overview-subhead"><b>Habits</b><button type="button" class="ghost" data-nav="tasks">All →</button></div><div class="overview-scroll-list">${habitRows||'<div class="empty">No habits</div>'}</div></div></div></section>
+ <section class="overview-panel overview-goals-calendar"><div class="overview-panel-head"><h3>Goals</h3><button type="button" class="ghost" data-nav="calendar">Open →</button></div><div class="overview-goal-list">${goalRows||'<div class="empty">No goals</div>'}</div><div class="overview-panel-head overview-calendar-head"><h3>Calendar</h3><button type="button" class="ghost" data-nav="calendar">Month →</button></div><div class="overview-calendar-strip">${weekDays}</div></section></div></div>`;
+ bindGlobal();$$('[data-cal-day]').forEach(b=>b.addEventListener('click',()=>{selectedDate=b.dataset.calDay;calendarDate=fromKey(selectedDate);navigate('calendar')}));
 }
 function renderToday(el){taskMode="today";renderTasks(el);}
 function habitCard(h,k){const done=habitDone(h,k);return `<div class="habit-card ${done?"done":""}"><button class="check ${done?"checked":""}" data-habit-toggle="${esc(h.id)}">${done?"✓":""}</button><div><b>${esc(h.title)}</b><small>${(h.completions||[]).length} check-ins</small></div></div>`}
@@ -456,7 +384,7 @@ function renderGym(el){
         <p>All exercises, sets and recovery intervals are grouped into one Workout task.</p>
         <div class="gym-hero-actions">
           ${tasks.length?(open.length?`<button class="gym-start-today" id="gymStartToday"><span>▶</span><div><strong>Start all exercises</strong><small>One click starts all ${open.length} remaining exercises in one guided session.</small></div></button>`:`<div class="gym-complete-banner"><span>✓</span><div><strong>Today's workout is complete</strong><small>1/1 workout task completed · ${tasks.length} exercises</small></div></div>`):`<div class="gym-complete-banner"><span>＋</span><div><strong>No workout scheduled</strong><small>Add exercises to create one Workout task.</small></div></div>`}
-          <button class="gym-settings-button" data-nav="settings">⚙ Gym settings</button>
+          <button class="gym-task-start" id="gymAddExercise">＋ Add exercise</button>
         </div>
       </div>
       <div class="gym-hero-summary"><div><b>${tasks.length}</b><span>Exercises</span></div><div><b>${done}</b><span>Completed</span></div><div><b>${open.length}</b><span>Remaining</span></div></div>
@@ -484,9 +412,10 @@ function renderGym(el){
 
   bindGlobal();
   $('#gymStartToday')?.addEventListener('click',()=>startGymWorkout());
+  $('#gymAddExercise')?.addEventListener('click',()=>openTaskForm(null,{dueDate:day,workoutConfig:{enabled:true,mode:"reps",sets:3,repsMin:8,repsMax:12,restSeconds:60}}));
   $('[data-gym-single]').forEach(b=>b.addEventListener('click',()=>startGymWorkout()));
-  $$('[data-gym-edit]').forEach(b=>b.addEventListener('click',()=>openTaskForm(b.dataset.gymEdit)));
-  $$('[data-gym-new-task]').forEach(b=>b.addEventListener('click',()=>openTaskForm()));
+  $('[data-gym-edit]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();openTaskForm(b.dataset.gymEdit)}));
+  $('[data-gym-new-task]').forEach(b=>b.addEventListener('click',()=>openTaskForm(null,{dueDate:day,workoutConfig:{enabled:true,mode:"reps",sets:3,repsMin:8,repsMax:12,restSeconds:60}})));
 }
 async function startGymWorkout(){
   const day=today();
@@ -529,7 +458,7 @@ function renderTasks(el){
   const completedCount=state.completions.filter(c=>c.date===k&&c.kind==="task").length;
   el.innerHTML=`<div class="task-workspace task-reference-page">
     <div class="task-page-head"><div><div class="eyebrow">${esc(modeLabel.toUpperCase())}</div><div class="task-heading-row"><h2>${esc(heading)}</h2></div><p class="task-date-line">${esc(sub)}</p></div><div class="task-head-actions"><button class="ghost" id="importTasksBtn">Import</button><button class="ghost" id="exportTasksBtn">Export</button><button class="primary" id="newTaskFocus"> + Tasks <kbd>N</kbd></button></div></div>
-    <div class="task-controls"><div class="view-tabs">${[["today","Today"],["tomorrow","Tomorrow"],["next7","7 days"],["all","All"],["inbox","Inbox"],["completed","Completed"]].map(x=>`<button class="${taskMode===x[0]?"active":""}" data-task-switch="${x[0]}">${x[1]}</button>`).join("")}</div><button class="ghost" id="manageLists">Lists</button></div>
+    <div class="task-controls"><div class="view-tabs">${[["today","Today"],["tomorrow","Tomorrow"],["next7","7 days"],["all","All"],["inbox","Inbox"],["completed","Completed"]].map(x=>`<button class="${taskMode===x[0]?"active":""}" data-task-switch="${x[0]}">${x[1]}</button>`).join("")}</div></div>
     ${quickTaskForm()}
     <section class="unified-habits" aria-label="Daily habits">
       <div class="unified-habits-head"><div><span class="section-kicker">DAILY RHYTHM</span><h3>Habits</h3><p>Check off the small things that keep you consistent.</p></div><div class="unified-habit-progress"><strong>${state.habits.filter(h=>habitDone(h,k)).length}/${state.habits.length}</strong><span>done today</span></div></div>
@@ -537,7 +466,7 @@ function renderTasks(el){
       <div class="habit-inline-grid">${state.habits.map(h=>habitCompact(h)).join("")||`<div class="habit-inline-empty">No habits yet. Add one small routine to get started.</div>`}</div>
     </section>
     <div class="task-reference-layout">
-      <section class="task-center-panel"><div class="task-board-title"><div><span class="section-kicker">TASK LIST</span><h3>${esc(heading)}</h3></div><span>${open.length} open</span></div><div class="task-reference-groups">${groups.map(g=>`<section class="task-group"><div class="task-group-head"><b>${g.day===k?"Today":fromKey(g.day).toLocaleDateString("en-US",{weekday:"long",day:"numeric",month:"numeric"})}</b><span>${g.items.length}</span></div><div class="task-list">${g.items.map(t=>taskCard(t,g.day)).join("")||`<div class="empty">No tasks in this view.</div>`}</div></section>`).join("")}${taskMode!=="completed"&&doneToday.length?`<section class="task-group completed-group"><div class="task-group-head"><b>Completed today</b><span>${doneToday.length}</span></div><div class="task-list">${doneToday.map(t=>taskCard(t,k)).join("")}</div></section>`:""}</div></section>
+      <section class="task-center-panel"><div class="task-board-title"><div><span class="section-kicker">TASK LIST</span><h3>${esc(heading)}</h3></div><span>${open.length} open</span></div><div class="task-reference-groups">${groups.map(g=>`<section class="task-group"><div class="task-group-head"><b>${g.day===k?"Today":fromKey(g.day).toLocaleDateString("en-US",{weekday:"long",day:"numeric",month:"numeric"})}</b><span>${g.items.length}</span></div><div class="task-list">${g.items.map(t=>taskCard(t,g.day,taskMode==="completed")).join("")||`<div class="empty">No tasks in this view.</div>`}</div></section>`).join("")}${taskMode!=="completed"&&doneToday.length?`<section class="task-group completed-group"><div class="task-group-head"><b>Completed today</b><span>${doneToday.length}</span></div><div class="task-list">${doneToday.map(t=>taskCard(t,k)).join("")}</div></section>`:""}</div></section>
       <aside class="task-reference-rail">
         <section class="task-rail-card rail-stat-card"><div><span>Total tasks</span><strong>${totalVisible}</strong></div><div><span>Completed today</span><strong>${completedCount}</strong></div><div><span>Open in view</span><strong>${open.length}</strong></div></section>
       </aside>
@@ -545,7 +474,7 @@ function renderTasks(el){
   </div>`;
   bindGlobal();bindQuickTask();bindHabitQuickAdd();
   $$('[data-task-switch]').forEach(b=>b.onclick=()=>{taskMode=b.dataset.taskSwitch;selectedList="all";renderShell()});
-  $("#manageLists")?.addEventListener("click",manageLists);$("#newTaskFocus")?.addEventListener("click",openTaskForm);$("#importTasksBtn")?.addEventListener("click",openTaskImportPicker);$("#exportTasksBtn")?.addEventListener("click",openTaskExportMenu);
+  $("#newTaskFocus")?.addEventListener("click",openTaskForm);$("#importTasksBtn")?.addEventListener("click",openTaskImportPicker);$("#exportTasksBtn")?.addEventListener("click",openTaskExportMenu);
 }
 
 function openListForm(id=null){const l=id?state.lists.find(x=>x.id===id):null;openModal(`<div class="modal-head"><div><span class="badge">${l?"EDIT":"NEW"} LIST</span><h3>${l?"Edit list":"Create a list"}</h3></div><button class="icon-btn" data-close-modal>×</button></div><p class="muted">Each list is a focused area: Study, Training, Projects, Personal…</p><form id="listForm" class="modal-form"><label>List name<input name="name" value="${esc(l?.name||"")}" placeholder="Example: Exam prep" maxlength="40" required></label><div class="form-grid-2"><label>Icon<select name="icon">${["○","▣","⌘","△","◆","★","●","□"].map(i=>`<option ${l?.icon===i?"selected":""}>${i}</option>`).join("")}</select></label><label>Color<select name="color">${[["red","Red"],["orange","Orange"],["yellow","Yellow"]].map(x=>`<option value="${x[0]}" ${l?.color===x[0]?"selected":""}>${x[1]}</option>`).join("")}</select></label></div><button class="primary">${l?"Save changes":"Create list"}</button></form>`);$("#listForm")?.addEventListener("submit",async e=>{e.preventDefault();const f=new FormData(e.currentTarget),data={name:String(f.get("name")||"").trim(),icon:String(f.get("icon")||"○"),color:String(f.get("color")||"red")};const r=await action(l?"updateList":"addList",l?{id:l.id,...data}:data);if(r){closeModal();renderShell();toast(l?"List updated":"List created","success")}})}
@@ -556,134 +485,52 @@ function bindHabitQuickAdd(){const form=$("#habitAdd");if(!form)return;form.addE
 function renderHabits(el){navigate("tasks")}
 function habitDetail(h){const done=habitDone(h);const freq=h.frequency==="weekly"?"weekly":"daily";return `<article class="habit-detail ${done?"done":""}"><div class="habit-detail-head"><button class="check ${done?"checked":""}" data-habit-toggle="${esc(h.id)}">${done?"✓":""}</button><div><h3>${esc(h.title)}</h3><p>${freq} habit</p></div><button class="icon-btn danger-icon" data-delete-habit="${esc(h.id)}">×</button></div><div class="habit-stats"><div><b>${(h.completions||[]).length}</b><small>check-ins</small></div><div><b>${done?"Done":"Pending"}</b><small>today</small></div><div><b>${freq}</b><small>frequency</small></div></div></article>`}
 
-let focusUiState={active:false,phase:"idle",mode:25,remaining:25*60,elapsed:0,paused:false,endsAt:0,pomodorosCompleted:0,taskId:"",breakKind:"short",countdown:true,free:false,todayFocusMinutes:0,dailyFocusGoalMin:120};
+let focusUiState={active:false,phase:"idle",mode:25,remaining:25*60,elapsed:0,paused:false,endsAt:0,pomodorosCompleted:0,roundsTarget:4,taskId:"",breakKind:"short",countdown:true,free:false,todayFocusMinutes:0,dailyFocusGoalMin:120};
 let focusUiTimer=null;
 function fmtFocusSeconds(s){const n=Math.max(0,Math.ceil(Number(s)||0));return `${String(Math.floor(n/60)).padStart(2,"0")}:${String(n%60).padStart(2,"0")}`};
 async function refreshFocusEngine(){try{const r=await send("getFocusState");if(r?.ok&&r.result?.focus){focusUiState=r.result.focus;updateFocusUI();}}catch{}}
 function updateFocusUI(){
-  const f=focusUiState,display=$("#focusEngineDisplay"),status=$("#focusEngineStatus"),start=$("#timerStart"),stop=$("#timerStop"),reset=$("#timerReset"),skip=$("#timerSkipBreak");
-  const seconds=f.phase==="break"?Number(f.remaining)||0:(f.countdown===false?Number(f.elapsed)||0:Number(f.remaining)||0);
-  if(display)display.textContent=fmtFocusSeconds(seconds);
-  const isBreak=f.phase==="break",isRunning=!!f.active,isPaused=!!f.paused;
-  const label=isRunning?(isBreak?(f.breakKind==="long"?"Long break running":"Short break running"):"Focus running")
-    :isPaused?"Paused":isBreak?(f.breakKind==="long"?"Long break ready":"Short break ready"):"Ready";
-  if(status)status.textContent=label;
-  if(start)start.textContent=isRunning?"Pause":isPaused?"Resume":isBreak?"Start break":"Start focus";
-  if(stop){stop.disabled=!(isRunning||isPaused);stop.setAttribute("aria-disabled",String(!(isRunning||isPaused)));}
-  if(reset){reset.disabled=!(isRunning||isPaused||isBreak);reset.setAttribute("aria-disabled",String(!(isRunning||isPaused||isBreak)));}
-  if(skip)skip.hidden=!isBreak;
-  const sel=$("#focusTaskSelect");if(sel&&document.activeElement!==sel){sel.value=f.taskId||"";sel.disabled=isRunning;}
-  const count=$("#focusPomodoroCount");if(count)count.textContent=`${Number(f.pomodorosCompleted)||0}`;
-  const modeLabel=$("#focusCountMode");if(modeLabel)modeLabel.textContent=f.countdown===false?"Count up":"Countdown";
-  const goal=Number(f.dailyFocusGoalMin)||120,mins=Math.min(goal,Number(f.todayFocusMinutes)||0),pct=Math.min(100,Math.round(mins/goal*100));
-  const bar=$("#focusGoalBar");if(bar)bar.style.width=`${pct}%`;
-  const goalText=$("#focusGoalText");if(goalText)goalText.textContent=`${Math.floor(mins)} / ${goal} min`;
-  const shell=document.querySelector(".focus-clock-shell");if(shell){shell.classList.toggle("is-break",isBreak);shell.classList.toggle("is-paused",isPaused);}
-  const phase=document.querySelector(".focus-phase-label");if(phase)phase.textContent=isBreak?(f.breakKind==="long"?"LONG BREAK":"SHORT BREAK"):"FOCUS";
+ const f=focusUiState,display=$("#focusEngineDisplay"),status=$("#focusEngineStatus"),start=$("#timerStart"),stop=$("#timerStop"),reset=$("#timerReset"),seconds=Math.max(0,Number(f.remaining)||0);
+ if(display)display.textContent=fmtFocusSeconds(seconds);
+ const isBreak=f.phase==="break",isRunning=!!f.active,isPaused=!!f.paused,target=Math.max(1,Number(f.roundsTarget)||4),completed=Math.max(0,Number(f.pomodorosCompleted)||0);
+ const label=isRunning?(isBreak?(f.breakKind==="long"?"Long break":"Short break"):"Focusing"):isPaused?"Paused":isBreak?"Break":"Ready";
+ if(status)status.textContent=label;
+ if(start)start.textContent=isRunning?"Pause":isPaused?"Resume":isBreak?"Resume break":"Start focus";
+ if(stop){stop.disabled=!(isRunning||isPaused);stop.setAttribute("aria-disabled",String(!(isRunning||isPaused)));}
+ if(reset){reset.disabled=!(isRunning||isPaused||isBreak);reset.setAttribute("aria-disabled",String(!(isRunning||isPaused||isBreak)));}
+ const sel=$("#focusTaskSelect");if(sel&&document.activeElement!==sel){sel.value=f.taskId||"";sel.disabled=isRunning||isPaused||isBreak;}
+ const rounds=$("#focusRoundsSelect");if(rounds){rounds.value=String(target);rounds.disabled=isRunning||isPaused||isBreak;}
+ const count=$("#focusPomodoroCount");if(count)count.textContent=String(Math.min(completed,target));
+ const roundText=$("#focusRoundText");if(roundText)roundText.textContent=`/ ${target}`;
+ const goal=Number(f.dailyFocusGoalMin)||Number(state.settings.dailyFocusGoalMin)||120,mins=Math.min(goal,Number(f.todayFocusMinutes)||0),pct=Math.min(100,Math.round(mins/goal*100));
+ const bar=$("#focusGoalBar");if(bar)bar.style.width=`${pct}%`;
+ const goalText=$("#focusGoalText");if(goalText)goalText.textContent=`${Math.floor(mins)} / ${goal} min`;
+ const shell=document.querySelector(".focus-clock-shell");if(shell){shell.classList.toggle("is-break",isBreak);shell.classList.toggle("is-paused",isPaused);}
+ const phase=document.querySelector(".focus-phase-label");if(phase)phase.textContent=isBreak?(f.breakKind==="long"?"LONG BREAK":"SHORT BREAK"):"FOCUS";
 }
 function exportFocusCSV(){const rows=[["Date","StartedAt","CompletedAt","Minutes","Mode","Task"],...(state.focusSessions||[]).map(x=>[x.date,x.startedAt?new Date(Number(x.startedAt)).toISOString():"",x.completedAt?new Date(Number(x.completedAt)).toISOString():"",Number(x.minutes)||0,x.mode||"focus",x.taskId?(state.tasks.find(t=>t.id===x.taskId)?.title||"Linked task"):"Free focus"] )];downloadText(`aurestar-focus-${today()}.csv`,"text/csv;charset=utf-8","\uFEFF"+rows.map(r=>r.map(csvCell).join(",")).join("\n"));toast("Focus history exported","success")}
 function renderFocus(el){
-  const f=focusUiState,totalMin=Number(state.profile.totalFocusMinutes)||0;
-  const todaySessions=(state.focusSessions||[]).filter(x=>x.date===today());
-  const todayMin=todaySessions.reduce((n,x)=>n+Number(x.minutes||0),0);
-  const display=f.phase==="break"?Number(f.remaining)||0:(f.countdown===false?Number(f.elapsed)||0:Number(f.remaining)||0);
-  const taskOptions=`<option value="">No task — general focus</option>`+state.tasks.filter(t=>!t.archived).map(t=>`<option value="${esc(t.id)}" ${String(t.id)===String(f.taskId||"")?'selected':''}>${esc(t.title)}</option>`).join("");
-  const sessions=[...(state.focusSessions||[])].sort((a,b)=>Number(b.completedAt||0)-Number(a.completedAt||0)).slice(0,12);
-  const isRunning=!!f.active,isPaused=!!f.paused,isBreak=f.phase==="break";
-  const primaryLabel=isRunning?"Pause":isPaused?"Resume":isBreak?"Start break":"Start focus";
-  const statusLabel=isRunning?(isBreak?(f.breakKind==="long"?"Long break running":"Short break running"):"Focus running"):isPaused?"Paused":isBreak?(f.breakKind==="long"?"Long break ready":"Short break ready"):"Ready";
-  const modeLabel=f.countdown===false?"Count up":"Countdown";
-  const canStop=isRunning||isPaused;
-  const canReset=isRunning||isPaused||isBreak;
-  const goal=Number(f.dailyFocusGoalMin)||120;
-  const goalMinutes=Math.min(goal,Number(f.todayFocusMinutes)||0);
-  const goalPct=Math.min(100,Math.round(goalMinutes/goal*100));
-  el.innerHTML=`<div class="page-intro focus-page-intro">
-    <div><span class="badge">POMODORO</span><h2>Focus</h2><p>Work → short break → long break. Focus To-Do style timing with background-safe state.</p></div>
-    <div class="focus-page-status"><span class="focus-status-dot ${isRunning?'is-running':isPaused?'is-paused':''}"></span><b>${esc(statusLabel)}</b><small>${modeLabel}</small></div>
-  </div>
-  <section class="focus-layout focus-layout-v3">
-    <div class="focus-main focus-main-v3">
-      <div class="focus-task-line">
-        <label><span>Focus task</span><select id="focusTaskSelect" ${isRunning?'disabled':''}>${taskOptions}</select></label>
-        <span class="focus-cycle-count"><b id="focusPomodoroCount">${Number(f.pomodorosCompleted)||0}</b> cycles</span>
-      </div>
-      <div class="focus-clock-shell ${isBreak?'is-break':''} ${isPaused?'is-paused':''}">
-        <div class="focus-phase-label">${isBreak?(f.breakKind==="long"?"LONG BREAK":"SHORT BREAK"):"FOCUS"}</div>
-        <div class="timer-display timer-display-v3" id="focusEngineDisplay">${fmtFocusSeconds(display)}</div>
-        <div class="focus-timer-meta"><span id="focusCountMode">${modeLabel}</span><span id="focusEngineStatus">${esc(statusLabel)}</span></div>
-      </div>
-      <div class="focus-actions focus-actions-v3">
-        <button type="button" class="primary focus-primary-btn" id="timerStart">${primaryLabel}</button>
-        <button type="button" class="ghost focus-secondary-btn" id="timerStop" ${canStop?'':'disabled'}>Stop</button>
-        <button type="button" class="ghost focus-secondary-btn" id="timerReset" ${canReset?'':'disabled'}>Reset</button>
-        <button type="button" class="ghost focus-secondary-btn focus-skip-btn" id="timerSkipBreak" ${isBreak?'':'hidden'}>Skip break</button>
-        <button type="button" class="ghost focus-secondary-btn" id="timerShortBreak" ${isRunning||isPaused||isBreak?'disabled':''}>Short break</button>
-        <button type="button" class="ghost focus-secondary-btn" id="timerLongBreak" ${isRunning||isPaused||isBreak?'disabled':''}>Long break</button>
-      </div>
-      <div class="focus-config-summary">
-        <span class="muted">Pomodoro preferences are managed in Settings.</span>
-        <a href="#settings" id="focusOpenSettings">Edit in Settings →</a>
-        <button type="button" class="ghost" id="focusWidgetToggle">${state.settings.focusWidgetEnabled!==false?"Hide Floating Widget":"Open Floating Widget"}</button>
-      </div>
-    </div>
-    <aside class="focus-side focus-side-v3">
-      <section class="focus-stats-card focus-stats-card-v3">
-        <div class="focus-stat"><span>Today</span><b>${todayMin}</b><small>minutes</small></div>
-        <div class="focus-stat"><span>Pomodoros</span><b>${todaySessions.length}</b><small>sessions</small></div>
-        <div class="focus-stat"><span>Total</span><b>${Math.floor(totalMin/60)}h ${totalMin%60}m</b><small>focus time</small></div>
-      </section>
-      <section class="focus-goal focus-goal-v3">
-        <div class="focus-goal-head"><span>Daily focus goal</span><b id="focusGoalText">${Math.floor(goalMinutes)} / ${goal} min</b></div>
-        <div class="focus-goal-track"><i id="focusGoalBar" style="width:${goalPct}%"></i></div>
-      </section>
-      <section class="focus-next-card">
-        <span class="section-kicker">CONTROL</span>
-        <b>${isBreak?(f.breakKind==="long"?"Long break":"Short break"):isPaused?"Timer paused":isRunning?"Focus session":"Ready to focus"}</b>
-        <small>All Pomodoro preferences are managed from Settings.</small>
-      </section>
-    </aside>
-  </section>
-  <section class="focus-history-panel focus-history-panel-v3">
-    <div class="section-head"><div><span class="section-kicker">POMODORO HISTORY</span><h3>Recent sessions</h3></div><span class="muted">${(state.focusSessions||[]).length} recorded</span></div>
-    ${sessions.length?sessions.map(x=>`<article class="focus-history-row"><span class="focus-history-icon">◉</span><div><b>${esc(x.taskId?(state.tasks.find(t=>String(t.id)===String(x.taskId))?.title||'Linked task'):'General focus')}</b><small>${new Date(Number(x.completedAt||0)).toLocaleString()} · ${Number(x.minutes)||0} min${x.partial?' · partial':''}</small></div><strong>${Number(x.minutes)||0}m</strong></article>`).join(''):'<div class="empty">No Pomodoro sessions yet.</div>'}
-  </section>`;
-
-  $('#focusTaskSelect')?.addEventListener('change',async e=>{try{const r=await action('focusSetTask',{taskId:e.target.value});if(r){focusUiState=r.result?.focus||focusUiState;updateFocusUI();}}catch(err){toast(err.message||'Could not change focus task','error');}});
-  $('#timerStart')?.addEventListener('click',async()=>{
-    try{
-      const r=focusUiState.active?await action('focusPause'):await action('focusStart',{mode:Number(focusUiState.mode)||Number(state.settings.focusPreset)||25,taskId:focusUiState.taskId||'',free:false});
-      if(r){focusUiState=r.result?.focus||focusUiState;updateFocusUI();}
-    }catch(err){toast(err.message||'Focus action failed','error');}
-  });
-  $('#timerStop')?.addEventListener('click',async()=>{
-    if(!(focusUiState.active||focusUiState.paused))return;
-    if(!confirm('Stop the current focus session? At least 1 minute is recorded.'))return;
-    try{const r=await action('focusStop');if(r){focusUiState=r.result?.focus||focusUiState;renderView('focus');}}
-    catch(err){toast(err.message||'Could not stop focus','error');}
-  });
-  $('#timerReset')?.addEventListener('click',async()=>{
-    if(!(focusUiState.active||focusUiState.paused||focusUiState.phase==="break"))return;
-    if((focusUiState.active||focusUiState.paused)&&!confirm('Reset the current timer without recording it?'))return;
-    try{
-      const r=await action('focusReset',{mode:Number(focusUiState.mode)||Number(state.settings.focusPreset)||25,taskId:focusUiState.taskId||''});
-      if(r){focusUiState=r.result?.focus||focusUiState;renderView('focus');}
-    }catch(err){toast(err.message||'Could not reset focus','error');}
-  });
-  $('#timerShortBreak')?.addEventListener('click',async()=>{try{const r=await action('focusStartBreak',{kind:'short'});if(r){focusUiState=r.result?.focus||focusUiState;updateFocusUI();}}catch(err){toast(err.message||'Could not start short break','error');}});
-  $('#timerLongBreak')?.addEventListener('click',async()=>{try{const r=await action('focusStartBreak',{kind:'long'});if(r){focusUiState=r.result?.focus||focusUiState;updateFocusUI();}}catch(err){toast(err.message||'Could not start long break','error');}});
-  $('#timerSkipBreak')?.addEventListener('click',async()=>{
-    if(focusUiState.phase!=="break")return;
-    try{const r=await action('focusSkipBreak');if(r){focusUiState=r.result?.focus||focusUiState;renderView('focus');}}
-    catch(err){toast(err.message||'Could not skip break','error');}
-  });
-  $('#focusOpenSettings')?.addEventListener('click',e=>{e.preventDefault();navigate('settings');});
-  $('#focusWidgetToggle')?.addEventListener('click',async()=>{const enabled=state.settings.focusWidgetEnabled!==false;const r=await action('setFocusWidgetEnabled',{enabled:!enabled});if(r){state.settings.focusWidgetEnabled=!enabled;toast(!enabled?'Floating Focus Widget enabled':'Floating Focus Widget hidden','success');renderView('focus');}});
-  if(focusUiTimer)clearInterval(focusUiTimer);
-  focusUiTimer=setInterval(refreshFocusEngine,500);
-  refreshFocusEngine();
+ const f=focusUiState||{},totalMin=Number(state.profile?.totalFocusMinutes)||0,todaySessions=(state.focusSessions||[]).filter(x=>x.date===today()),todayMin=todaySessions.reduce((n,x)=>n+Math.max(0,Number(x.minutes)||0),0);
+ const taskOptions=`<option value="">General focus</option>`+state.tasks.filter(t=>!t.archived).map(t=>`<option value="${esc(t.id)}" ${String(t.id)===String(f.taskId||"")?'selected':''}>${esc(t.title)}</option>`).join("");
+ const sessions=[...(state.focusSessions||[])].sort((a,b)=>Number(b.completedAt||0)-Number(a.completedAt||0)).slice(0,10),isRunning=!!f.active,isPaused=!!f.paused,isBreak=f.phase==="break";
+ const statusLabel=isRunning?(isBreak?(f.breakKind==="long"?"Long break":"Short break"):"Focusing"):isPaused?"Paused":isBreak?"Break":"Ready";
+ const goal=Math.max(1,Number(f.dailyFocusGoalMin)||Number(state.settings.dailyFocusGoalMin)||120),goalMinutes=Math.min(goal,Number(f.todayFocusMinutes)||todayMin),goalPct=Math.min(100,Math.round(goalMinutes/goal*100)),target=Math.max(1,Number(f.roundsTarget)||4),completed=Math.min(target,Math.max(0,Number(f.pomodorosCompleted)||0)),widgetEnabled=state.settings.focusWidgetEnabled!==false;
+ el.innerHTML=`<div class="focus-workspace"><header class="focus-workspace-head"><div><span class="eyebrow">POMODORO</span><h2>Focus</h2></div><div class="focus-round-picker"><label for="focusRoundsSelect">Rounds</label><select id="focusRoundsSelect" ${isRunning||isPaused||isBreak?'disabled':''}>${Array.from({length:20},(_,i)=>i+1).map(n=>`<option value="${n}" ${n===target?'selected':''}>${n}</option>`).join("")}</select></div></header>
+ <div class="focus-workspace-grid"><section class="focus-session-card"><div class="focus-session-top"><label>Task<select id="focusTaskSelect" ${isRunning||isPaused||isBreak?'disabled':''}>${taskOptions}</select></label><div class="focus-round-progress"><strong id="focusPomodoroCount">${completed}</strong><span id="focusRoundText">/ ${target}</span><small>rounds</small></div></div>
+ <div class="focus-clock-shell focus-clock-v4 ${isBreak?'is-break':''} ${isPaused?'is-paused':''}"><span class="focus-phase-label">${isBreak?(f.breakKind==="long"?"LONG BREAK":"SHORT BREAK"):"FOCUS"}</span><div class="timer-display timer-display-v3" id="focusEngineDisplay">${fmtFocusSeconds(Number(f.remaining)||0)}</div><div class="focus-timer-meta"><span id="focusEngineStatus">${esc(statusLabel)}</span></div></div>
+ <div class="focus-controls-v4"><button type="button" class="primary" id="timerStart">${isRunning?"Pause":isPaused?"Resume":isBreak?"Resume break":"Start focus"}</button><button type="button" class="ghost" id="timerStop" ${isRunning||isPaused?'':'disabled'}>Stop</button><button type="button" class="ghost" id="timerReset" ${isRunning||isPaused||isBreak?'':'disabled'}>Reset</button></div>
+ <div class="focus-widget-row"><span>Pomodoro widget</span><button type="button" class="ghost" id="focusWidgetToggle">${widgetEnabled?"Hide widget":"Show widget"}</button></div></section>
+ <aside class="focus-side-v4"><section class="focus-stats-card focus-stats-v4"><div><span>Today</span><strong>${formatDuration(todayMin)}</strong></div><div><span>Sessions</span><strong>${todaySessions.length}</strong></div><div><span>Total</span><strong>${Math.floor(totalMin/60)}h ${totalMin%60}m</strong></div></section>
+ <section class="focus-goal focus-goal-v4"><div class="focus-goal-head"><span>Daily goal</span><b id="focusGoalText">${Math.floor(goalMinutes)} / ${goal} min</b></div><div class="focus-goal-track"><i id="focusGoalBar" style="width:${goalPct}%"></i></div></section>
+ <section class="focus-history-panel focus-history-v4"><div class="section-head"><h3>History</h3><span class="muted">${(state.focusSessions||[]).length}</span></div><div class="focus-history-scroll">${sessions.length?sessions.map(x=>`<article class="focus-history-row"><span class="focus-history-icon">◉</span><div><b>${esc(x.taskId?(state.tasks.find(t=>String(t.id)===String(x.taskId))?.title||'Task'):'General focus')}</b><small>${new Date(Number(x.completedAt||0)).toLocaleDateString()} · ${Number(x.minutes)||0}m</small></div><strong>${Number(x.minutes)||0}m</strong></article>`).join(""):'<div class="empty">No sessions yet</div>'}</div></section></aside></div></div>`;
+ $('#focusTaskSelect')?.addEventListener('change',async e=>{try{const r=await action('focusSetTask',{taskId:e.target.value});if(r){focusUiState=r.result?.focus||focusUiState;updateFocusUI();}}catch(err){toast(err.message||'Could not change focus task','error');}});
+ $('#focusRoundsSelect')?.addEventListener('change',async e=>{try{const r=await action('focusSetRounds',{rounds:Number(e.target.value)});if(r){focusUiState=r.result?.focus||focusUiState;updateFocusUI();}}catch(err){toast(err.message||'Could not change rounds','error');}});
+ $('#timerStart')?.addEventListener('click',async()=>{try{const r=focusUiState.active?await action('focusPause'):await action('focusStart',{mode:Number(focusUiState.mode)||Number(state.settings.focusPreset)||25,taskId:focusUiState.taskId||'',rounds:Number($('#focusRoundsSelect')?.value)||Number(focusUiState.roundsTarget)||4,free:false});if(r){focusUiState=r.result?.focus||focusUiState;updateFocusUI();}}catch(err){toast(err.message||'Focus action failed','error');}});
+ $('#timerStop')?.addEventListener('click',async()=>{if(!(focusUiState.active||focusUiState.paused))return;if(!confirm('Stop this Focus session?'))return;try{const r=await action('focusStop');if(r){focusUiState=r.result?.focus||focusUiState;renderView('focus');}}catch(err){toast(err.message||'Could not stop focus','error');}});
+ $('#timerReset')?.addEventListener('click',async()=>{if(!(focusUiState.active||focusUiState.paused||focusUiState.phase==="break"))return;if(!confirm('Reset the current Focus plan?'))return;try{const r=await action('focusReset',{mode:Number(focusUiState.mode)||Number(state.settings.focusPreset)||25,rounds:Number(focusUiState.roundsTarget)||4,taskId:focusUiState.taskId||''});if(r){focusUiState=r.result?.focus||focusUiState;renderView('focus');}}catch(err){toast(err.message||'Could not reset focus','error');}});
+ $('#focusWidgetToggle')?.addEventListener('click',async()=>{const enabled=state.settings.focusWidgetEnabled!==false;const r=await action('setFocusWidgetEnabled',{enabled:!enabled});if(r){state.settings.focusWidgetEnabled=!enabled;renderView('focus');}});
+ if(focusUiTimer)clearInterval(focusUiTimer);focusUiTimer=setInterval(refreshFocusEngine,500);refreshFocusEngine();
 }
-
 function focusXPClient(){return 60;}
 
 function startTimer(){return refreshFocusEngine()}
@@ -707,40 +554,23 @@ function calendarDaySnapshot(k){
   return{tasks,completedTasks,comps,focusMinutes,habitHits};
 }
 function renderCalendar(el){
-  const y=calendarDate.getFullYear(),m=calendarDate.getMonth(),first=new Date(y,m,1),days=new Date(y,m+1,0).getDate(),off=(first.getDay()+6)%7;
-  let cells="";
-  for(let i=0;i<off;i++)cells+=`<div class="calendar-day empty-day"></div>`;
-  for(let d=1;d<=days;d++){
-    const k=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`,snap=calendarDaySnapshot(k),done=snap.completedTasks.length,planned=snap.tasks.length,actions=snap.comps.length;
-    cells+=`<button class="calendar-day ${k===today()?'today-day':''} ${k===selectedDate?'selected-day':''}" data-cal-day="${k}"><div class="calendar-day-top"><b>${d}</b>${k===today()?'<span class="today-chip">TODAY</span>':''}</div><div class="calendar-day-footer"><span class="activity-dot level-${heatLevel(actions,6)}"></span>${done?`<span class="day-count">${done}/${planned}</span>`:planned?`<span class="day-count">${planned} planned</span>`:`<span class="day-count muted">—</span>`}</div></button>`;
-  }
-  const k=selectedDate||today(),snap=calendarDaySnapshot(k),dayDate=fromKey(k),selectedName=dayDate.toLocaleDateString('en-US',{weekday:'long',day:'numeric',month:'long'});
-  const goals=state.goals||[];
-  const goalRows=goals.map(g=>`<article class="goal-mini-row-v53"><div><b>${esc(g.title)}</b><small>${goalProgress(g)}/${g.target} days</small></div><button class="icon-btn danger-icon" data-delete-goal="${esc(g.id)}" title="Delete goal">×</button></article>`).join('');
-  const taskRows=snap.tasks.slice(0,6).map(t=>taskCard(t,k)).join('');
-  el.innerHTML=`<div class="calendar-page-v53">
-    <div class="calendar-header-v53"><div><span class="badge">CALENDAR</span><h2>Calendar</h2></div><div class="discipline-quote-v53 calendar-quote-v53">“${esc(dailyMantra('calendar'))}”</div></div>
-    <section class="calendar-core-v53"><div class="calendar-overview-main calendar-main-v53"><div class="calendar-toolbar compact-toolbar"><button class="ghost" id="prevMonth" aria-label="Previous month">←</button><h3>${calendarDate.toLocaleDateString('en-US',{month:'long',year:'numeric'})}</h3><button class="ghost" id="nextMonth" aria-label="Next month">→</button><button class="ghost" id="todayCalendar">Today</button></div><div class="calendar weekdays">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(x=>`<b>${x}</b>`).join('')}</div><div class="calendar grid">${cells}</div><div class="calendar-key-v53"><span><i class="activity-dot level-2"></i> Activity</span><span><i class="activity-dot level-0"></i> Planned</span></div></div>
-      <aside class="calendar-day-panel calendar-day-panel-v53"><div class="calendar-panel-head"><div><span class="section-kicker">SELECTED DAY</span><h3>${selectedName}</h3><p>${k===today()?'Today':''}</p></div><span class="day-activity-badge">${snap.comps.length}</span></div><div class="calendar-day-stats calendar-day-stats-v53"><div><b>${snap.completedTasks.length}/${snap.tasks.length}</b><span>Tasks</span></div><div><b>${formatDuration(snap.focusMinutes)}</b><span>Focus</span></div><div><b>${snap.habitHits}</b><span>Habits</span></div></div><div class="calendar-panel-section calendar-schedule-v53"><div class="section-head"><div><h4>Schedule</h4></div><button class="ghost" id="addTaskCalendar">＋</button></div><div class="task-list compact-task-list">${taskRows||`<div class="empty">Nothing scheduled.</div>`}</div>${snap.tasks.length>6?`<button class="calendar-more" data-open-tasks="${esc(k)}">View ${snap.tasks.length-6} more →</button>`:''}</div><div class="calendar-day-mantra-v53">Do not negotiate with the work you already chose.</div></aside>
-    </section>
-    <section class="calendar-history-card calendar-history-v25">
-      <div class="calendar-history-head"><div><span class="section-kicker">WORK INTENSITY</span><h3>Activity intensity</h3><p>Each square shows completed actions. Brighter means more work completed that day.</p></div><div class="calendar-range-switch"><button class="ghost ${calendarHistoryDays===30?'active-range':''}" data-history-days="30">30D</button><button class="ghost ${calendarHistoryDays===90?'active-range':''}" data-history-days="90">90D</button><button class="ghost ${calendarHistoryDays===180?'active-range':''}" data-history-days="180">180D</button><button class="ghost ${calendarHistoryDays===365?'active-range':''}" data-history-days="365">1Y</button></div></div>
-      ${renderCalendarHistory(calendarHistoryDays)}
-    </section>
-    <section class="calendar-goals-strip calendar-goals-visible-v25"><div class="section-head"><div><span class="section-kicker">GOALS</span><h3>Goals</h3><p class="muted">Your long-term progress stays visible here.</p></div><button class="ghost" id="addGoal">＋ New goal</button></div><div class="calendar-goals-grid">${goalRows||`<div class="empty">No goals yet. Create your first goal.</div>`}</div></section>
-  </div>`;
-  bindGlobal();
-  $$('[data-cal-day]').forEach(b=>b.onclick=()=>{selectedDate=b.dataset.calDay;calendarDate=fromKey(selectedDate);renderView('calendar')});
-  $$('[data-history-days]').forEach(b=>b.onclick=()=>{calendarHistoryDays=Number(b.dataset.historyDays)||90;renderView('calendar')});
-  $('#prevMonth')?.addEventListener('click',()=>{calendarDate.setMonth(calendarDate.getMonth()-1);renderView('calendar')});
-  $('#nextMonth')?.addEventListener('click',()=>{calendarDate.setMonth(calendarDate.getMonth()+1);renderView('calendar')});
-  $('#todayCalendar')?.addEventListener('click',()=>{calendarDate=new Date();selectedDate=today();renderView('calendar')});
-  $('#addTaskCalendar')?.addEventListener('click',()=>openTaskForm(null,{dueDate:k}));
-  $('[data-open-tasks]')?.addEventListener('click',()=>{taskMode='all';searchQuery='';navigate('tasks')});
-  $('#addGoal')?.addEventListener('click',openGoalForm);
-  $$('[data-delete-goal]').forEach(b=>b.addEventListener('click',async()=>{if(confirm('Delete this goal?')){const r=await action('deleteGoal',{id:b.dataset.deleteGoal});if(r)renderView('calendar')}}));
+ const y=calendarDate.getFullYear(),m=calendarDate.getMonth(),first=new Date(y,m,1),days=new Date(y,m+1,0).getDate(),off=(first.getDay()+6)%7;let cells="";
+ for(let i=0;i<off;i++)cells+=`<div class="calendar-day empty-day"></div>`;
+ for(let d=1;d<=days;d++){const k=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`,snap=calendarDaySnapshot(k),done=snap.completedTasks.length,planned=snap.tasks.length,actions=snap.comps.length;cells+=`<button class="calendar-day ${k===today()?'today-day':''} ${k===selectedDate?'selected-day':''}" data-cal-day="${k}"><div class="calendar-day-top"><b>${d}</b></div><div class="calendar-day-footer"><span class="activity-dot level-${heatLevel(actions,6)}"></span>${done?`<span class="day-count">${done}/${planned}</span>`:planned?`<span class="day-count">${planned}</span>`:`<span class="day-count muted">—</span>`}</div></button>`;}
+ const k=selectedDate||today(),snap=calendarDaySnapshot(k),dayDate=fromKey(k),selectedName=dayDate.toLocaleDateString('en-US',{weekday:'long',day:'numeric',month:'long'}),goals=state.goals||[];
+ const goalRows=goals.map(g=>`<article class="goal-mini-row-v53"><div><b>${esc(g.title)}</b><small>${goalProgress(g)}/${g.target} days</small></div><button class="icon-btn danger-icon" data-delete-goal="${esc(g.id)}" title="Delete goal">×</button></article>`).join("");
+ const taskRows=snap.tasks.map(t=>taskCard(t,k)).join("");
+ el.innerHTML=`<div class="calendar-page-v53 calendar-page-fit"><header class="calendar-header-v53"><div><span class="eyebrow">CALENDAR</span><h2>Calendar</h2></div><div class="calendar-header-actions"><button class="ghost" id="todayCalendar">Today</button><button class="primary" id="addTaskCalendar">＋ Task</button></div></header>
+ <section class="calendar-core-v53 calendar-core-fit"><div class="calendar-overview-main calendar-main-v53"><div class="calendar-toolbar compact-toolbar"><button class="ghost" id="prevMonth" aria-label="Previous month">←</button><h3>${calendarDate.toLocaleDateString('en-US',{month:'long',year:'numeric'})}</h3><button class="ghost" id="nextMonth" aria-label="Next month">→</button></div><div class="calendar weekdays">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(x=>`<b>${x}</b>`).join('')}</div><div class="calendar grid">${cells}</div></div>
+ <aside class="calendar-day-panel calendar-day-panel-v53"><div class="calendar-panel-head"><div><span class="section-kicker">SELECTED DAY</span><h3>${selectedName}</h3></div><span class="day-activity-badge">${snap.comps.length}</span></div><div class="calendar-day-stats calendar-day-stats-v53"><div><b>${snap.completedTasks.length}/${snap.tasks.length}</b><span>Tasks</span></div><div><b>${formatDuration(snap.focusMinutes)}</b><span>Focus</span></div><div><b>${snap.habitHits}</b><span>Habits</span></div></div><div class="calendar-panel-section calendar-schedule-v53"><div class="section-head"><h4>Schedule</h4></div><div class="task-list compact-task-list calendar-schedule-scroll">${taskRows||'<div class="empty">Nothing scheduled</div>'}</div></div></aside></section>
+ <div class="calendar-bottom-grid"><section class="calendar-history-card calendar-history-v25"><div class="calendar-history-head"><h3>Activity</h3><div class="calendar-range-switch"><button class="ghost ${calendarHistoryDays===30?'active-range':''}" data-history-days="30">30D</button><button class="ghost ${calendarHistoryDays===90?'active-range':''}" data-history-days="90">90D</button><button class="ghost ${calendarHistoryDays===180?'active-range':''}" data-history-days="180">180D</button><button class="ghost ${calendarHistoryDays===365?'active-range':''}" data-history-days="365">1Y</button></div></div><div class="calendar-history-scroll">${renderCalendarHistory(calendarHistoryDays)}</div></section>
+ <section class="calendar-goals-strip calendar-goals-visible-v25"><div class="section-head"><h3>Goals</h3><button class="ghost" id="addGoal">＋</button></div><div class="calendar-goals-scroll"><div class="calendar-goals-grid">${goalRows||'<div class="empty">No goals yet</div>'}</div></div></section></div></div>`;
+ bindGlobal();$$('[data-cal-day]').forEach(b=>b.onclick=()=>{selectedDate=b.dataset.calDay;calendarDate=fromKey(selectedDate);renderView('calendar')});
+ $$('[data-history-days]').forEach(b=>b.onclick=()=>{calendarHistoryDays=Number(b.dataset.historyDays)||90;renderView('calendar')});
+ $('#prevMonth')?.addEventListener('click',()=>{calendarDate.setMonth(calendarDate.getMonth()-1);renderView('calendar')});$('#nextMonth')?.addEventListener('click',()=>{calendarDate.setMonth(calendarDate.getMonth()+1);renderView('calendar')});
+ $('#todayCalendar')?.addEventListener('click',()=>{calendarDate=new Date();selectedDate=today();renderView('calendar')});$('#addTaskCalendar')?.addEventListener('click',()=>openTaskForm(null,{dueDate:k}));$('#addGoal')?.addEventListener('click',openGoalForm);
+ $$('[data-delete-goal]').forEach(b=>b.addEventListener('click',async()=>{if(confirm('Delete this goal?')){const r=await action('deleteGoal',{id:b.dataset.deleteGoal});if(r)renderView('calendar')}}));
 }
-
 function openGoalForm(){openModal(`<div class="modal-head"><div><span class="badge">GOAL</span><h3>New goal</h3></div><button class="icon-btn" data-close-modal>×</button></div><form id="goalForm" class="modal-form"><label>Goal name<input name="title" placeholder="Example: 30 days of discipline" required></label><textarea name="description" placeholder="What does this goal mean to you?"></textarea><div class="form-grid-2"><label>Days<input name="target" type="number" min="1" value="30"></label><label>Scope<select name="scope"><option value="all">All activity</option><option value="task">Tasks</option><option value="habit">Habits</option><option value="focus">Focus</option></select></label></div><button class="primary">Create goal</button></form>`);$("#goalForm")?.addEventListener("submit",async e=>{e.preventDefault();const f=new FormData(e.currentTarget);const r=await action("addGoal",{item:{title:String(f.get("title")),description:String(f.get("description")),target:Number(f.get("target"))||30,scope:String(f.get("scope"))}});if(r){closeModal();renderShell();toast("Goal created","success")}})}
 
 const disciplineMantras={
@@ -919,40 +749,31 @@ function openBackupHandleDBClient(){return new Promise((resolve,reject)=>{const 
 async function saveBackupDirectoryHandleClient(handle){const db=await openBackupHandleDBClient();return await new Promise((resolve,reject)=>{const tx=db.transaction("handles","readwrite");tx.objectStore("handles").put(handle,"directory");tx.oncomplete=()=>resolve(true);tx.onerror=()=>reject(tx.error||new Error("Unable to save backup folder"));});}
 
 function renderSettings(el){
-  el.innerHTML=`<div class="page-intro"><div><span class="badge">SYSTEM</span><h2>Settings</h2><p>Local data saves automatically. Keep one daily JSON backup for safe upgrades.</p></div></div>
-  <div class="settings-grid settings-grid-55">
-    <section class="settings-card"><h3>Notifications & alarms</h3><label class="switch-row"><span>System notifications</span><input id="notify" type="checkbox" ${state.settings.notifications?"checked":""}></label><label class="switch-row"><span>Task reminders</span><input id="taskReminders" type="checkbox" ${state.settings.taskReminders?"checked":""}></label><label class="switch-row"><span>Alarm sound</span><input id="alarmSound" type="checkbox" ${state.settings.alarmSound?"checked":""}></label><label>Daily reminder<input id="dailyReminder" type="time" value="${esc(state.settings.dailyReminder||"08:00")}"></label><label>Alarm volume<input id="alarmVolume" type="range" min="0.1" max="1" step="0.05" value="${Number(state.settings.alarmVolume)||1}"></label><label>Alarm duration<input id="alarmDuration" type="number" min="4" max="30" value="${Number(state.settings.alarmDuration)||12}"></label><div class="settings-buttons"><button class="primary" id="saveSettings">Save</button><button class="ghost" id="testAlarm">▶ Test alarm</button></div></section>
-    <section class="settings-card privacy-settings-card"><div class="settings-card-head"><div><h3>Privacy & Companion</h3><p class="muted">The study companion is visible by default. Turn on Discreet Mode only when you want a neutral screen. Focus and progress remain intact.</p></div><span class="settings-pill">PRIVATE</span></div><label class="switch-row"><span>Enable Discreet Mode</span><input id="privacyMode" type="checkbox" ${state.settings.privacyMode===true?"checked":""}></label><small class="muted">When enabled, Aurestar uses neutral labels and hides character artwork. Turn it off to reveal the full companion experience again.</small>${state.settings.privacyMode===true?`<small class="muted">Companion appearance and alerts are hidden in this mode. Turn Discreet Mode off and save to access companion options.</small>`:`<label class="switch-row"><span>Show floating companion</span><input id="itsukiCompanionEnabled" type="checkbox" ${state.settings.itsukiCompanionEnabled!==false?"checked":""}></label><label class="switch-row"><span>Companion notifications</span><input id="itsukiCompanionNotifications" type="checkbox" ${state.settings.itsukiCompanionNotifications!==false?"checked":""}></label>`}</section>
-    <section class="settings-card"><div class="settings-card-head"><div><h3>Focus / Pomodoro</h3><p class="muted">Focus To-Do style work, short break, long break and automatic transition settings.</p></div><span class="settings-pill">POMODORO</span></div>
-    <label>Work interval (minutes)<input id="focusWorkInterval" type="number" min="1" max="120" value="${Number(state.settings.focusPreset)||25}"></label>
-    <label>Short break (minutes)<input id="focusShortBreak" type="number" min="1" max="60" value="${Number(state.settings.focusShortBreak)||5}"></label>
-    <label>Long break (minutes)<input id="focusLongBreak" type="number" min="1" max="120" value="${Number(state.settings.focusLongBreak)||15}"></label>
-    <label>Long break after Pomodoros<input id="focusLongBreakEvery" type="number" min="1" max="12" value="${Number(state.settings.focusLongBreakEvery)||4}"></label><label class="switch-row"><span>Auto Focus Cycle <small>25m Focus → 5m break → Focus</small></span><input id="focusAutoCycle" type="checkbox" ${state.settings.focusAutoCycle===true?"checked":""}></label>
-    <label>Daily focus goal (minutes)<input id="dailyFocusGoalMin" type="number" min="15" max="600" value="${Number(state.settings.dailyFocusGoalMin)||120}"></label>
-    <label class="switch-row"><span>Countdown</span><input id="focusCountdown" type="checkbox" ${state.settings.focusCountdown!==false?'checked':''}></label>
-    
-    
-    <label class="switch-row"><span>Skip breaks</span><input id="focusBanBreak" type="checkbox" ${state.settings.focusBanBreak===true?'checked':''}></label>
-    <label class="switch-row"><span>Floating Focus Widget</span><input id="focusWidgetEnabled" type="checkbox" ${state.settings.focusWidgetEnabled!==false?'checked':''}></label><div class="settings-buttons"><button class="primary" type="button" id="openFloatingWidget">Open widget on this page</button></div>
-    </section>
-    <section class="settings-card"><div class="settings-card-head"><div><h3>Focus Website Blocking</h3><p class="muted">These domains are blocked only while Focus is actively running. Pause, Break and Stop disable the block.</p></div><span class="settings-pill">CUSTOM</span></div><label>Websites / domains to block<textarea id="blockedWebsites" rows="7" placeholder="tiktok.com\nfacebook.com\ninstagram.com">${esc((Array.isArray(state.settings.blockedWebsites)?state.settings.blockedWebsites:["tiktok.com","facebook.com"]).join("\n"))}</textarea></label><small class="muted">One domain per line. You can enter tiktok.com, facebook.com, instagram.com, etc. Do not include https:// or a full page URL.</small></section>
-    <section class="settings-card"><div class="settings-card-head"><div><h3>Data & backup</h3><p class="muted">Choose a Windows folder once. After permission is granted, Aurestar writes the automatic backup directly there. Preferred folder: <b>C:\Users\minht\Documents\Aurestar\Data</b>.</p></div><span class="settings-pill">DAILY</span></div><label class="switch-row"><span>Automatic daily backup</span><input id="autoBackup" type="checkbox" ${state.settings.autoBackup!==false?"checked":""}></label><label>Backup time<input id="backupTime" type="time" value="${esc(state.settings.backupTime||"23:30")}"></label><div class="settings-buttons"><button class="ghost" id="chooseBackupFolder">Choose backup folder</button><button class="ghost" id="backupNow">Backup now</button><button class="ghost" id="exportData">Export JSON</button><button class="primary" id="importTasksSettings">⇩ Import tasks</button><label class="ghost file-button">Restore data file<input id="importData" type="file" accept="application/json" hidden></label></div><small class="muted">Chrome extensions cannot silently write to an arbitrary Windows path. Click Choose backup folder once and select the Data folder above; after that, daily and manual backups use that folder. If no folder is selected, Aurestar falls back to Downloads/Aurestar/aurestar-study-data.json.</small><button class="danger" id="resetData">Delete all data</button></section>
-    <section class="settings-card"><h3>Private access</h3><p class="muted">Change the password used when opening the extension. This does not change or delete your study data.</p><div class="settings-buttons"><button class="ghost" type="button" id="changePassword">Change password</button></div></section><section class="settings-card"><h3>Application</h3><div class="info-row"><span>Version</span><b>16.16.35 · Aurestar</b></div><div class="info-row"><span>Engine</span><b>Manifest V3 · Local-first</b></div><div class="info-row"><span>Storage</span><b>Chrome local storage</b></div></section>
-  </div>`;
-  bindGlobal();
-  $('#changePassword')?.addEventListener('click',()=>chrome.tabs.create({url:chrome.runtime.getURL('unlock.html?mode=change')}));
-  $$('[data-progress-range]').forEach(b=>b.addEventListener('click',()=>{progressRange=Number(b.dataset.progressRange)||30;renderView('analytics')}));
-  $("#openFloatingWidget")?.addEventListener("click",async()=>{try{const r=await action('openFloatingWidget');if(r)toast('Floating Focus Widget opened on the active page','success');}catch(e){toast(e.message||'Open the widget from the Chrome toolbar on a normal web page','error');}});
-  $("#saveSettings")?.addEventListener("click",async()=>{const blockedInput=String($("#blockedWebsites")?.value||"").split(/\s*,\s*|\n+/).map(x=>x.trim()).filter(Boolean);if(blockedInput.length>100){toast("Use no more than 100 blocked domains.","error");$("#blockedWebsites")?.focus();return}const blockedWebsites=[];const invalidBlocked=[];for(const raw of blockedInput){const domain=normalizeBlockedDomainInput(raw);if(!domain)invalidBlocked.push(raw);else if(!blockedWebsites.includes(domain))blockedWebsites.push(domain)}if(invalidBlocked.length){toast(`Invalid domain${invalidBlocked.length===1?"":"s"}: ${invalidBlocked.slice(0,3).join(", ")}. Enter domains such as tiktok.com.`,"error");$("#blockedWebsites")?.focus();return}const privacyMode=$("#privacyMode")?.checked??state.settings.privacyMode;const settings={privacyMode,itsukiCompanionEnabled:privacyMode?false:($("#itsukiCompanionEnabled")?.checked??(state.settings.privacyMode===true?true:state.settings.itsukiCompanionEnabled)),itsukiCompanionNotifications:privacyMode?false:($("#itsukiCompanionNotifications")?.checked??state.settings.itsukiCompanionNotifications),notifications:privacyMode?false:($("#notify")?.checked??state.settings.notifications),taskReminders:privacyMode?false:($("#taskReminders")?.checked??state.settings.taskReminders),alarmSound:privacyMode?false:($("#alarmSound")?.checked??state.settings.alarmSound),dailyReminder:$("#dailyReminder")?.value||"08:00",alarmVolume:Number($("#alarmVolume")?.value)||1,alarmDuration:Number($("#alarmDuration")?.value)||12,autoBackup:$("#autoBackup")?.checked??true,backupTime:$("#backupTime")?.value||"23:30",dailyFocusGoalMin:Math.min(600,Math.max(15,Number($("#dailyFocusGoalMin")?.value)||120)),focusPreset:Number($("#focusWorkInterval")?.value)||25,focusShortBreak:Number($("#focusShortBreak")?.value)||5,focusLongBreak:Number($("#focusLongBreak")?.value)||15,focusLongBreakEvery:Number($("#focusLongBreakEvery")?.value)||4,focusAutoCycle:$("#focusAutoCycle")?.checked??state.settings.focusAutoCycle,focusCountdown:$("#focusCountdown")?.checked??state.settings.focusCountdown,focusBanBreak:$("#focusBanBreak")?.checked??state.settings.focusBanBreak,focusWidgetEnabled:$("#focusWidgetEnabled")?.checked??state.settings.focusWidgetEnabled,blockedWebsites,language:"en"};const r=await action("saveSettings",{settings});if(r){if(state.settings?.privacyMode===true)stopSound();toast("Settings saved","success");renderShell();}});
-  $("#testAlarm")?.addEventListener("click",async()=>{const r=await action("testAlarm");if(r)toast("Alarm tested","success")});
-  $("#chooseBackupFolder")?.addEventListener("click",async()=>{try{if(!window.showDirectoryPicker){toast("This Chrome version does not support folder selection here","error");return;}const handle=await window.showDirectoryPicker({id:"ascended-backup",mode:"readwrite",startIn:"documents"});const permission=await handle.requestPermission({mode:"readwrite"});if(permission!=="granted"){toast("Backup folder permission was not granted","error");return;}await saveBackupDirectoryHandleClient(handle);toast("Backup folder saved","success");}catch(e){if(e?.name!=="AbortError")toast(`Backup folder: ${e?.message||e}`,"error")}});
-  $("#backupNow")?.addEventListener("click",async()=>{const r=await action("backupNow");if(r)toast(r.direct?"Backup saved to the selected folder":"Backup saved to Downloads/Aurestar/aurestar-study-data.json","success")});
-  $("#exportData")?.addEventListener("click",()=>exportData("json"));
-  $("#importTasksSettings")?.addEventListener("click",openTaskImportPicker);
-  $("#importData")?.addEventListener("change",importData);
-  $("#resetData")?.addEventListener("click",resetData);
+ el.innerHTML=`<div class="page-intro"><div><span class="badge">SYSTEM</span><h2>Settings</h2></div></div><div class="settings-grid settings-grid-55">
+ <section class="settings-card"><h3>Notifications</h3><label class="switch-row"><span>System notifications</span><input id="notify" type="checkbox" ${state.settings.notifications?"checked":""}></label><label class="switch-row"><span>Task reminders</span><input id="taskReminders" type="checkbox" ${state.settings.taskReminders?"checked":""}></label><label class="switch-row"><span>Alarm sound</span><input id="alarmSound" type="checkbox" ${state.settings.alarmSound?"checked":""}></label><label>Daily reminder<input id="dailyReminder" type="time" value="${esc(state.settings.dailyReminder||"08:00")}"></label><label>Alarm volume<input id="alarmVolume" type="range" min="0.1" max="1" step="0.05" value="${Number(state.settings.alarmVolume)||1}"></label><label>Alarm duration<input id="alarmDuration" type="number" min="4" max="30" value="${Number(state.settings.alarmDuration)||12}"></label><div class="settings-buttons"><button class="primary" id="saveSettings">Save</button><button class="ghost" id="testAlarm">Test alarm</button></div></section>
+ <section class="settings-card privacy-settings-card"><div class="settings-card-head"><h3>Privacy & Companion</h3><span class="settings-pill">PRIVATE</span></div><label class="switch-row"><span>Discreet mode</span><input id="privacyMode" type="checkbox" ${state.settings.privacyMode===true?"checked":""}></label>${state.settings.privacyMode===true?'':`<label class="switch-row"><span>Floating companion</span><input id="itsukiCompanionEnabled" type="checkbox" ${state.settings.itsukiCompanionEnabled!==false?"checked":""}></label><label class="switch-row"><span>Companion notifications</span><input id="itsukiCompanionNotifications" type="checkbox" ${state.settings.itsukiCompanionNotifications!==false?"checked":""}></label>`}</section>
+ <section class="settings-card"><div class="settings-card-head"><h3>Focus</h3></div><label>Focus interval (minutes)<input id="focusWorkInterval" type="number" min="15" max="120" value="${Number(state.settings.focusPreset)||25}"></label><label>Short break (minutes)<input id="focusShortBreak" type="number" min="1" max="30" value="${Number(state.settings.focusShortBreak)||5}"></label><label>Long break (minutes)<input id="focusLongBreak" type="number" min="1" max="60" value="${Number(state.settings.focusLongBreak)||15}"></label><label>Long break every (rounds)<input id="focusLongBreakEvery" type="number" min="1" max="12" value="${Number(state.settings.focusLongBreakEvery)||4}"></label><label>Daily focus goal (minutes)<input id="dailyFocusGoalMin" type="number" min="15" max="600" value="${Number(state.settings.dailyFocusGoalMin)||120}"></label></section>
+ <section class="settings-card"><div class="settings-card-head"><h3>Data & backup</h3></div><label class="switch-row"><span>Automatic daily backup</span><input id="autoBackup" type="checkbox" ${state.settings.autoBackup!==false?"checked":""}></label><label>Backup time<input id="backupTime" type="time" value="${esc(state.settings.backupTime||"23:30")}"></label><div class="settings-buttons"><button class="ghost" id="backupNow">Backup now</button><button class="ghost" id="exportData">Export JSON</button><button class="primary" id="importTasksSettings">Import tasks</button><label class="ghost file-button">Restore backup<input id="importData" type="file" accept="application/json" hidden></label></div><button class="danger" id="resetData">Clear activity history</button></section>
+ <section class="settings-card"><h3>Application</h3><div class="info-row"><span>App</span><b>Aurestar Desktop</b></div><div class="info-row"><span>Engine</span><b>Electron</b></div><div class="info-row"><span>Storage</span><b>Local JSON</b></div></section></div>`;
+ bindGlobal();
+ $("#saveSettings")?.addEventListener("click",async()=>{
+  const privacyMode=$("#privacyMode")?.checked??state.settings.privacyMode;
+  const settings={privacyMode,itsukiCompanionEnabled:privacyMode?false:($("#itsukiCompanionEnabled")?.checked??state.settings.itsukiCompanionEnabled!==false),itsukiCompanionNotifications:privacyMode?false:($("#itsukiCompanionNotifications")?.checked??state.settings.itsukiCompanionNotifications!==false),
+   notifications:privacyMode?false:($("#notify")?.checked??state.settings.notifications),taskReminders:privacyMode?false:($("#taskReminders")?.checked??state.settings.taskReminders),alarmSound:privacyMode?false:($("#alarmSound")?.checked??state.settings.alarmSound),
+   dailyReminder:$("#dailyReminder")?.value||"08:00",alarmVolume:Number($("#alarmVolume")?.value)||1,alarmDuration:Math.min(30,Math.max(4,Number($("#alarmDuration")?.value)||12)),
+   autoBackup:$("#autoBackup")?.checked??true,backupTime:$("#backupTime")?.value||"23:30",dailyFocusGoalMin:Math.min(600,Math.max(15,Number($("#dailyFocusGoalMin")?.value)||120)),
+   focusPreset:Math.min(120,Math.max(15,Number($("#focusWorkInterval")?.value)||25)),focusShortBreak:Math.min(30,Math.max(1,Number($("#focusShortBreak")?.value)||5)),
+   focusLongBreak:Math.min(60,Math.max(1,Number($("#focusLongBreak")?.value)||15)),focusLongBreakEvery:Math.min(12,Math.max(1,Number($("#focusLongBreakEvery")?.value)||4)),
+   focusCountdown:true,focusAutoCycle:false,focusAutoBreak:false,focusAutoStart:false,focusBanBreak:false,focusWidgetEnabled:state.settings.focusWidgetEnabled!==false,language:"en"};
+  const r=await action("saveSettings",{settings});if(r){toast("Settings saved","success");renderShell();}
+ });
+ $("#testAlarm")?.addEventListener("click",async()=>{const r=await action("testAlarm");if(r)toast("Alarm tested","success")});
+ $("#backupNow")?.addEventListener("click",async()=>{const r=await action("backupNow");if(r)toast("Backup saved","success")});
+ $("#exportData")?.addEventListener("click",()=>exportData());
+ $("#importTasksSettings")?.addEventListener("click",openTaskImportPicker);
+ $("#importData")?.addEventListener("change",importData);
+ $("#resetData")?.addEventListener("click",resetData);
 }
-
 function exportData(){const backup={...state};delete backup.itsukiPasswordRecord;const a=document.createElement("a"),u=URL.createObjectURL(new Blob([JSON.stringify(backup,null,2)],{type:"application/json"}));a.href=u;a.download=`aurestar-itsuki-backup-${today()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(u),500)}
 function splitCSVLine(line){const out=[];let cur="",q=false;for(let i=0;i<line.length;i++){const ch=line[i];if(ch==='"'){if(q&&line[i+1]==='"'){cur+='"';i++;}else q=!q;}else if(ch===','&&!q){out.push(cur);cur="";}else cur+=ch;}out.push(cur);return out.map(x=>x.trim());}
 function csvRows(text){const lines=text.replace(/^\uFEFF/,'').split(/\r?\n/).filter(x=>x.trim());if(!lines.length)return[];const headers=splitCSVLine(lines[0]).map(x=>x.toLowerCase().replace(/\s+/g,""));return lines.slice(1).map(line=>{const vals=splitCSVLine(line);const row={};headers.forEach((h,i)=>row[h]=vals[i]||"");return row;});}
@@ -983,11 +804,19 @@ function downloadTaskTemplate(){const csv=["Title,DueDate,DueTime,Priority,List,
 async function importData(e){const f=e.target.files?.[0];if(!f)return;try{const d=JSON.parse(await f.text());if(!d.profile||!Array.isArray(d.tasks))throw Error("Backup format is not valid for Aurestar");const r=await action("saveAll",{data:d});if(r){toast("Backup restored","success");renderShell()}}catch(err){toast(err.message||"Unable to restore backup","error")}e.target.value="";}
 async function resetData(){if(!confirm("Clear activity history while keeping your Tasks and Habits?"))return;const keepTasks=state.tasks,keepHabits=state.habits;const r=await action("saveAll",{data:{...state,tasks:keepTasks,habits:keepHabits,goals:[],focusSessions:[],completions:[],reviews:[]}});if(r){toast("Activity history cleared — Tasks and Habits kept","success");renderShell()}}
 
+function openTaskMenu(id){
+ const task=state.tasks.find(x=>String(x.id)===String(id));if(!task)return;
+ openModal(`<div class="modal-head"><h3>${esc(task.title)}</h3><button class="icon-btn" data-close-modal>×</button></div><div class="task-menu-actions"><button type="button" class="ghost" id="taskMenuEdit">Edit task</button><button type="button" class="ghost" id="taskMenuFocus">Focus on task</button><button type="button" class="danger" id="taskMenuDelete">Delete task</button></div>`);
+ $("#taskMenuEdit")?.addEventListener("click",()=>{closeModal();openTaskForm(task.id)});
+ $("#taskMenuFocus")?.addEventListener("click",async()=>{closeModal();const r=await action("focusSetTask",{taskId:String(task.id)});if(r)navigate("focus")});
+ $("#taskMenuDelete")?.addEventListener("click",async()=>{if(!confirm("Delete this task?"))return;const r=await action("deleteTask",{id:task.id});if(r){closeModal();renderShell()}});
+}
 function bindGlobal(){
   $$(`[data-open-task]`).forEach(card=>card.onclick=e=>{if(e.target.closest("button"))return;openTaskForm(card.dataset.openTask)});
   $$('[data-task-toggle]').forEach(b=>b.onclick=async()=>{const r=await action("toggleTask",{id:b.dataset.taskToggle,date:b.dataset.date});if(r)renderShell()});
   $$('[data-delete-task]').forEach(b=>b.onclick=async()=>{if(confirm("Delete this task?")){const r=await action("deleteTask",{id:b.dataset.deleteTask});if(r)renderShell()}});
-  $$('[data-edit-task]').forEach(b=>b.onclick=()=>openTaskForm(b.dataset.editTask));
+  $('[data-edit-task]').forEach(b=>b.onclick=()=>openTaskForm(b.dataset.editTask));
+  $('[data-task-menu]').forEach(b=>b.onclick=e=>{e.stopPropagation();openTaskMenu(b.dataset.taskMenu)});
   $$('[data-focus-task]').forEach(b=>b.onclick=async e=>{e.stopPropagation();const r=await action('focusSetTask',{taskId:b.dataset.focusTask});if(r){window.location.hash='#focus';activeView='focus';renderShell();}});
   $$('[data-gym-task]').forEach(b=>b.onclick=async e=>{e.stopPropagation();await startGymFromTask(b.dataset.gymTask);});
   $$('[data-checklist]').forEach(b=>b.onclick=async e=>{e.stopPropagation();const r=await action("toggleChecklist",{id:b.dataset.checklist,index:Number(b.dataset.index)});if(r)renderShell()});
@@ -998,12 +827,12 @@ function bindGlobal(){
   $$('[data-close-modal]').forEach(b=>b.onclick=closeModal);
 }
 function openTaskForm(id=null,prefill={}){
-  const t=id?state.tasks.find(x=>x.id===id):null,rep=t?.repeat?.type||"none",days=(t?.repeat?.weekdays||[]).map(Number),base=t?.dueDate||t?.repeat?.startDate||prefill?.dueDate||today(),wd=fromKey(base).getDay(),wc=t?.workoutConfig||{};const mode=wc.mode||"reps";
+  const t=id?state.tasks.find(x=>x.id===id):null,rep=t?.repeat?.type||"none",days=(t?.repeat?.weekdays||[]).map(Number),base=t?.dueDate||t?.repeat?.startDate||prefill?.dueDate||today(),wd=fromKey(base).getDay(),wc=t?.workoutConfig||prefill?.workoutConfig||{};const mode=wc.mode||"reps";
   const circuitLines=(wc.circuit||[]).map(x=>{const spec=x.mode==="reps"?`reps:${Number(x.repsMin)||0}-${Number(x.repsMax)||Number(x.repsMin)||0}`:x.mode==="max"?"max":`time:${Number(x.durationSeconds)||30}`;return `${x.title||"Step"} | ${spec} | rest:${Number(x.restSeconds)||15}`;}).join("\n");
   openModal(`<div class="modal-head"><div><span class="badge">${t?"EDIT":"NEW"} TASK</span><h3>${t?"Edit task":"Create task"}</h3></div><button class="icon-btn" data-close-modal>×</button></div><form id="taskForm" class="modal-form task-form">
     <label>Task<input name="title" value="${esc(t?.title||"")}" placeholder="Example: Push-up" maxlength="120" required></label>
-    <div class="form-grid-2"><label>List<select name="listId">${state.lists.map(l=>`<option value="${esc(l.id)}" ${(t?.listId||selectedList)==l.id?"selected":""}>${esc(l.icon)} ${esc(l.name)}</option>`).join("")}</select></label><label>Priority<select name="priority">${Object.entries(priorityLabel).map(([p,l])=>`<option value="${p}" ${t?.priority===p?"selected":""}>${l}</option>`).join("")}</select></label></div>
-    <div class="form-grid-3"><label>Date / start<input name="dueDate" type="date" value="${esc(base)}"></label><label>Time<input name="dueTime" type="time" value="${esc(t?.dueTime||"")}"></label><label>Minutes<input name="estimate" type="number" min="5" step="5" value="${Number(t?.estimate)||25}"></label></div>
+    <div class="form-grid-2"><label>Priority<select name="priority">${Object.entries(priorityLabel).map(([p,l])=>`<option value="${p}" ${(t?.priority||"medium")===p?"selected":""}>${l}</option>`).join("")}</select></label><label>Estimated time<input name="estimate" type="number" min="5" step="5" value="${Number(t?.estimate)||25}"></label></div>
+    <div class="form-grid-2"><label>Date<input name="dueDate" type="date" value="${esc(base)}"></label><label>Time<input name="dueTime" type="time" value="${esc(t?.dueTime||"")}"></label></div>
     <div class="repeat-box"><label>Repeat<select id="taskRepeat" name="repeat"><option value="none" ${rep==="none"?"selected":""}>No repeat</option><option value="daily" ${rep==="daily"?"selected":""}>Daily</option><option value="weekly" ${rep==="weekly"?"selected":""}>Weekly</option></select></label><label id="startDateWrap" class="${rep==="none"?"hidden":""}">Repeat starts<input name="startDate" type="date" value="${esc(t?.repeat?.startDate||base)}"></label></div>
     <div id="weekdayWrap" class="weekdays-picker ${rep==="weekly"?"":"hidden"}"><span>Weekdays</span>${[1,2,3,4,5,6,0].map(d=>`<label><input type="checkbox" name="weekday" value="${d}" ${(days.length?days:[wd]).includes(d)?"checked":""}><span>${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d]}</span></label>`).join("")}</div>
     <label class="reminder-row"><input name="reminder" type="checkbox" ${t?.reminderEnabled?"checked":""}> Remind me when due</label>
@@ -1025,7 +854,7 @@ function openTaskForm(id=null,prefill={}){
   $("#taskRepeat")?.addEventListener("change",updRepeat);$("#workoutEnabled")?.addEventListener("change",updWorkout);$("#workoutMode")?.addEventListener("change",updWorkout);
   $("#taskForm")?.addEventListener("submit",async e=>{e.preventDefault();const f=new FormData(e.currentTarget),rt=String(f.get("repeat")||"none"),days2=f.getAll("weekday").map(Number);if(rt==="weekly"&&!days2.length){toast("Select at least one weekday","error");return}const dueDateRaw=String(f.get("dueDate")||""),startDate=rt==="none"?"":String(f.get("startDate")||dueDateRaw||today()),dueDate=rt==="none"?dueDateRaw:startDate,dueTime=String(f.get("dueTime")||"");let reminderAt=null;if(f.get("reminder")&&rt==="none"&&dueDate&&dueTime)reminderAt=new Date(`${dueDate}T${dueTime}`).getTime();const oldCheck=t?.checklist||[],lines=String(f.get("checklist")||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean).map((text,i)=>({id:oldCheck[i]?.id||`sub_${Date.now().toString(36)}_${i}`,text,done:oldCheck[i]?.text===text?!!oldCheck[i].done:false}));
     const enabled=$("#workoutEnabled")?.checked===true,wm=$("#workoutMode")?.value||"reps";let workoutConfig={enabled,mode:wm,sets:Math.min(30,Math.max(1,Math.floor(Number($("#workoutSets")?.value)||2))),repsMin:Math.max(0,Math.floor(Number($("#workoutRepsMin")?.value)||8)),repsMax:Math.max(0,Math.floor(Number($("#workoutRepsMax")?.value)||12)),durationSeconds:Math.min(7200,Math.max(1,Math.floor(Number($("#workoutDuration")?.value)||30))),restSeconds:Math.min(600,Math.max(0,Math.floor(Number($("#workoutRest")?.value)||60))),restBetweenRoundsSeconds:Math.min(600,Math.max(0,Math.floor(Number($("#workoutRoundRest")?.value)||60))),circuitRounds:Math.min(30,Math.max(1,Math.floor(Number($("#workoutRounds")?.value)||2))),circuit:[],autoRest:$("#workoutAutoRest")?.checked!==false,countdown:$("#workoutCountdown")?.checked!==false,sound:wm==="time"?$("#workoutSound")?.value!=="0":wm==="max"?$("#workoutMaxSound")?.value!=="0":true};if(wm==="circuit"){workoutConfig.circuit=parseWorkoutCircuitText(String($("#workoutCircuitSteps")?.value||""));if(!workoutConfig.circuit.length){toast("Add at least one circuit step","error");return;}}if(workoutConfig.repsMax<workoutConfig.repsMin)workoutConfig.repsMax=workoutConfig.repsMin;if(!enabled)workoutConfig={enabled:false};
-    const item={id:t?.id,title:String(f.get("title")||"").trim(),listId:String(f.get("listId")||"inbox"),priority:String(f.get("priority")||"medium"),estimate:Number(f.get("estimate"))||25,dueDate,dueTime,repeat:{type:rt,weekdays:days2,startDate},reminderAt,reminderEnabled:!!f.get("reminder"),notes:String(f.get("notes")||"").trim(),checklist:lines,workoutConfig};const r=await action(t?"updateTask":"addTask",{item});if(r){closeModal();if(rt!=="none"){taskMode="all";selectedList="all";}renderShell();toast(t?"Task updated":"Task created","success")}});updRepeat();updWorkout();
+    const item={id:t?.id,title:String(f.get("title")||"").trim(),listId:t?.listId||"inbox",priority:String(f.get("priority")||"medium"),estimate:Number(f.get("estimate"))||25,dueDate,dueTime,repeat:{type:rt,weekdays:days2,startDate},reminderAt,reminderEnabled:!!f.get("reminder"),notes:String(f.get("notes")||"").trim(),checklist:lines,workoutConfig};const r=await action(t?"updateTask":"addTask",{item});if(r){closeModal();if(rt!=="none"){taskMode="all";selectedList="all";}renderShell();toast(t?"Task updated":"Task created","success")}});updRepeat();updWorkout();
 }
 function parseWorkoutCircuitText(text){return String(text||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean).map((line,i)=>{const parts=line.split("|").map(x=>x.trim()),title=parts[0]||`Step ${i+1}`,spec=parts.find(x=>/^(time|reps|max)\s*:/i.test(x))||"time:30",restPart=parts.find(x=>/^rest\s*:/i.test(x))||"rest:15";let mode="time",durationSeconds=30,repsMin=0,repsMax=0;if(/^max/i.test(spec)){mode="max";}else if(/^reps\s*:/i.test(spec)){mode="reps";const n=spec.replace(/^reps\s*:/i,"").match(/(\d+)(?:\s*[-–]\s*(\d+))?/);repsMin=Number(n?.[1]||0);repsMax=Number(n?.[2]||repsMin);}else{const n=spec.replace(/^time\s*:/i,"").match(/\d+/);durationSeconds=Math.max(1,Number(n?.[0]||30));}const rest=Math.max(0,Number((restPart.match(/\d+/)||[])[0]||15));return {id:`cstep_${i}_${Math.random().toString(36).slice(2,7)}`,title,mode,durationSeconds,repsMin,repsMax,restSeconds:rest,sound:true}})}
 
