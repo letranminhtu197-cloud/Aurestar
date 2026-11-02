@@ -224,8 +224,19 @@ function bindItsukiCompanion(){
 
 function renderShell(){
   document.body.classList.toggle("privacy-mode",state.settings?.privacyMode===true);
-  if(!$("#view"))throw new Error("Invalid app layout: missing #view");
-  if(!$("#nav")){renderView("settings");return;}
+  // Recover from a stale/mismatched packaged HTML shell instead of aborting startup.
+  let view=$("#view");
+  if(!view){
+    const main=$(".main-area")||document.querySelector("main")||document.body;
+    view=document.createElement("section");
+    view.id="view";
+    view.className="view";
+    main.appendChild(view);
+  }
+  if(!$("#nav")){
+    renderView("settings");
+    return;
+  }
   const primaryForView=v=>({today:"dashboard",motivation:"dashboard",tasks:"tasks",habits:"tasks",calendar:"calendar",gym:"gym",analytics:"dashboard",settings:""}[v]||v);
   $$('[data-view]').forEach(b=>{
     const active=b.dataset.view===primaryForView(activeView);
