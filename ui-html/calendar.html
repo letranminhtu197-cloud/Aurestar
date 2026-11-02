@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#211217">
+<title>Calendar · Aurestar</title>
+<link rel="stylesheet" href="aurestar-ui.css">
+</head>
+<body>
+<div class="app-shell">
+<aside class="sidebar">
+  <a class="brand" href="overview.html"><span class="brand-mark">✦</span><span><span class="brand-name">AURESTAR</span><span class="brand-sub">STUDY SPACE · ONE STEP AT A TIME</span></span></a>
+  <div class="nav-label">WORKSPACE</div>
+  <nav class="nav">
+    <a class="" href="overview.html"><span class="nav-icon">◫</span>Overview</a>
+    <a class="" href="tasks-habits.html"><span class="nav-icon">☷</span>Tasks &amp; Habits</a>
+    <a class="" href="focus.html"><span class="nav-icon">◉</span>Focus</a>
+    <a class="active" href="calendar.html"><span class="nav-icon">▦</span>Calendar</a>
+    <a class="" href="training.html"><span class="nav-icon">↗</span>Training</a>
+    <a class="" href="insights.html"><span class="nav-icon">⌁</span>Insights</a>
+  </nav>
+  <div class="sidebar-bottom"><a class="nav " href="settings.html"><span class="nav-icon">⚙</span>Settings</a><div class="sidebar-note">Local-first workspace<br><span style="color:var(--rose2)">Professional Edition · UI preview</span></div></div>
+</aside>
+<main class="main-area">
+<header class="topbar">
+  <div class="top-title"><div class="crumb">AURESTAR <span>/</span> CALENDAR</div><h1>Calendar</h1></div>
+  <div class="search"><input type="search" placeholder="Search tasks…" aria-label="Search tasks"></div>
+  <div class="top-actions"><button class="icon-btn" type="button" title="Import preview" onclick="alert('UI preview only')">↓</button><button class="icon-btn" type="button" title="Export preview" onclick="alert('UI preview only')">↑</button></div>
+</header>
+<section class="content">
+<header class="page-head"><div><div class="eyebrow">PLANNING</div><h2>Calendar</h2><p>See your workload, deadlines and completed activity at a glance.</p></div><button class="btn btn-primary" onclick="alert('UI preview only')">＋ Add event</button></header>
+<section class="panel">
+ <div class="panel-head"><div class="calendar-toolbar"><button class="icon-btn" id="monthPrev" aria-label="Previous month">‹</button><strong class="month-title" id="monthTitle">November 2026</strong><button class="icon-btn" id="monthNext" aria-label="Next month">›</button></div><div class="pill">Month view</div></div>
+ <div class="calendar-grid" id="calendarGrid"></div>
+</section>
+<div class="grid grid-2" style="margin-top:15px">
+ <section class="panel"><div class="panel-head"><h3>Tuesday, 3 November</h3><span class="tiny muted">Selected day</span></div><div class="item-list"><div class="task-row"><span class="priority high">17:00</span><div class="task-copy"><b>IELTS Listening practice</b><div class="task-meta">35 minutes · Study</div></div></div><div class="task-row"><span class="priority medium">19:00</span><div class="task-copy"><b>Finish literature outline</b><div class="task-meta">30 minutes · School</div></div></div></div></section>
+ <section class="panel"><div class="panel-head"><h3>Upcoming</h3><span class="tiny muted">Next 7 days</span></div><div class="goal-row"><div><b>Biology assignment</b><div class="tiny muted">Thursday, 5 Nov</div></div><span class="priority high">Due soon</span></div><div class="goal-row"><div><b>Weekly review</b><div class="tiny muted">Sunday, 8 Nov</div></div><span class="priority">Planned</span></div></section>
+</div>
+</section>
+</main>
+</div>
+<div class="toast" role="status" aria-live="polite"></div>
+<script src="aurestar-ui.js"></script>
+</body></html>
