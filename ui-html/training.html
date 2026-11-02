@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#211217">
+<title>Training · Aurestar</title>
+<link rel="stylesheet" href="aurestar-ui.css">
+</head>
+<body>
+<div class="app-shell">
+<aside class="sidebar">
+  <a class="brand" href="overview.html"><span class="brand-mark">✦</span><span><span class="brand-name">AURESTAR</span><span class="brand-sub">STUDY SPACE · ONE STEP AT A TIME</span></span></a>
+  <div class="nav-label">WORKSPACE</div>
+  <nav class="nav">
+    <a class="" href="overview.html"><span class="nav-icon">◫</span>Overview</a>
+    <a class="" href="tasks-habits.html"><span class="nav-icon">☷</span>Tasks &amp; Habits</a>
+    <a class="" href="focus.html"><span class="nav-icon">◉</span>Focus</a>
+    <a class="" href="calendar.html"><span class="nav-icon">▦</span>Calendar</a>
+    <a class="active" href="training.html"><span class="nav-icon">↗</span>Training</a>
+    <a class="" href="insights.html"><span class="nav-icon">⌁</span>Insights</a>
+  </nav>
+  <div class="sidebar-bottom"><a class="nav " href="settings.html"><span class="nav-icon">⚙</span>Settings</a><div class="sidebar-note">Local-first workspace<br><span style="color:var(--rose2)">Professional Edition · UI preview</span></div></div>
+</aside>
+<main class="main-area">
+<header class="topbar">
+  <div class="top-title"><div class="crumb">AURESTAR <span>/</span> TRAINING</div><h1>Training</h1></div>
+  <div class="search"><input type="search" placeholder="Search tasks…" aria-label="Search tasks"></div>
+  <div class="top-actions"><button class="icon-btn" type="button" title="Import preview" onclick="alert('UI preview only')">↓</button><button class="icon-btn" type="button" title="Export preview" onclick="alert('UI preview only')">↑</button></div>
+</header>
+<section class="content">
+<header class="page-head"><div><div class="eyebrow">TRAINING</div><h2>Build strength with consistency.</h2><p>Follow a planned session and record each set as you go.</p></div><span class="pill">Tuesday · 3 November</span></header>
+<div class="workout-stage">
+ <section class="panel"><div class="panel-head"><h3>Today's training</h3><span class="pill">3 exercises</span></div><div class="stats" style="grid-template-columns:repeat(2,1fr)"><div class="stat"><span class="stat-label">Estimated duration</span><strong class="stat-value">35m</strong></div><div class="stat"><span class="stat-label">Completed steps</span><strong class="stat-value" id="setCount">0 / 8</strong></div></div>
+  <div class="exercise"><span class="number">01</span><div class="exercise-copy"><b>Push-ups</b><small>3 sets · 8–12 reps · 60 sec rest</small></div><button class="check" data-set-done></button></div>
+  <div class="exercise"><span class="number">02</span><div class="exercise-copy"><b>Bodyweight squats</b><small>3 sets · 12–15 reps · 60 sec rest</small></div><button class="check" data-set-done></button></div>
+  <div class="exercise"><span class="number">03</span><div class="exercise-copy"><b>Plank</b><small>2 sets · 30 seconds · 45 sec rest</small></div><button class="check" data-set-done></button></div>
+  <div class="exercise"><span class="number">04</span><div class="exercise-copy"><b>Cool down</b><small>Stretch · 5 minutes</small></div><button class="check" data-set-done></button></div>
+  <div class="progress"><i id="trainingProgress" style="width:0%"></i></div><small class="tiny muted">Check steps to preview session progress.</small>
+ </section>
+ <aside class="panel"><div class="panel-head"><h3>Workout timer</h3><span class="tiny muted">Preview</span></div><div class="timer-ring" style="width:185px;height:185px"><div class="timer-inner"><div class="timer-caption">REST</div><div class="timer-time" style="font-size:35px">01:00</div></div></div><div class="timer-controls"><button class="btn btn-primary" onclick="toast('Training controls are preview-only')">Start timer</button><button class="btn" onclick="toast('Timer reset')">Reset</button></div><p class="small muted">The production application uses the workout engine for timed sets, rest intervals and circuit rounds.</p></aside>
+</div>
+</section>
+</main>
+</div>
+<div class="toast" role="status" aria-live="polite"></div>
+<script src="aurestar-ui.js"></script>
+</body></html>
