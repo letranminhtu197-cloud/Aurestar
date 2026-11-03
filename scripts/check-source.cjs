@@ -37,4 +37,33 @@ if (readyStart < 0 || readyEnd < 0 || displaySubscriptions.length !== 3 || displ
   throw new Error('Electron screen event subscriptions must be registered after app.whenReady().');
 }
 
+
+/* Aurestar viewport scrolling invariants. */
+const styles = fs.readFileSync(path.join(root, 'src', 'styles.css'), 'utf8');
+const rendererSource = fs.readFileSync(path.join(root, 'src', 'renderer.js'), 'utf8');
+const viewportStart = styles.lastIndexOf('AURESTAR VIEWPORT LAYOUT SYSTEM');
+if (viewportStart < 0) throw new Error('Missing the shared Aurestar viewport layout system.');
+const viewportStyles = styles.slice(viewportStart);
+const viewportRequirements = [
+  ['fixed application shell', /\.app-shell\s*\{[^}]*overflow\s*:\s*hidden/s],
+  ['fixed page viewport', /\.view,\s*#view\s*\{[^}]*overflow\s*:\s*hidden/s],
+  ['independent task-list scrolling', /\.task-reference-groups\s*\{[^}]*overflow-x\s*:\s*hidden[^}]*overflow-y\s*:\s*auto/s],
+  ['independent focus-history scrolling', /\.focus-history-scroll\s*\{[^}]*overflow-x\s*:\s*hidden[^}]*overflow-y\s*:\s*auto/s],
+  ['independent Progress scrolling', /\.progress-v2-scroll\s*\{[^}]*overflow-x\s*:\s*hidden[^}]*overflow-y\s*:\s*auto/s],
+  ['independent Training scrolling', /\.gym-page-scroll\s*\{[^}]*overflow-x\s*:\s*hidden[^}]*overflow-y\s*:\s*auto/s],
+];
+for (const [label, pattern] of viewportRequirements) {
+  if (!pattern.test(viewportStyles)) throw new Error(`Missing viewport requirement: ${label}.`);
+}
+if (!rendererSource.includes('class="progress-v2-scroll"')) {
+  throw new Error('Progress lower sections must be inside their own scroll container.');
+}
+if (!rendererSource.includes('class="gym-page-scroll"')) {
+  throw new Error('Training guidance, schedule and history must be inside their own scroll container.');
+}
+const cssWithoutComments = viewportStyles.replace(/\/\*[\s\S]*?\*\//g, '');
+if ((cssWithoutComments.match(/\{/g) || []).length !== (cssWithoutComments.match(/\}/g) || []).length) {
+  throw new Error('Unbalanced CSS rule braces in the viewport layout system.');
+}
+
 process.stdout.write(`Checked ${jsFiles.length} JavaScript files and desktop security invariants.\n`);
