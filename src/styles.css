@@ -2165,10 +2165,9 @@ html, body {
   padding: 20px;
   margin-bottom: 14px;
 }
-.gym-page .gym-hero-copy p,
-.gym-page .gym-howto,
-.gym-page .gym-customization-panel { display: initial; }
 .gym-page .gym-hero-copy p { display: block; }
+.gym-page .gym-howto { display: grid; }
+.gym-page .gym-customization-panel { display: flex; }
 .gym-howto {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2358,7 +2357,7 @@ html, body {
   .nav-label,
   .smart-nav button > span,
   .settings-link > span,
-  .sidebar-user-card .sidebar-user-copy,
+  .sidebar-user-card, .sidebar-user-card .sidebar-user-copy,
   .sidebar-user-key,
   .sidebar-status-row,
   .list-area { display: none !important; }
