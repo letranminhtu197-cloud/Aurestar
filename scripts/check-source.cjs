@@ -70,6 +70,20 @@ if (rendererSource.includes('.slice(0,10),isRunning=')) {
 if (rendererSource.includes('(state.workoutSessions||[]).slice(-8)')) {
   throw new Error('Training history is still capped at eight sessions.');
 }
+
+const visualStyleRequirements = [
+  ['Overview progress cards', /\.overview-progress-card\s*\{[^}]*display\s*:\s*grid/s],
+  ['Overview panel surfaces', /\.overview-panel\s*\{[^}]*background\s*:/s],
+  ['Overview habit rows', /\.overview-habit-row\s*\{[^}]*grid-template-columns\s*:/s],
+  ['Overview goal rows', /\.overview-goal-row\s*\{[^}]*display\s*:\s*flex/s],
+  ['Focus mode button layout', /\.focus-mode-picker\s*>\s*button\s*\{[^}]*grid-template-columns\s*:/s],
+  ['Focus timer surface', /\.focus-clock-v4,\s*\.focus-clock-shell\s*\{[^}]*background\s*:/s],
+  ['Focus stats label spacing', /\.focus-stats-v4\s*>\s*div\s*\{[^}]*gap\s*:/s],
+];
+for (const [label, pattern] of visualStyleRequirements) {
+  if (!pattern.test(styles)) throw new Error(`Missing visual component styling: ${label}.`);
+}
+
 const cssWithoutComments = styles.replace(/\/\*[\s\S]*?\*\//g, '');
 if ((cssWithoutComments.match(/\{/g) || []).length !== (cssWithoutComments.match(/\}/g) || []).length) {
   throw new Error('Unbalanced CSS rule braces in styles.css.');
