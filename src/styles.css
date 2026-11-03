@@ -2402,6 +2402,8 @@ html, body {
 /* Narrow layout: navigation stays accessible, all page content remains scrollable. */
 @media (max-width: 680px) {
   :root { --app-sidebar-width: 60px; --content-gutter: 10px; --card-padding: 14px; }
+  .app-shell { grid-template-columns: 60px minmax(0, 1fr); }
+  .sidebar { display: flex; }
   .main-area { grid-template-rows: 62px minmax(0, 1fr); }
   .topbar {
     grid-template-columns: minmax(0, 1fr) auto;
