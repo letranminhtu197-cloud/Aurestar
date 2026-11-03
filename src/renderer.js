@@ -398,7 +398,8 @@ function renderGym(el){
       <div class="gym-hero-summary"><div><b>${tasks.length}</b><span>Exercises</span></div><div><b>${done}</b><span>Completed</span></div><div><b>${open.length}</b><span>Remaining</span></div></div>
     </header>
 
-    <section class="gym-howto">
+    <div class="gym-page-scroll">
+     <section class="gym-howto">
       <div><span class="gym-step-number">1</span><div><b>Start once</b><small>Starts the full schedule for today.</small></div></div>
       <div><span class="gym-step-number">2</span><div><b>Complete each set</b><small>Enter reps or run the timed exercise.</small></div></div>
       <div><span class="gym-step-number">3</span><div><b>Rest automatically</b><small>Aurestar counts down the configured rest.</small></div></div>
@@ -413,9 +414,10 @@ function renderGym(el){
       </article>`}).join('')||`<div class="gym-empty-state"><strong>No gym tasks scheduled today.</strong><span>Open a Task and enable Gym Timer to add it to today's workout.</span><button class="gym-task-start" data-gym-new-task>＋ Create task</button></div>`}</div>
     </section>
 
-    <section class="gym-history-panel"><div class="gym-panel-header"><div><span class="section-kicker">RECENT WORKOUTS</span><h3>History</h3></div><span class="gym-panel-count">${(state.workoutSessions||[]).length} sessions</span></div>${(state.workoutSessions||[]).length?`<div class="gym-history-list">${(state.workoutSessions||[]).slice(-8).reverse().map(s=>`<article class="gym-history-row"><div><b>${esc(String(s.date||''))} · ${s.completed?'Completed':'Stopped'}</b><small>one guided session · ${Array.isArray(s.taskIds)?s.taskIds.length:0} exercises · ${formatGymClock(Number(s.duration)||0)}</small></div><strong class="${s.completed?'gym-history-ok':'gym-history-stopped'}">${s.completed?'✓':'—'}</strong></article>`).join('')}</div>`:`<div class="gym-empty-history">Your completed workout sessions will appear here.</div>`}</section>
+    <section class="gym-history-panel"><div class="gym-panel-header"><div><span class="section-kicker">RECENT WORKOUTS</span><h3>History</h3></div><span class="gym-panel-count">${(state.workoutSessions||[]).length} sessions</span></div>${(state.workoutSessions||[]).length?`<div class="gym-history-list">${(state.workoutSessions||[]).slice().reverse().map(s=>`<article class="gym-history-row"><div><b>${esc(String(s.date||''))} · ${s.completed?'Completed':'Stopped'}</b><small>one guided session · ${Array.isArray(s.taskIds)?s.taskIds.length:0} exercises · ${formatGymClock(Number(s.duration)||0)}</small></div><strong class="${s.completed?'gym-history-ok':'gym-history-stopped'}">${s.completed?'✓':'—'}</strong></article>`).join('')}</div>`:`<div class="gym-empty-history">Your completed workout sessions will appear here.</div>`}</section>
 
     <section class="gym-customization-panel"><div><span class="section-kicker">EASY TO CUSTOMIZE</span><h3>Change the timer without rebuilding your Tasks</h3><p>Open any gym task to change sets, reps, time, rest, MAX mode or a cardio circuit. The task itself stays the same for Today, XP, quests and history.</p></div><button class="gym-task-edit" data-gym-new-task>＋ New task</button></section>
+     </div>
   </div>`;
 
   bindGlobal();
@@ -521,7 +523,7 @@ function exportFocusCSV(){const rows=[["Date","StartedAt","CompletedAt","Minutes
 function renderFocus(el){
  const f=focusUiState||{},totalMin=Number(state.profile?.totalFocusMinutes)||0,todaySessions=(state.focusSessions||[]).filter(x=>x.date===today()),todayMin=todaySessions.reduce((n,x)=>n+Math.max(0,Number(x.minutes)||0),0);
  const taskOptions=`<option value="">General focus</option>`+state.tasks.filter(t=>!t.archived).map(t=>`<option value="${esc(t.id)}" ${String(t.id)===String(f.taskId||"")?'selected':''}>${esc(t.title)}</option>`).join("");
- const sessions=[...(state.focusSessions||[])].sort((a,b)=>Number(b.completedAt||0)-Number(a.completedAt||0)).slice(0,10),isRunning=!!f.active,isPaused=!!f.paused,isBreak=f.phase==="break";
+ const sessions=[...(state.focusSessions||[])].sort((a,b)=>Number(b.completedAt||0)-Number(a.completedAt||0)),isRunning=!!f.active,isPaused=!!f.paused,isBreak=f.phase==="break";
  const statusLabel=isRunning?(isBreak?(f.breakKind==="long"?"Long break":"Short break"):"Focusing"):isPaused?"Paused":isBreak?"Break":"Ready";
  const goal=Math.max(1,Number(f.dailyFocusGoalMin)||Number(state.settings.dailyFocusGoalMin)||120),goalMinutes=Math.min(goal,Number(f.todayFocusMinutes)||todayMin),goalPct=Math.min(100,Math.round(goalMinutes/goal*100)),target=Math.max(1,Number(f.roundsTarget)||4),completed=Math.min(target,Math.max(0,Number(f.pomodorosCompleted)||0)),widgetEnabled=state.settings.focusWidgetEnabled!==false;
  el.innerHTML=`<div class="focus-workspace"><header class="focus-workspace-head"><div><span class="eyebrow">POMODORO</span><h2>Focus</h2></div><div class="focus-round-picker"><label for="focusRoundsSelect">Rounds</label><select id="focusRoundsSelect" ${isRunning||isPaused||isBreak?'disabled':''}>${Array.from({length:20},(_,i)=>i+1).map(n=>`<option value="${n}" ${n===target?'selected':''}>${n}</option>`).join("")}</select></div></header>
@@ -620,6 +622,7 @@ function renderAnalytics(el){
       <div class="progress-range" role="tablist" aria-label="Progress range">${[7,30,90].map(n=>`<button type="button" data-progress-range="${n}" class="${n===days?'active':''}">${n}D</button>`).join('')}</div>
     </header>
 
+    <div class="progress-v2-scroll">
     <section class="progress-hero-card">
       <div class="progress-hero-main"><div class="progress-health-badge">${health}</div><h3>${cur.activeDays}<span> active days</span></h3><p>${cur.doneTasks}/${cur.scheduled||0} scheduled tasks completed · ${formatDuration(cur.focusMinutes)} focused</p></div>
       <div class="progress-hero-side"><span>Active days</span><strong>${cur.activeDays}<small> / ${days}</small></strong><button class="ghost" data-nav="calendar">View activity →</button></div>
@@ -642,6 +645,7 @@ function renderAnalytics(el){
       <article class="progress-panel progress-breakdown"><div class="progress-panel-head"><div><span class="section-kicker">BREAKDOWN</span><h3>What made the progress</h3></div></div><div class="progress-break-row"><span class="progress-break-icon">✓</span><div><b>Tasks</b><small>${cur.doneTasks} completed</small></div><strong>${cur.tasksRate==null?'—':`${Math.round(cur.tasksRate)}%`}</strong></div><div class="progress-break-row"><span class="progress-break-icon">◉</span><div><b>Focus</b><small>${cur.focusSessions} sessions</small></div><strong>${formatDuration(cur.focusMinutes)}</strong></div><div class="progress-break-row"><span class="progress-break-icon">○</span><div><b>Habits</b><small>${cur.habitDoneCount} check-ins</small></div><strong>${cur.habitRate==null?'—':`${Math.round(cur.habitRate)}%`}</strong></div></article>
       <article class="progress-panel progress-next"><div class="progress-panel-head"><div><span class="section-kicker">NEXT SIGNAL</span><h3>Keep the system simple</h3></div></div><div class="progress-next-main"><div class="progress-next-value">${cur.activeDays}/${days}</div><div><b>days with recorded progress</b><p>Review Tasks and Habits for daily execution, and use Focus to protect time for deep work.</p></div></div><div class="progress-next-links"><button class="ghost" data-nav="today">Today →</button><button class="ghost" data-nav="focus">Focus →</button></div></article>
     </section>
+    </div>
   </div>`;
   bindGlobal();
   $$('[data-progress-range]').forEach(b=>b.addEventListener('click',()=>{progressRange=Number(b.dataset.progressRange)||30;renderView('analytics')}));

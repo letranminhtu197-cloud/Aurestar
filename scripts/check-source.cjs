@@ -37,4 +37,56 @@ if (readyStart < 0 || readyEnd < 0 || displaySubscriptions.length !== 3 || displ
   throw new Error('Electron screen event subscriptions must be registered after app.whenReady().');
 }
 
+
+/* Aurestar complete natural-flow layout invariants. */
+const styles = fs.readFileSync(path.join(root, 'src', 'styles.css'), 'utf8');
+const rendererSource = fs.readFileSync(path.join(root, 'src', 'renderer.js'), 'utf8');
+const layoutStart = styles.lastIndexOf('AURESTAR — COMPLETE PAGE LAYOUT REWORK');
+if (layoutStart < 0) throw new Error('Missing the complete Aurestar page layout rework.');
+const layoutStyles = styles.slice(layoutStart);
+const layoutRequirements = [
+  ['fixed app frame', /\.app-shell\s*\{[^}]*overflow\s*:\s*hidden/s],
+  ['main content vertical scrolling', /\.view,\s*#view\s*\{[^}]*overflow-y\s*:\s*auto/s],
+  ['touch / trackpad vertical scrolling', /\.view,\s*#view\s*\{[^}]*touch-action\s*:\s*pan-y/s],
+  ['Overview responsive grid', /\.overview-v2-grid\s*\{[^}]*display\s*:\s*grid/s],
+  ['Tasks responsive grid', /\.task-reference-layout\s*\{[^}]*display\s*:\s*grid/s],
+  ['Focus responsive grid', /\.focus-workspace-grid\s*\{[^}]*display\s*:\s*grid/s],
+  ['Calendar responsive grid', /\.calendar-core-fit\s*\{[^}]*display\s*:\s*grid/s],
+  ['Progress natural-flow page', /\.progress-v2-scroll\s*\{\s*display\s*:\s*contents\s*!important/s],
+  ['Training natural-flow page', /\.gym-page-scroll,\s*\.progress-v2-scroll\s*\{\s*display\s*:\s*contents\s*!important/s],
+];
+for (const [label, pattern] of layoutRequirements) {
+  if (!pattern.test(layoutStyles)) throw new Error(`Missing layout invariant: ${label}.`);
+}
+for (const [label, fragment] of [
+  ['unlimited Focus history', 'sort((a,b)=>Number(b.completedAt||0)-Number(a.completedAt||0)),isRunning='],
+  ['unlimited Training history', '(state.workoutSessions||[]).slice().reverse().map(s=>'],
+]) {
+  if (!rendererSource.includes(fragment)) throw new Error(`Missing complete content rendering: ${label}.`);
+}
+if (rendererSource.includes('.slice(0,10),isRunning=')) {
+  throw new Error('Focus history is still capped at ten sessions.');
+}
+if (rendererSource.includes('(state.workoutSessions||[]).slice(-8)')) {
+  throw new Error('Training history is still capped at eight sessions.');
+}
+
+const visualStyleRequirements = [
+  ['Overview progress cards', /\.overview-progress-card\s*\{[^}]*display\s*:\s*grid/s],
+  ['Overview panel surfaces', /\.overview-panel\s*\{[^}]*background\s*:/s],
+  ['Overview habit rows', /\.overview-habit-row\s*\{[^}]*grid-template-columns\s*:/s],
+  ['Overview goal rows', /\.overview-goal-row\s*\{[^}]*display\s*:\s*flex/s],
+  ['Focus mode button layout', /\.focus-mode-picker\s*>\s*button\s*\{[^}]*grid-template-columns\s*:/s],
+  ['Focus timer surface', /\.focus-clock-v4,\s*\.focus-clock-shell\s*\{[^}]*background\s*:/s],
+  ['Focus stats label spacing', /\.focus-stats-v4\s*>\s*div\s*\{[^}]*gap\s*:/s],
+];
+for (const [label, pattern] of visualStyleRequirements) {
+  if (!pattern.test(styles)) throw new Error(`Missing visual component styling: ${label}.`);
+}
+
+const cssWithoutComments = styles.replace(/\/\*[\s\S]*?\*\//g, '');
+if ((cssWithoutComments.match(/\{/g) || []).length !== (cssWithoutComments.match(/\}/g) || []).length) {
+  throw new Error('Unbalanced CSS rule braces in styles.css.');
+}
+
 process.stdout.write(`Checked ${jsFiles.length} JavaScript files and desktop security invariants.\n`);
