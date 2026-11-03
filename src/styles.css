@@ -1646,508 +1646,815 @@ body.privacy-mode .command-momentum-itsuki { display: none !important; }
 @media(max-width:520px){.study-streak-week{gap:3px}.study-streak-day-mark{width:26px;height:26px}}
 
 
-/* Compact, balanced desktop layouts with independent scroll regions. */
-.app-shell{height:100vh;min-height:0;overflow:hidden}
-.main-area{min-height:0;grid-template-rows:66px minmax(0,1fr)}
-.view{height:100%;min-height:0;overflow:hidden;padding:14px 18px 16px;box-sizing:border-box}
-body.view-settings .view{overflow:auto;padding:24px 28px 36px}
-#view{min-height:0}
-.overview-v2{height:100%;min-height:0;display:grid;grid-template-rows:auto auto minmax(0,1fr);gap:12px;max-width:none;margin:0 auto}
-.overview-v2-head{display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:64px}
-.overview-v2-head h2,.focus-workspace-head h2,.calendar-page-fit h2{margin:2px 0 0;font-size:25px}
-.overview-v2-head small{color:var(--muted)}
-.overview-streak{display:flex;align-items:center;gap:20px;padding:10px 16px;border:1px solid var(--line);border-radius:15px;background:var(--surface);min-width:310px}
-.overview-streak>div:first-child{display:grid;grid-template-columns:auto auto;align-items:center;column-gap:9px}
-.overview-streak span{font-size:11px;color:var(--muted)}.overview-streak strong{font-size:19px}.overview-streak small{grid-column:1/-1;color:var(--muted);font-size:10px}
-.overview-streak-days{display:flex;gap:7px}.overview-streak-days i{font-style:normal;display:grid;place-items:center;width:21px;height:21px;border-radius:50%;background:var(--surface-2);font-size:10px;color:var(--muted)}.overview-streak-days i.active{background:rgba(217,78,103,.2);color:var(--text)}
-.overview-progress{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-.overview-progress-card{display:grid;grid-template-columns:1fr auto;gap:6px 12px;text-align:left;padding:12px 16px;background:var(--surface);border:1px solid var(--line);border-radius:15px;color:var(--text);cursor:pointer;min-width:0}
-.overview-progress-card>span{font-size:12px;color:var(--muted)}.overview-progress-card>strong{font-size:20px;line-height:1.2}.overview-progress-card>strong small{font-size:13px;color:var(--muted);font-weight:500}
-.overview-progress-track{height:6px;border-radius:99px;background:var(--surface-2);overflow:hidden;grid-column:1/-1}.overview-progress-track i{display:block;height:100%;border-radius:inherit;background:var(--accent)}.overview-progress-card>small{grid-column:1/-1;color:var(--muted);font-size:10px}
-.overview-v2-grid{display:grid;grid-template-columns:minmax(210px,.72fr) minmax(360px,1.5fr) minmax(220px,.82fr);gap:12px;min-height:0}
-.overview-panel{display:flex;flex-direction:column;min-width:0;min-height:0;padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--surface);overflow:hidden}
-.overview-panel-head,.overview-subhead{display:flex;align-items:center;justify-content:space-between;gap:8px}.overview-panel-head h3{margin:0;font-size:15px}.overview-panel-head>span{font-size:11px;color:var(--muted)}
-.overview-momentum-total{display:flex;align-items:baseline;gap:8px;margin:12px 0 8px}.overview-momentum-total strong{font-size:28px}.overview-momentum-total span{font-size:11px;color:var(--muted)}
-.overview-bars{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));align-items:end;gap:5px;flex:1;min-height:110px}
-.overview-bar-day{height:100%;display:grid;grid-template-rows:1fr auto auto;align-items:end;gap:4px;border:0;background:transparent;color:var(--muted);padding:0 1px;cursor:pointer}
-.overview-bar-day>span{height:100%;min-height:60px;background:var(--surface-2);border-radius:7px;display:flex;align-items:end;overflow:hidden}.overview-bar-day i{display:block;width:100%;background:var(--accent);border-radius:7px}.overview-bar-day b,.overview-bar-day small{font-size:10px}
-.overview-action-columns{display:grid;grid-template-columns:minmax(0,1fr) minmax(130px,.8fr);gap:12px;min-height:0;flex:1;margin-top:8px}
-.overview-action-group{display:flex;flex-direction:column;min-height:0}.overview-subhead b{font-size:12px}.overview-scroll-list{min-height:0;overflow:auto;display:flex;flex-direction:column;gap:5px;padding:5px 3px 5px 0}
-.overview-scroll-list .task-row{padding:8px 10px;min-height:42px}.overview-scroll-list .task-row .task-meta{display:none}
-.overview-habit-row{display:grid;grid-template-columns:25px minmax(0,1fr) auto;align-items:center;gap:8px;padding:8px;border:1px solid var(--line);border-radius:10px}
-.overview-habit-row b{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.overview-habit-row>span{font-size:10px;color:var(--muted)}
-.overview-goal-list{display:flex;flex-direction:column;gap:4px;min-height:50px;max-height:44%;overflow:auto}
-.overview-goal-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid var(--line)}
-.overview-goal-row>div{display:flex;flex-direction:column;gap:3px;min-width:0}.overview-goal-row b{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.overview-goal-row small{font-size:10px;color:var(--muted)}
-.overview-calendar-head{margin-top:auto;padding-top:10px}.overview-calendar-strip{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:9px}
-.overview-calendar-day{display:grid;justify-items:center;gap:4px;padding:6px 2px;border:1px solid var(--line);border-radius:9px;background:var(--surface-2);color:var(--text);cursor:pointer}
-.overview-calendar-day b{font-size:12px}.overview-calendar-day small{font-size:9px;color:var(--muted)}.overview-calendar-day i{width:5px;height:5px;border-radius:50%;background:transparent}.overview-calendar-day i.active{background:var(--accent)}.overview-calendar-day.today{border-color:var(--accent)}
-.task-reference-page{height:100%;min-height:0;display:flex;flex-direction:column;gap:10px;max-width:none}
-.task-reference-page .task-page-head{flex:0 0 auto}.task-reference-page .task-date-line{display:none}.task-reference-page .task-controls,.task-reference-page .quick-add{flex:0 0 auto;margin:0}
-.task-reference-page .unified-habits{flex:0 0 auto;margin:0;padding:10px 14px}.task-reference-page .unified-habits-head p{display:none}.task-reference-page .habit-inline-grid{max-height:72px;overflow:auto}
-.task-reference-layout{flex:1;min-height:0;grid-template-columns:minmax(0,1fr) 210px;gap:12px;align-items:stretch}
-.task-center-panel{min-height:0;display:flex;flex-direction:column;padding:14px}.task-reference-groups{min-height:0;flex:1;overflow:auto;padding-top:8px;gap:8px}.task-reference-groups .task-list{display:grid;gap:5px}
-.task-reference-rail{min-height:0}.task-rail-card{height:100%}
-.task-row{min-height:54px;padding:9px 12px;grid-template-columns:27px minmax(0,1fr) auto}.task-row .task-main-copy{min-width:0}.task-row .task-meta{margin-top:3px}
-.priority-label{font-size:10px;color:var(--muted);font-weight:650}.priority-label.urgent{color:#ef7b79}.priority-label.high{color:#e2a15c}.priority-label.medium{color:var(--muted)}.priority-label.low{color:#8cb89d}
-.task-actions{display:flex;gap:4px;align-items:center}.task-actions .icon-btn{width:30px;height:30px;font-size:17px}
-.task-row.done .task-title-line b{text-decoration:line-through;opacity:.62}.task-row.done .task-check{background:var(--accent);color:#fff;border-color:var(--accent)}
-.task-menu-actions{display:grid;gap:8px}.task-menu-actions button{justify-content:flex-start;min-height:42px}
-.focus-workspace{height:100%;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr);gap:12px;max-width:none}
-.focus-workspace-head{display:flex;align-items:center;justify-content:space-between}.focus-round-picker{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted)}.focus-round-picker select{min-width:75px}
-.focus-workspace-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(270px,.8fr);gap:12px;min-height:0}
-.focus-session-card,.focus-side-v4>section{border:1px solid var(--line);border-radius:16px;background:var(--surface);padding:16px;min-width:0;min-height:0}
-.focus-session-card{display:flex;flex-direction:column;justify-content:space-between}
-.focus-session-top{display:flex;align-items:center;justify-content:space-between;gap:14px}.focus-session-top label{display:grid;gap:6px;width:min(480px,75%);font-size:11px;color:var(--muted)}
-.focus-round-progress{display:grid;grid-template-columns:auto auto;align-items:baseline;gap:2px 4px;text-align:right}.focus-round-progress strong{font-size:23px}.focus-round-progress span{font-size:12px;color:var(--muted)}.focus-round-progress small{grid-column:1/-1;color:var(--muted);font-size:10px}
-.focus-clock-v4{min-height:220px;max-height:360px;flex:1;margin:14px 0;display:flex;flex-direction:column;align-items:center;justify-content:center}.focus-clock-v4 .timer-display{font-size:clamp(54px,8vw,96px)}.focus-clock-v4 .focus-phase-label{font-size:12px;letter-spacing:.14em}
-.focus-controls-v4{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}.focus-controls-v4 button{min-width:112px}
-.focus-widget-row{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:10px;margin-top:10px;font-size:11px;color:var(--muted)}
-.focus-side-v4{display:grid;grid-template-rows:auto auto minmax(0,1fr);gap:12px;min-height:0}
-.focus-stats-v4{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.focus-stats-v4>div{display:grid;gap:5px}.focus-stats-v4 span{font-size:10px;color:var(--muted)}.focus-stats-v4 strong{font-size:18px}
-.focus-goal-v4{min-height:70px!important}.focus-history-v4{display:flex;flex-direction:column;overflow:hidden}
-.focus-history-v4 .section-head{display:flex;justify-content:space-between;align-items:center}.focus-history-v4 .section-head h3{margin:0;font-size:14px}
-.focus-history-scroll{overflow:auto;min-height:0;display:flex;flex-direction:column;gap:5px;margin-top:8px}.focus-history-v4 .focus-history-row{padding:8px 0}
-.calendar-page-fit{height:100%;min-height:0;display:grid;grid-template-rows:auto minmax(0,1.45fr) minmax(0,.75fr);gap:10px;max-width:none}
-.calendar-page-fit .calendar-header-v53{display:flex;justify-content:space-between;align-items:center}.calendar-page-fit .calendar-header-actions{display:flex;gap:8px}
-.calendar-core-fit{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(270px,.8fr);min-height:0;gap:12px}
-.calendar-main-v53,.calendar-day-panel-v53{min-height:0;overflow:hidden}.calendar-main-v53{display:grid;grid-template-rows:auto auto minmax(0,1fr);padding:12px}
-.calendar-main-v53 .calendar.grid{min-height:0;grid-template-rows:repeat(6,minmax(0,1fr))}.calendar-main-v53 .calendar-day{min-height:0}
-.calendar-day-panel-v53{display:flex;flex-direction:column;padding:12px}.calendar-day-panel-v53 .calendar-panel-head p{display:none}
-.calendar-schedule-v53{min-height:0;display:flex;flex-direction:column;flex:1;overflow:hidden}.calendar-schedule-scroll{overflow:auto;min-height:0;flex:1;display:flex;flex-direction:column;gap:4px}
-.calendar-bottom-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(220px,.85fr);gap:12px;min-height:0}
-.calendar-history-v25,.calendar-goals-strip{min-height:0;overflow:hidden;padding:10px 12px}.calendar-history-v25{display:flex;flex-direction:column}
-.calendar-history-v25 .calendar-history-head{display:flex;align-items:center;justify-content:space-between;gap:8px}.calendar-history-v25 .calendar-history-head h3,.calendar-goals-strip .section-head h3{margin:0;font-size:14px}
-.calendar-history-scroll{overflow:auto;min-height:0;flex:1}.calendar-history-v25 .calendar-history-head p{display:none}
-.calendar-goals-strip{display:flex;flex-direction:column}.calendar-goals-scroll{overflow:auto;min-height:0;flex:1}.calendar-goals-strip .calendar-goals-grid{display:grid;gap:4px}
-.gym-page{height:100%;min-height:0;max-width:none;margin:0;display:flex;flex-direction:column;gap:12px;padding:0}
-.gym-page .gym-hero{flex:0 0 auto;padding:16px 18px}.gym-page .gym-hero-copy p,.gym-page .gym-howto,.gym-page .gym-customization-panel{display:none!important}
-.gym-page:not(.gym-active-page) .gym-workout-panel{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}.gym-page:not(.gym-active-page) .gym-workout-panel .gym-task-list{overflow:auto;min-height:0;flex:1}
-.gym-page:not(.gym-active-page) .gym-history-panel{flex:0 0 28%;min-height:100px;overflow:hidden;display:flex;flex-direction:column}.gym-page:not(.gym-active-page) .gym-history-list{overflow:auto;min-height:0}
-.gym-page .gym-hero-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.gym-active-page{overflow:hidden}.gym-active-page .gym-active-grid{flex:1;min-height:0;grid-template-columns:minmax(0,1fr) minmax(230px,.75fr)}
-.gym-active-page .gym-sidebar-card{min-height:0;overflow:hidden;display:flex;flex-direction:column}.gym-active-page .gym-task-stack{overflow:auto;min-height:0;flex:1}.gym-active-page .gym-focus-card{min-height:0;overflow:auto}
-@media(max-width:1120px){.overview-v2-grid{grid-template-columns:minmax(210px,.72fr) minmax(320px,1.2fr)}.overview-goals-calendar{display:none}.focus-workspace-grid{grid-template-columns:minmax(0,1.2fr) minmax(230px,.8fr)}.calendar-core-fit{grid-template-columns:minmax(0,1fr) 270px}}
-@media(max-width:820px){.view{overflow:auto;padding:12px}.overview-v2,.task-reference-page,.gym-page,.focus-workspace,.calendar-page-fit{height:auto;min-height:100%;display:flex;flex-direction:column}.overview-v2-grid,.overview-progress,.focus-workspace-grid,.calendar-core-fit,.calendar-bottom-grid,.gym-active-page .gym-active-grid{grid-template-columns:1fr}.overview-v2-grid{display:grid}.overview-goals-calendar{display:flex}.overview-action-columns{grid-template-columns:1fr}.task-reference-layout{grid-template-columns:1fr}.focus-side-v4{grid-template-rows:auto auto 220px}.gym-page:not(.gym-active-page) .gym-history-panel{min-height:180px}}
 
-/* Aurestar interface pass — consistent viewport sizing, balanced panels, safe responsive behavior */
-.app-shell{min-width:0;min-height:0}
-.sidebar{min-height:0}
-.main-area{min-width:0;min-height:0}
-.view{min-width:0}
-.overview-v2,.task-reference-page,.focus-workspace,.calendar-page-fit,.gym-page{min-width:0}
-.overview-v2-grid{grid-template-columns:minmax(220px,.78fr) minmax(360px,1.42fr) minmax(230px,.82fr)}
-.overview-progress-card{align-content:start}
-.overview-action-columns{grid-template-columns:minmax(0,1fr) minmax(145px,.72fr)}
-.task-reference-layout{grid-template-columns:minmax(0,1fr) 240px}
-.task-reference-rail{overflow:auto}
-.task-reference-rail .task-rail-card{height:auto;min-height:100%}
-.task-reference-groups{overscroll-behavior:contain}
-.focus-workspace-grid{grid-template-columns:minmax(0,1.45fr) minmax(285px,.8fr)}
-.focus-session-card,.focus-side-v4>section{overflow:hidden}
-.focus-history-scroll,.overview-scroll-list,.calendar-schedule-scroll,.calendar-history-scroll,.calendar-goals-scroll,.gym-task-list,.gym-history-list{overscroll-behavior:contain}
-.calendar-page-fit{grid-template-rows:auto minmax(0,1.4fr) minmax(150px,.7fr)}
-.calendar-core-fit{grid-template-columns:minmax(0,1.25fr) minmax(285px,.8fr)}
-.calendar-bottom-grid{grid-template-columns:minmax(0,1.15fr) minmax(250px,.85fr)}
-.calendar-main-v53 .calendar-day{overflow:hidden}
-.gym-page .gym-hero{min-width:0}
-@media(min-width:1500px){
- .view{padding:18px 24px}
- .overview-v2,.task-reference-page,.focus-workspace,.calendar-page-fit,.gym-page{max-width:1600px;margin-inline:auto;width:100%}
- .task-reference-layout{grid-template-columns:minmax(0,1fr) 260px}
-}
-@media(max-width:1250px) and (min-width:821px){
- .overview-v2-grid{grid-template-columns:minmax(190px,.7fr) minmax(300px,1.3fr)}
- .overview-goals-calendar{display:none}
- .task-reference-layout{grid-template-columns:minmax(0,1fr) 220px}
- .focus-workspace-grid{grid-template-columns:minmax(0,1.2fr) minmax(250px,.8fr)}
- .calendar-core-fit{grid-template-columns:minmax(0,1fr) 260px}
- .calendar-bottom-grid{grid-template-columns:minmax(0,1fr) minmax(220px,.8fr)}
-}
-@media(max-height:780px) and (min-width:821px){
- .main-area{grid-template-rows:58px minmax(0,1fr)}
- .view{padding-top:10px;padding-bottom:10px}
- .overview-v2,.focus-workspace{gap:8px}
- .overview-v2-grid,.focus-workspace-grid,.calendar-core-fit,.calendar-bottom-grid{gap:8px}
- .overview-panel,.focus-session-card,.focus-side-v4>section{padding:11px}
- .overview-streak{padding:7px 12px}
- .overview-progress-card{padding:9px 12px}
- .calendar-page-fit{grid-template-rows:auto minmax(0,1.35fr) minmax(120px,.65fr);gap:8px}
-}
-@media(max-width:820px){
- .app-shell{min-width:0;grid-template-columns:1fr}
- .sidebar{height:auto}
- .view{height:auto;min-height:0;overflow:visible}
- .overview-v2,.task-reference-page,.focus-workspace,.calendar-page-fit,.gym-page{height:auto;min-height:0}
- .overview-v2-grid,.overview-progress,.focus-workspace-grid,.calendar-core-fit,.calendar-bottom-grid{grid-template-columns:minmax(0,1fr)}
- .overview-goals-calendar{display:flex}
- .task-reference-layout{grid-template-columns:minmax(0,1fr)}
- .task-reference-rail{overflow:visible}
- .task-reference-rail .task-rail-card{height:auto}
- .calendar-page-fit{display:flex}
- .calendar-core-fit,.calendar-bottom-grid{display:grid}
- .calendar-main-v53{min-height:460px}
- .calendar-day-panel-v53{min-height:300px}
- .gym-page:not(.gym-active-page) .gym-history-panel{flex:0 0 auto}
-}
-
-/* Shared timer modes and concise Settings group descriptions. */
-.focus-mode-picker{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:10px 0 12px}
-.focus-mode-picker button{min-width:0;min-height:46px;display:grid;grid-template-columns:22px 1fr auto;align-items:center;gap:8px;padding:7px 10px;border:1px solid var(--line);border-radius:11px;background:rgba(24,12,18,.46);color:var(--text-2);text-align:left;transition:border-color .16s,background .16s,color .16s}
-.focus-mode-picker button:hover{border-color:rgba(217,78,103,.42);background:rgba(217,78,103,.08);color:var(--text)}
-.focus-mode-picker button[aria-pressed="true"]{border-color:rgba(242,139,156,.52);background:rgba(217,78,103,.16);color:#ffe7eb;box-shadow:inset 0 0 0 1px rgba(242,139,156,.10)}
-.focus-mode-picker b{width:22px;height:22px;display:grid;place-items:center;border:1px solid rgba(242,139,156,.22);border-radius:7px;color:var(--cyan-soft);font-size:10px}
-.focus-mode-picker span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:750}
-.focus-mode-picker small{color:var(--muted);font-size:10px;font-variant-numeric:tabular-nums}
-.focus-mode-picker button:focus-visible{outline:2px solid var(--cyan-soft);outline-offset:2px}
-.settings-description{margin:-3px 0 14px;font-size:12px;line-height:1.5;color:var(--muted)}
-@media(max-width:560px){.focus-mode-picker{gap:5px}.focus-mode-picker button{grid-template-columns:20px 1fr;gap:6px;padding:7px}.focus-mode-picker small{grid-column:2}}
 
 /* ==========================================================================
-   AURESTAR VIEWPORT LAYOUT SYSTEM
-   Fixed application shell; each page owns its scrollable content regions.
+   AURESTAR — COMPLETE PAGE LAYOUT REWORK
+   One predictable page scroller; content flows naturally; no nested vertical
+   scroll traps. Every section remains reachable at every supported window size.
    ========================================================================== */
+
 :root {
-  --aurestar-shell-height: 100vh;
-  --aurestar-page-gap: 12px;
-  --aurestar-page-pad-x: clamp(12px, 1.5vw, 24px);
-  --aurestar-page-pad-y: clamp(10px, 1.5vh, 18px);
+  --app-sidebar-width: 244px;
+  --content-max-width: 1480px;
+  --content-gutter: clamp(16px, 2.2vw, 32px);
+  --section-gap: 18px;
+  --card-gap: 14px;
+  --card-padding: clamp(16px, 1.5vw, 22px);
 }
-@supports (height: 100dvh) { :root { --aurestar-shell-height: 100dvh; } }
-html, body, .app-body { width:100%; height:100%; min-height:0; overflow:hidden; }
+
+/* Application frame: only the central content pane scrolls vertically. */
+html, body {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  overflow: hidden;
+}
+
+.app-body { min-width: 0; min-height: 0; overflow: hidden; }
+
 .app-shell {
-  display:grid; grid-template-columns:var(--sidebar) minmax(0,1fr);
-  width:100%; height:var(--aurestar-shell-height); min-width:0; min-height:0; overflow:hidden;
+  display: grid;
+  grid-template-columns: var(--app-sidebar-width) minmax(0, 1fr);
+  width: 100%;
+  height: 100vh;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 }
-.sidebar { position:relative; width:100%; height:100%; min-width:0; min-height:0; overflow:hidden; }
+
+@supports (height: 100dvh) {
+  .app-shell { height: 100dvh; }
+}
+
+.sidebar {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
 .main-area {
-  display:grid; grid-template-rows:76px minmax(0,1fr);
-  width:100%; height:100%; min-width:0; min-height:0; overflow:hidden;
+  display: grid;
+  grid-template-rows: 76px minmax(0, 1fr);
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 }
-.topbar { min-width:0; min-height:0; }
-.view, #view {
-  display:flex; flex:1 1 auto; flex-direction:column;
-  width:100%; height:100%; min-width:0; min-height:0; overflow:hidden;
-  padding:var(--aurestar-page-pad-y) var(--aurestar-page-pad-x); box-sizing:border-box;
-}
-.view > * { flex:1 1 auto; min-width:0; min-height:0; }
-.overview-v2, .task-reference-page, .focus-workspace, .calendar-page-fit, .gym-page, .progress-v2 {
-  width:100%; height:100%; min-width:0; min-height:0; max-width:none; margin:0;
-  box-sizing:border-box; overflow:hidden;
-}
-.overview-v2, .task-reference-page, .gym-page { display:flex; flex-direction:column; }
-.overview-v2, .focus-workspace, .calendar-page-fit { gap:var(--aurestar-page-gap); }
 
-/* Overview: balanced 12-column dashboard. */
-.overview-v2 { display:grid; grid-template-rows:auto auto minmax(0,1fr); }
-.overview-v2-head { min-width:0; min-height:52px; flex:0 0 auto; }
-.overview-progress { grid-template-columns:repeat(3,minmax(0,1fr)); min-width:0; gap:10px; }
-.overview-progress-card { min-width:0; min-height:0; padding:10px 13px; }
+.topbar {
+  position: relative;
+  z-index: 5;
+  min-width: 0;
+  min-height: 0;
+}
+
+.view,
+#view {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: 24px var(--content-gutter) 42px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: auto;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+
+.view::-webkit-scrollbar { width: 10px; }
+.view::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border: 3px solid transparent;
+  border-radius: 99px;
+  background-clip: padding-box;
+}
+.view::-webkit-scrollbar-track { background: transparent; }
+#view { box-sizing: border-box; }
+.view > * { min-width: 0; max-width: var(--content-max-width); margin-left: auto; margin-right: auto; }
+
+/* Remove fixed-height / hidden-overflow behavior from page wrappers introduced
+   by previous layout experiments. The main content pane owns vertical scroll. */
+.overview-v2,
+.task-reference-page,
+.focus-workspace,
+.calendar-page-fit,
+.gym-page,
+.progress-v2 {
+  display: block;
+  width: 100%;
+  height: auto !important;
+  min-width: 0;
+  min-height: 0;
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  overflow: visible !important;
+}
+.gym-page-scroll,
+.progress-v2-scroll { display: contents !important; }
+
+/* Shared page heading and surface rhythm. */
+.page-intro,
+.ref-page-head,
+.task-page-head,
+.overview-v2-head,
+.focus-workspace-head,
+.calendar-header-v53,
+.progress-v2-head {
+  min-width: 0;
+  margin: 0 0 var(--section-gap);
+}
+.page-intro,
+.ref-page-head,
+.task-page-head {
+  align-items: center;
+  gap: 16px;
+}
+.page-intro h2,
+.ref-page-head h2,
+.task-page-head h2,
+.overview-v2-head h2,
+.focus-workspace-head h2,
+.calendar-page-fit h2,
+.progress-v2-head h2 {
+  font-size: clamp(24px, 2vw, 32px);
+  line-height: 1.15;
+}
+.card,
+.reference-card,
+.task-center-panel,
+.task-rail-card,
+.settings-card,
+.progress-panel,
+.focus-session-card,
+.focus-side-v4 > section,
+.calendar-main-v53,
+.calendar-day-panel-v53,
+.gym-workout-panel,
+.gym-customization-panel,
+.gym-focus-card,
+.gym-sidebar-card,
+.gym-history-panel {
+  min-width: 0;
+  border-radius: var(--radius);
+}
+
+/* OVERVIEW — three balanced dashboard areas; cards grow with their content. */
+.overview-v2-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.overview-streak { max-width: 100%; }
+.overview-progress {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 var(--section-gap);
+}
+.overview-progress-card {
+  min-width: 0;
+  min-height: 104px;
+  padding: 14px 16px;
+  align-content: start;
+}
 .overview-v2-grid {
-  display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); grid-template-rows:minmax(0,1fr);
-  gap:12px; width:100%; height:100%; min-width:0; min-height:0; align-items:stretch;
+  display: grid;
+  grid-template-columns: minmax(220px, .86fr) minmax(360px, 1.55fr) minmax(230px, .9fr);
+  grid-auto-rows: minmax(300px, auto);
+  gap: var(--card-gap);
+  align-items: stretch;
 }
-.overview-panel { display:flex; flex-direction:column; min-width:0; min-height:0; height:100%; overflow:hidden; }
-.overview-momentum { grid-column:span 3; }
-.overview-today-actions { grid-column:span 6; }
-.overview-goals-calendar { grid-column:span 3; }
-.overview-bars { flex:1 1 auto; min-height:0; grid-template-rows:minmax(0,1fr); }
-.overview-action-columns { flex:1 1 auto; min-height:0; grid-template-columns:minmax(0,1fr) minmax(0,.78fr); }
-.overview-action-group { min-width:0; min-height:0; overflow:hidden; }
-.overview-scroll-list, .overview-goal-list {
-  flex:1 1 auto; min-width:0; min-height:0; max-height:none; overflow-y:auto;
-  overscroll-behavior:contain; scrollbar-gutter:stable;
+.overview-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 300px;
+  height: auto;
+  padding: var(--card-padding);
+  overflow: visible;
 }
-.overview-calendar-head { flex:0 0 auto; }
+.overview-panel-head { flex: 0 0 auto; }
+.overview-bars {
+  flex: 1 1 auto;
+  min-height: 140px;
+  height: 160px;
+}
+.overview-action-columns {
+  flex: 1 1 auto;
+  min-height: 0;
+  grid-template-columns: minmax(0, 1fr) minmax(0, .8fr);
+  gap: 12px;
+}
+.overview-action-group { min-width: 0; min-height: 0; }
+.overview-scroll-list,
+.overview-goal-list {
+  max-height: none;
+  min-height: 0;
+  overflow: visible;
+  padding-right: 0;
+}
+.overview-calendar-head { margin-top: 20px; }
 
-/* Tasks & Habits: pinned controls and an independently scrolling task board. */
-.task-reference-page { gap:10px; }
-.task-reference-page .task-page-head, .task-reference-page .task-controls,
-.task-reference-page .quick-add, .task-reference-page .unified-habits { flex:0 0 auto; min-width:0; }
-.task-reference-page .task-page-head { align-items:center; margin:0; }
-.task-reference-page .task-date-line { display:none; }
-.task-reference-page .task-controls, .task-reference-page .quick-add { margin:0; }
-.task-reference-page .view-tabs {
-  max-width:100%; flex-wrap:nowrap; overflow-x:auto; overflow-y:hidden; scrollbar-width:thin;
+/* TASKS & HABITS — normal document flow; no height-capped task or habit lists. */
+.task-reference-page { display: block; }
+.task-reference-page .task-page-head {
+  align-items: center;
+  margin-bottom: 14px;
 }
-.task-reference-page .view-tabs button { flex:0 0 auto; white-space:nowrap; }
-.task-reference-page .unified-habits { margin:0; padding:9px 12px; min-height:0; }
-.task-reference-page .unified-habits-head p { display:none; }
+.task-reference-page .task-date-line { display: block; }
+.task-reference-page .task-controls {
+  margin: 0 0 12px;
+  min-width: 0;
+}
+.task-reference-page .view-tabs {
+  display: flex;
+  max-width: 100%;
+  flex-wrap: wrap;
+  overflow: visible;
+}
+.task-reference-page .view-tabs button { flex: 0 0 auto; }
+.task-reference-page .quick-add { margin: 0 0 14px; }
+.task-reference-page .unified-habits {
+  margin: 0 0 var(--section-gap);
+  padding: 16px;
+}
+.task-reference-page .unified-habits-head p { display: block; }
 .task-reference-page .habit-inline-grid {
-  display:grid; grid-template-columns:repeat(auto-fit,minmax(min(180px,100%),1fr));
-  max-height:clamp(58px,10vh,92px); min-height:0; overflow-y:auto;
-  overscroll-behavior:contain; scrollbar-gutter:stable;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  max-height: none;
+  overflow: visible;
+  gap: 8px;
 }
 .task-reference-layout {
-  display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); grid-template-rows:minmax(0,1fr);
-  flex:1 1 auto; width:100%; min-width:0; min-height:0; gap:12px; align-items:stretch;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 290px);
+  grid-template-rows: auto;
+  gap: var(--card-gap);
+  align-items: start;
 }
 .task-center-panel {
-  grid-column:span 9; display:flex; flex-direction:column;
-  min-width:0; min-height:0; height:100%; overflow:hidden;
+  display: flex;
+  flex-direction: column;
+  padding: var(--card-padding);
+  min-height: 0;
+  overflow: visible;
 }
-.task-board-title { flex:0 0 auto; }
+.task-board-title { margin-bottom: 4px; }
 .task-reference-groups {
-  display:flex; flex:1 1 auto; flex-direction:column; min-width:0; min-height:0;
-  overflow-x:hidden; overflow-y:auto; overscroll-behavior:contain; scrollbar-gutter:stable;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  padding-top: 12px;
+  overflow: visible;
 }
+.task-group { min-width: 0; }
 .task-reference-rail {
-  grid-column:span 3; display:flex; flex-direction:column;
-  min-width:0; min-height:0; height:100%; overflow:hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  height: auto;
+  overflow: visible;
 }
 .task-reference-rail .rail-stat-card {
-  display:grid; grid-template-rows:repeat(3,minmax(0,1fr)); align-content:stretch;
-  flex:1 1 auto; height:100%; min-height:0; padding:12px; gap:0;
+  display: grid;
+  grid-template-columns: 1fr;
+  align-content: start;
+  gap: 0;
+  height: auto;
+  padding: 16px;
 }
 .task-reference-rail .rail-stat-card > div {
-  display:flex; align-items:center; justify-content:space-between;
-  min-width:0; min-height:0; padding:10px 4px; border-bottom:1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px 2px;
+  border-bottom: 1px solid var(--line);
 }
-.task-reference-rail .rail-stat-card > div:last-child { border-bottom:0; }
-.task-reference-rail .rail-stat-card span { min-width:0; font-size:clamp(10px,.8vw,12px); }
+.task-reference-rail .rail-stat-card > div:last-child { border-bottom: 0; }
+.task-reference-rail .rail-stat-card span { font-size: 12px; }
 .task-reference-rail .rail-stat-card strong {
-  flex:0 0 auto; padding-left:8px; font-size:clamp(16px,1.4vw,22px); font-variant-numeric:tabular-nums;
+  flex: 0 0 auto;
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
 }
 
-/* Focus: centered timer, fixed controls, and a separately scrollable history panel. */
-.focus-workspace { display:grid; grid-template-rows:auto minmax(0,1fr); min-height:0; }
-.focus-workspace-head { flex:0 0 auto; min-width:0; }
+/* FOCUS — clear timer hierarchy, stable controls and full history in page flow. */
+.focus-workspace { display: block; }
+.focus-workspace-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
 .focus-workspace-grid {
-  display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); grid-template-rows:minmax(0,1fr);
-  gap:12px; min-width:0; min-height:0; align-items:stretch;
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(290px, .85fr);
+  grid-template-rows: auto;
+  gap: var(--card-gap);
+  align-items: stretch;
 }
 .focus-session-card {
-  grid-column:span 8; display:grid; grid-template-rows:auto auto minmax(0,1fr) auto auto;
-  justify-content:stretch; min-width:0; min-height:0; height:100%; overflow:hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-width: 0;
+  min-height: 540px;
+  padding: clamp(18px, 2vw, 28px);
+  overflow: visible;
 }
-.focus-session-top, .focus-mode-picker, .focus-controls-v4, .focus-widget-row { min-width:0; }
-.focus-clock-v4, .focus-clock-shell {
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  width:100%; min-width:0; min-height:0; max-height:none; flex:1 1 auto;
-  margin:8px 0; text-align:center; overflow:hidden;
+.focus-session-top {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
 }
-.focus-clock-v4 .timer-display, .focus-clock-shell .timer-display-v3 {
-  width:100%; margin:10px 0; font-size:clamp(48px,7.5vh,92px); line-height:1;
-  letter-spacing:-.07em; text-align:center; font-variant-numeric:tabular-nums;
+.focus-session-top label { flex: 1 1 260px; width: auto; min-width: 0; }
+.focus-mode-picker {
+  width: min(100%, 620px);
+  margin: 18px auto 6px;
 }
-.focus-controls-v4 { flex:0 0 auto; justify-content:center; align-items:center; }
+.focus-clock-v4,
+.focus-clock-shell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 230px;
+  max-height: none;
+  margin: 12px auto 18px;
+  text-align: center;
+  overflow: visible;
+}
+.focus-clock-v4 .timer-display,
+.focus-clock-shell .timer-display-v3 {
+  width: 100%;
+  margin: 18px 0;
+  font-size: clamp(54px, 7vw, 104px);
+  line-height: 1;
+  letter-spacing: -.07em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.focus-controls-v4 {
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.focus-controls-v4 button { min-width: 112px; }
+.focus-widget-row { margin-top: 18px; }
 .focus-side-v4 {
-  grid-column:span 4; display:grid; grid-template-rows:auto auto minmax(0,1fr);
-  min-width:0; min-height:0; height:100%; gap:12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  height: auto;
 }
-.focus-side-v4 > section { min-width:0; min-height:0; overflow:hidden; }
-.focus-stats-v4 { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); align-items:stretch; }
-.focus-stats-v4 > div { min-width:0; align-content:center; }
-.focus-history-v4 { display:flex; flex-direction:column; min-width:0; min-height:0; overflow:hidden; }
+.focus-side-v4 > section {
+  min-width: 0;
+  min-height: 0;
+  padding: 16px;
+  overflow: visible;
+}
+.focus-stats-v4 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 8px;
+}
+.focus-stats-v4 > div {
+  min-width: 0;
+  align-content: center;
+}
+.focus-history-v4 { display: flex; flex-direction: column; }
 .focus-history-scroll {
-  display:flex; flex:1 1 auto; flex-direction:column; min-width:0; min-height:0;
-  overflow-x:hidden; overflow-y:auto; overscroll-behavior:contain; scrollbar-gutter:stable;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: visible;
 }
+.focus-history-row { min-width: 0; }
 
-/* Calendar: month grid and selected-day panel share a balanced 12-column grid. */
-.calendar-page-fit {
-  display:grid; grid-template-rows:auto minmax(0,1.45fr) minmax(116px,.72fr); min-height:0;
+/* CALENDAR — month grid, day details, activity and goals in a readable sequence. */
+.calendar-page-fit { display: block; }
+.calendar-page-fit .calendar-header-v53 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
 }
-.calendar-page-fit .calendar-header-v53 { flex:0 0 auto; min-width:0; }
+.calendar-header-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .calendar-core-fit {
-  display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); grid-template-rows:minmax(0,1fr);
-  gap:12px; min-width:0; min-height:0; align-items:stretch;
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(280px, .8fr);
+  grid-template-rows: auto;
+  gap: var(--card-gap);
+  align-items: stretch;
 }
 .calendar-main-v53 {
-  grid-column:span 8; display:grid; grid-template-rows:auto auto minmax(0,1fr);
-  min-width:0; min-height:0; height:100%; overflow:hidden;
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  min-width: 0;
+  min-height: 0;
+  height: auto;
+  padding: 16px;
+  overflow: visible;
+}
+.calendar-main-v53 .calendar-toolbar { margin: 0 0 10px; }
+.calendar-main-v53 .calendar.weekdays { margin: 0 0 6px; }
+.calendar-main-v53 .calendar.grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-auto-rows: minmax(88px, auto);
+  grid-template-rows: none;
+  width: 100%;
+  height: auto;
+  min-width: 0;
+  min-height: 0;
+  gap: 7px;
+  overflow: visible;
+}
+.calendar-main-v53 .calendar-day {
+  min-width: 0;
+  min-height: 88px;
+  padding: clamp(6px, .8vw, 11px);
+  overflow: visible;
 }
 .calendar-day-panel-v53 {
-  grid-column:span 4; display:flex; flex-direction:column;
-  min-width:0; min-height:0; height:100%; overflow:hidden;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: auto;
+  padding: 16px;
+  overflow: visible;
 }
-.calendar-main-v53 .calendar.grid {
-  display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); grid-template-rows:repeat(6,minmax(0,1fr));
-  min-width:0; min-height:0; width:100%; height:100%; overflow:hidden;
+.calendar-day-stats-v53 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
 }
-.calendar-main-v53 .calendar-day { min-width:0; min-height:0; overflow:hidden; padding:clamp(4px,.6vh,9px); }
-.calendar-main-v53 .calendar-day-footer { min-width:0; }
-.calendar-schedule-v53 {
-  display:flex; flex:1 1 auto; flex-direction:column; min-width:0; min-height:0; overflow:hidden;
-}
-.calendar-schedule-scroll {
-  display:flex; flex:1 1 auto; flex-direction:column; min-width:0; min-height:0;
-  overflow-x:hidden; overflow-y:auto; overscroll-behavior:contain; scrollbar-gutter:stable;
-}
+.calendar-schedule-v53 { display: block; min-height: 0; overflow: visible; }
+.calendar-schedule-scroll { display: flex; flex-direction: column; overflow: visible; }
 .calendar-bottom-grid {
-  display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); grid-template-rows:minmax(0,1fr);
-  min-width:0; min-height:0; gap:12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(280px, .85fr);
+  gap: var(--card-gap);
+  align-items: start;
+  margin-top: var(--section-gap);
 }
-.calendar-history-v25 {
-  grid-column:span 7; display:flex; flex-direction:column; min-width:0; min-height:0;
-  height:100%; overflow:hidden; margin:0;
-}
+.calendar-history-v25,
 .calendar-goals-strip {
-  grid-column:span 5; display:flex; flex-direction:column; min-width:0; min-height:0;
-  height:100%; overflow:hidden;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: auto;
+  margin: 0;
+  padding: 16px;
+  overflow: visible;
 }
-.calendar-history-scroll, .calendar-goals-scroll {
-  flex:1 1 auto; min-width:0; min-height:0; overflow-x:auto; overflow-y:auto;
-  overscroll-behavior:contain; scrollbar-gutter:stable;
+.calendar-history-scroll,
+.calendar-goals-scroll {
+  min-width: 0;
+  overflow: visible;
 }
+.calendar-history-v25 .year-heatmap-wrap,
+.calendar-history-v25 .contribution-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.calendar-goals-grid { display: grid; gap: 8px; }
 
-/* Training: pinned hero and a page-owned scroll area for schedule, history and guidance. */
-.gym-page { display:flex; flex-direction:column; gap:10px; }
-.gym-page .gym-hero { flex:0 0 auto; min-width:0; padding:12px 16px; }
-.gym-page .gym-hero-copy p { display:block !important; }
-.gym-page .gym-howto { display:grid !important; }
-.gym-page .gym-customization-panel { display:flex !important; }
-.gym-page-scroll {
-  display:flex; flex:1 1 auto; flex-direction:column; gap:10px; width:100%; min-width:0; min-height:0;
-  overflow-x:hidden; overflow-y:auto; padding:0 4px 4px 0; overscroll-behavior:contain; scrollbar-gutter:stable;
+/* TRAINING — show all help, exercises, history and customization naturally. */
+.gym-page { display: block; }
+.gym-page .gym-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(230px, .65fr);
+  align-items: center;
+  gap: 18px;
+  padding: 20px;
+  margin-bottom: 14px;
 }
-.gym-page-scroll .gym-howto { flex:0 0 auto; margin:0; }
-.gym-page-scroll .gym-workout-panel {
-  display:flex; flex:0 0 auto; flex-direction:column; min-width:0; min-height:0;
-  max-height:none; margin:0; overflow:hidden;
+.gym-page .gym-hero-copy p,
+.gym-page .gym-howto,
+.gym-page .gym-customization-panel { display: initial; }
+.gym-page .gym-hero-copy p { display: block; }
+.gym-howto {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 14px;
 }
-.gym-page-scroll .gym-task-list {
-  display:grid; max-height:clamp(180px,36vh,420px); min-width:0; min-height:0;
-  overflow-x:hidden; overflow-y:auto; overscroll-behavior:contain; scrollbar-gutter:stable;
+.gym-howto > div { min-width: 0; }
+.gym-workout-panel,
+.gym-history-panel,
+.gym-customization-panel {
+  margin: 0 0 14px;
+  padding: var(--card-padding);
+  overflow: visible;
 }
-.gym-page-scroll .gym-history-panel {
-  display:flex; flex:0 0 auto; flex-direction:column; min-width:0; min-height:0;
-  max-height:none; margin:0; overflow:hidden;
+.gym-workout-panel,
+.gym-customization-panel { display: flex; flex-direction: column; }
+.gym-task-list,
+.gym-history-list {
+  display: grid;
+  gap: 8px;
+  max-height: none;
+  overflow: visible;
 }
-.gym-page-scroll .gym-history-list {
-  max-height:clamp(100px,22vh,220px); min-width:0; overflow-y:auto; overscroll-behavior:contain;
+.gym-task-card {
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  min-width: 0;
 }
-.gym-page-scroll .gym-customization-panel { display:flex; flex:0 0 auto; min-width:0; margin:0; }
-.gym-active-page { display:flex; flex-direction:column; min-width:0; min-height:0; overflow:hidden; }
+.gym-customization-panel {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.gym-customization-panel > div { min-width: 0; }
+.gym-active-page { display: block; overflow: visible; }
+.gym-active-page .gym-hero { margin-bottom: 14px; }
 .gym-active-page .gym-active-grid {
-  display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); grid-template-rows:minmax(0,1fr);
-  flex:1 1 auto; min-width:0; min-height:0; margin-top:10px; gap:12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, .8fr);
+  grid-template-rows: auto;
+  gap: var(--card-gap);
+  align-items: start;
+  margin-top: 0;
 }
-.gym-active-page .gym-focus-card {
-  grid-column:span 8; min-width:0; min-height:0; height:100%; overflow-x:hidden; overflow-y:auto;
-}
+.gym-active-page .gym-focus-card,
 .gym-active-page .gym-sidebar-card {
-  grid-column:span 4; position:static; display:flex; flex-direction:column;
-  min-width:0; min-height:0; height:100%; overflow:hidden;
+  position: static;
+  min-width: 0;
+  min-height: 0;
+  height: auto;
+  overflow: visible;
 }
+.gym-active-page .gym-focus-card { padding: var(--card-padding); }
+.gym-active-page .gym-clock-wrap { min-height: 260px; }
 .gym-active-page .gym-task-stack {
-  flex:1 1 auto; min-width:0; min-height:0; overflow-y:auto; overscroll-behavior:contain;
+  display: grid;
+  max-height: none;
+  overflow: visible;
 }
+.gym-active-page .gym-side-note { margin-top: 14px; }
 
-/* Progress: fixed page heading and an independent scroller for every lower section. */
-.progress-v2 { display:flex; flex-direction:column; gap:10px; }
-.progress-v2-head { flex:0 0 auto; min-width:0; margin:0; }
-.progress-v2-scroll {
-  display:flex; flex:1 1 auto; flex-direction:column; gap:10px; min-width:0; min-height:0;
-  overflow-x:hidden; overflow-y:auto; padding:0 5px 12px 0;
-  overscroll-behavior:contain; scrollbar-gutter:stable;
+/* PROGRESS — all sections remain in natural flow below the chart. */
+.progress-v2 { display: block; }
+.progress-v2-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 16px;
 }
-.progress-v2-scroll > * { flex:0 0 auto; min-width:0; }
-.progress-hero-card { min-width:0; }
-.progress-metrics { grid-template-columns:repeat(4,minmax(0,1fr)); min-width:0; gap:9px; margin:0; }
-.progress-metric { min-width:0; min-height:0; }
-.progress-trend-panel { min-width:0; margin:0; }
+.progress-v2-head p { max-width: 720px; }
+.progress-v2-scroll { display: contents !important; }
+.progress-hero-card { min-width: 0; margin-bottom: 14px; }
+.progress-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 14px;
+}
+.progress-metric {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+  min-height: 112px;
+  padding: 14px;
+}
+.progress-trend-panel { min-width: 0; margin: 0 0 14px; padding: 18px; }
 .progress-chart {
-  display:block; width:100%; height:auto; min-height:130px; max-height:min(30vh,260px);
-  aspect-ratio:860 / 230; overflow:hidden;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  min-height: 150px;
+  aspect-ratio: 860 / 230;
+  overflow: visible;
 }
 .progress-bottom-grid {
-  display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:10px; min-width:0; margin:0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin: 0;
 }
-.progress-breakdown, .progress-next {
-  grid-column:span 6; min-width:0; min-height:0; height:100%;
+.progress-breakdown,
+.progress-next {
+  min-width: 0;
+  height: auto;
+  padding: 18px;
 }
-.progress-panel { min-width:0; }
-.progress-next-main { grid-template-columns:minmax(74px,88px) minmax(0,1fr); }
-.progress-next-main > div { min-width:0; }
+.progress-next-main { grid-template-columns: minmax(76px, 100px) minmax(0, 1fr); }
+.progress-next-main > div { min-width: 0; }
 
-/* Shared scroll behavior and visible keyboard focus. */
-.overview-scroll-list, .overview-goal-list, .task-reference-groups, .focus-history-scroll,
-.calendar-schedule-scroll, .calendar-history-scroll, .calendar-goals-scroll, .gym-page-scroll,
-.gym-task-list, .gym-history-list, .gym-task-stack, .progress-v2-scroll {
-  overscroll-behavior:contain; scrollbar-width:thin; scrollbar-color:var(--line-strong) transparent;
+/* SETTINGS — balanced two-column forms, collapsing to one column when needed. */
+.settings-grid,
+.settings-grid-55 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: var(--card-gap);
+  width: 100%;
+  max-width: var(--content-max-width);
+  margin: 0 auto;
 }
-.overview-scroll-list::-webkit-scrollbar, .overview-goal-list::-webkit-scrollbar,
-.task-reference-groups::-webkit-scrollbar, .focus-history-scroll::-webkit-scrollbar,
-.calendar-schedule-scroll::-webkit-scrollbar, .calendar-history-scroll::-webkit-scrollbar,
-.calendar-goals-scroll::-webkit-scrollbar, .gym-page-scroll::-webkit-scrollbar,
-.gym-task-list::-webkit-scrollbar, .gym-history-list::-webkit-scrollbar,
-.gym-task-stack::-webkit-scrollbar, .progress-v2-scroll::-webkit-scrollbar { width:8px; height:8px; }
-.overview-scroll-list::-webkit-scrollbar-thumb, .overview-goal-list::-webkit-scrollbar-thumb,
-.task-reference-groups::-webkit-scrollbar-thumb, .focus-history-scroll::-webkit-scrollbar-thumb,
-.calendar-schedule-scroll::-webkit-scrollbar-thumb, .calendar-history-scroll::-webkit-scrollbar-thumb,
-.calendar-goals-scroll::-webkit-scrollbar-thumb, .gym-page-scroll::-webkit-scrollbar,
-.gym-task-list::-webkit-scrollbar-thumb, .gym-history-list::-webkit-scrollbar-thumb,
-.gym-task-stack::-webkit-scrollbar-thumb, .progress-v2-scroll::-webkit-scrollbar-thumb {
-  background:var(--line-strong); border:2px solid transparent; border-radius:99px; background-clip:padding-box;
+.settings-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  height: auto;
+  padding: var(--card-padding);
+  overflow: visible;
 }
-.view :is(.card,.reference-card,.task-rail-card,.settings-card,.progress-panel,.focus-session-card,.focus-side-v4 > section) { min-width:0; }
-.view :is(button,input,select,textarea):focus-visible { outline:2px solid var(--cyan-soft); outline-offset:2px; }
+.settings-card > h3,
+.settings-card-head h3 { margin: 0; }
+.settings-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.settings-card label input,
+.settings-card label select { width: 100%; }
+.settings-card .switch-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.settings-card .switch-row input { width: auto; flex: 0 0 auto; }
+.settings-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.settings-buttons > * { max-width: 100%; }
 
-/* Standard desktop viewport. */
-@media (max-width:1180px) and (min-width:821px) {
-  :root { --sidebar:220px; }
-  .main-area { grid-template-rows:66px minmax(0,1fr); }
-  .view { padding:10px 12px; }
-  .overview-v2-grid, .task-reference-layout, .focus-workspace-grid,
-  .calendar-core-fit, .calendar-bottom-grid, .gym-active-page .gym-active-grid { gap:8px; }
-  .overview-panel, .task-center-panel, .focus-session-card, .focus-side-v4 > section,
-  .calendar-main-v53, .calendar-day-panel-v53 { padding:10px; }
-  .task-reference-layout { grid-template-columns:repeat(12,minmax(0,1fr)); }
-  .task-center-panel { grid-column:span 9; }
-  .task-reference-rail { grid-column:span 3; }
-  .focus-session-card { grid-column:span 8; }
-  .focus-side-v4 { grid-column:span 4; }
-  .calendar-main-v53 { grid-column:span 8; }
-  .calendar-day-panel-v53 { grid-column:span 4; }
-  .progress-metrics { gap:7px; }
-  .progress-metric { padding:10px; }
+/* Shared protection against grid/flex children widening their page. */
+.view :is(section, article, aside, header, div, form) { min-width: 0; }
+.view :is(input, select, textarea) { max-width: 100%; }
+.view :is(.task-title-line b, .gym-task-title b, .progress-panel-head, .calendar-panel-head) {
+  overflow-wrap: anywhere;
 }
-@media (max-height:780px) and (min-width:821px) {
-  .main-area { grid-template-rows:60px minmax(0,1fr); }
-  .view { padding-top:8px; padding-bottom:8px; }
-  .overview-v2, .focus-workspace, .calendar-page-fit, .task-reference-page, .gym-page, .progress-v2 { gap:8px; }
-  .overview-v2-head { min-height:44px; }
-  .overview-v2-head h2 { font-size:22px; }
-  .overview-streak { padding:6px 10px; gap:12px; }
-  .overview-progress { gap:7px; }
-  .overview-progress-card { padding:7px 10px; }
-  .overview-panel { padding:9px; }
-  .overview-momentum-total { margin:7px 0 5px; }
-  .overview-calendar-head { padding-top:6px; }
-  .focus-workspace-grid, .calendar-core-fit, .calendar-bottom-grid { gap:8px; }
-  .focus-session-card, .focus-side-v4 > section, .calendar-main-v53, .calendar-day-panel-v53 { padding:10px; }
-  .focus-clock-v4, .focus-clock-shell { margin:4px 0; }
-  .focus-controls-v4 button { min-height:34px; }
-  .calendar-page-fit { grid-template-rows:auto minmax(0,1.4fr) minmax(104px,.7fr); }
-  .progress-chart { min-height:112px; max-height:23vh; }
+.view :is(button, input, select, textarea):focus-visible {
+  outline: 2px solid var(--cyan-soft);
+  outline-offset: 2px;
 }
-@media (max-width:820px) {
-  .app-shell { grid-template-columns:68px minmax(0,1fr); min-width:0; height:100vh; overflow:hidden; }
-  .sidebar { min-width:0; }
-  .brand-row { justify-content:center; padding-inline:6px; }
-  .brand-copy, .nav-label, .smart-nav button > span, .settings-link > span, .sidebar-status-row, .list-area {
-    display:none !important;
+
+/* Medium desktop: preserve the sidebar but give the content room. */
+@media (max-width: 1240px) {
+  :root { --app-sidebar-width: 216px; --content-gutter: 18px; }
+  .overview-v2-grid { grid-template-columns: minmax(210px, .8fr) minmax(340px, 1.4fr); }
+  .overview-goals-calendar { grid-column: 1 / -1; }
+  .overview-goals-calendar { min-height: 230px; }
+  .overview-goal-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 16px; }
+  .overview-calendar-strip { max-width: 520px; }
+  .task-reference-layout { grid-template-columns: minmax(0, 1fr) 240px; }
+  .calendar-core-fit { grid-template-columns: minmax(0, 1.2fr) minmax(260px, .8fr); }
+  .calendar-bottom-grid { grid-template-columns: minmax(0, 1fr) minmax(260px, .8fr); }
+  .focus-workspace-grid { grid-template-columns: minmax(0, 1.25fr) minmax(270px, .85fr); }
+  .gym-active-page .gym-active-grid { grid-template-columns: minmax(0, 1.2fr) minmax(260px, .8fr); }
+}
+
+/* Compact desktop / small window: use a narrow icon rail and stack page panels. */
+@media (max-width: 960px) {
+  :root { --app-sidebar-width: 76px; --content-gutter: 14px; }
+  .brand-row { justify-content: center; padding-inline: 8px; }
+  .brand-copy,
+  .nav-label,
+  .smart-nav button > span,
+  .settings-link > span,
+  .sidebar-user-card .sidebar-user-copy,
+  .sidebar-user-key,
+  .sidebar-status-row,
+  .list-area { display: none !important; }
+  .nav-section { padding-inline: 7px; }
+  .smart-nav button,
+  .settings-link {
+    display: grid;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    padding: 11px 5px;
   }
-  .nav-section { padding-inline:7px; }
-  .smart-nav button, .settings-link { display:grid; grid-template-columns:1fr; justify-items:center; padding:11px 4px; }
-  .main-area { grid-template-rows:58px minmax(0,1fr); }
-  .topbar { grid-template-columns:minmax(0,1fr) auto; gap:8px; padding-inline:10px; }
-  .top-search { display:none; }
-  .view { overflow:hidden !important; padding:8px; }
-  .overview-v2-grid {
-    grid-template-columns:repeat(12,minmax(0,1fr)); grid-template-rows:minmax(0,1fr); overflow-y:auto;
+  .topbar { padding-inline: 14px; grid-template-columns: minmax(0, 1fr) minmax(180px, .8fr) auto; gap: 10px; }
+  .overview-v2-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .overview-momentum,
+  .overview-today-actions,
+  .overview-goals-calendar { grid-column: auto; }
+  .overview-today-actions { grid-column: 1 / -1; }
+  .task-reference-layout { grid-template-columns: minmax(0, 1fr); }
+  .task-reference-rail { display: block; }
+  .task-reference-rail .rail-stat-card { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .task-reference-rail .rail-stat-card > div {
+    border-bottom: 0;
+    border-right: 1px solid var(--line);
+    flex-direction: column;
+    align-items: flex-start;
   }
-  .overview-momentum, .overview-today-actions, .overview-goals-calendar { grid-column:span 12; min-height:220px; }
-  .overview-progress { grid-template-columns:repeat(3,minmax(0,1fr)); }
-  .task-reference-layout, .focus-workspace-grid, .calendar-core-fit, .calendar-bottom-grid,
-  .gym-active-page .gym-active-grid { grid-template-columns:repeat(12,minmax(0,1fr)); grid-template-rows:minmax(0,1fr); }
-  .task-center-panel, .focus-session-card, .calendar-main-v53, .gym-active-page .gym-focus-card { grid-column:span 8; }
-  .task-reference-rail, .focus-side-v4, .calendar-day-panel-v53, .gym-active-page .gym-sidebar-card { grid-column:span 4; }
-  .calendar-history-v25 { grid-column:span 7; }
-  .calendar-goals-strip { grid-column:span 5; }
-  .progress-bottom-grid { grid-template-columns:repeat(12,minmax(0,1fr)); }
+  .task-reference-rail .rail-stat-card > div:last-child { border-right: 0; }
+  .focus-workspace-grid,
+  .calendar-core-fit,
+  .calendar-bottom-grid,
+  .gym-active-page .gym-active-grid { grid-template-columns: minmax(0, 1fr); }
+  .focus-session-card,
+  .calendar-main-v53,
+  .calendar-day-panel-v53,
+  .calendar-history-v25,
+  .calendar-goals-strip,
+  .gym-active-page .gym-focus-card,
+  .gym-active-page .gym-sidebar-card { grid-column: auto; }
+  .calendar-main-v53 .calendar.grid { grid-auto-rows: minmax(76px, auto); }
 }
-body.view-settings .view {
-  display:block; height:100%; min-height:0; overflow-x:hidden; overflow-y:auto;
+
+/* Narrow layout: navigation stays accessible, all page content remains scrollable. */
+@media (max-width: 680px) {
+  :root { --app-sidebar-width: 60px; --content-gutter: 10px; --card-padding: 14px; }
+  .main-area { grid-template-rows: 62px minmax(0, 1fr); }
+  .topbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding-inline: 10px;
+  }
+  .top-search { display: none; }
+  .top-title h1 { font-size: 19px; }
+  .view { padding-top: 14px; padding-bottom: 30px; }
+  .overview-v2-head,
+  .task-page-head,
+  .calendar-page-fit .calendar-header-v53,
+  .progress-v2-head { align-items: flex-start; }
+  .overview-progress { grid-template-columns: minmax(0, 1fr); }
+  .overview-v2-grid { grid-template-columns: minmax(0, 1fr); }
+  .overview-momentum,
+  .overview-today-actions,
+  .overview-goals-calendar { grid-column: auto; min-height: 250px; }
+  .overview-action-columns { grid-template-columns: minmax(0, 1fr); }
+  .overview-calendar-strip { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+  .task-reference-page .task-page-head { flex-direction: column; align-items: stretch; }
+  .task-head-actions { justify-content: flex-start; }
+  .task-reference-page .view-tabs { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 8px; }
+  .task-reference-rail .rail-stat-card { grid-template-columns: minmax(0, 1fr); }
+  .task-reference-rail .rail-stat-card > div {
+    flex-direction: row;
+    align-items: center;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .focus-session-card { min-height: 480px; }
+  .focus-stats-v4 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .calendar-main-v53 .calendar.grid { grid-auto-rows: minmax(58px, auto); gap: 4px; }
+  .calendar-main-v53 .calendar-day { padding: 5px; }
+  .calendar-day-panel-v53 .calendar-day-stats-v53 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .calendar-bottom-grid { grid-template-columns: minmax(0, 1fr); }
+  .gym-page .gym-hero { grid-template-columns: minmax(0, 1fr); }
+  .gym-hero-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .gym-howto { grid-template-columns: minmax(0, 1fr); }
+  .gym-task-card { grid-template-columns: 30px minmax(0, 1fr); }
+  .gym-task-actions { grid-column: 2; justify-content: flex-start; flex-wrap: wrap; }
+  .gym-customization-panel { flex-direction: column; align-items: stretch; }
+  .progress-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .progress-bottom-grid { grid-template-columns: minmax(0, 1fr); }
+  .settings-grid,
+  .settings-grid-55 { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Short desktop heights: never clip the page; reduce only decorative spacing. */
+@media (max-height: 760px) and (min-width: 681px) {
+  :root { --section-gap: 14px; --card-gap: 10px; }
+  .view { padding-top: 14px; padding-bottom: 28px; }
+  .focus-session-card { min-height: 470px; }
+  .focus-clock-v4,
+  .focus-clock-shell { min-height: 190px; margin-block: 8px; }
 }
