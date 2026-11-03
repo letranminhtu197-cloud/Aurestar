@@ -38,32 +38,41 @@ if (readyStart < 0 || readyEnd < 0 || displaySubscriptions.length !== 3 || displ
 }
 
 
-/* Aurestar viewport scrolling invariants. */
+/* Aurestar complete natural-flow layout invariants. */
 const styles = fs.readFileSync(path.join(root, 'src', 'styles.css'), 'utf8');
 const rendererSource = fs.readFileSync(path.join(root, 'src', 'renderer.js'), 'utf8');
-const viewportStart = styles.lastIndexOf('AURESTAR VIEWPORT LAYOUT SYSTEM');
-if (viewportStart < 0) throw new Error('Missing the shared Aurestar viewport layout system.');
-const viewportStyles = styles.slice(viewportStart);
-const viewportRequirements = [
-  ['fixed application shell', /\.app-shell\s*\{[^}]*overflow\s*:\s*hidden/s],
-  ['fixed page viewport', /\.view,\s*#view\s*\{[^}]*overflow\s*:\s*hidden/s],
-  ['independent task-list scrolling', /\.task-reference-groups\s*\{[^}]*overflow-x\s*:\s*hidden[^}]*overflow-y\s*:\s*auto/s],
-  ['independent focus-history scrolling', /\.focus-history-scroll\s*\{[^}]*overflow-x\s*:\s*hidden[^}]*overflow-y\s*:\s*auto/s],
-  ['independent Progress scrolling', /\.progress-v2-scroll\s*\{[^}]*overflow-x\s*:\s*hidden[^}]*overflow-y\s*:\s*auto/s],
-  ['independent Training scrolling', /\.gym-page-scroll\s*\{[^}]*overflow-x\s*:\s*hidden[^}]*overflow-y\s*:\s*auto/s],
+const layoutStart = styles.lastIndexOf('AURESTAR — COMPLETE PAGE LAYOUT REWORK');
+if (layoutStart < 0) throw new Error('Missing the complete Aurestar page layout rework.');
+const layoutStyles = styles.slice(layoutStart);
+const layoutRequirements = [
+  ['fixed app frame', /\.app-shell\s*\{[^}]*overflow\s*:\s*hidden/s],
+  ['main content vertical scrolling', /\.view,\s*#view\s*\{[^}]*overflow-y\s*:\s*auto/s],
+  ['touch / trackpad vertical scrolling', /\.view,\s*#view\s*\{[^}]*touch-action\s*:\s*pan-y/s],
+  ['Overview responsive grid', /\.overview-v2-grid\s*\{[^}]*display\s*:\s*grid/s],
+  ['Tasks responsive grid', /\.task-reference-layout\s*\{[^}]*display\s*:\s*grid/s],
+  ['Focus responsive grid', /\.focus-workspace-grid\s*\{[^}]*display\s*:\s*grid/s],
+  ['Calendar responsive grid', /\.calendar-core-fit\s*\{[^}]*display\s*:\s*grid/s],
+  ['Progress natural-flow page', /\.progress-v2-scroll\s*\{\s*display\s*:\s*contents\s*!important/s],
+  ['Training natural-flow page', /\.gym-page-scroll,\s*\.progress-v2-scroll\s*\{\s*display\s*:\s*contents\s*!important/s],
 ];
-for (const [label, pattern] of viewportRequirements) {
-  if (!pattern.test(viewportStyles)) throw new Error(`Missing viewport requirement: ${label}.`);
+for (const [label, pattern] of layoutRequirements) {
+  if (!pattern.test(layoutStyles)) throw new Error(`Missing layout invariant: ${label}.`);
 }
-if (!rendererSource.includes('class="progress-v2-scroll"')) {
-  throw new Error('Progress lower sections must be inside their own scroll container.');
+for (const [label, fragment] of [
+  ['unlimited Focus history', 'sort((a,b)=>Number(b.completedAt||0)-Number(a.completedAt||0)),isRunning='],
+  ['unlimited Training history', '(state.workoutSessions||[]).slice().reverse().map(s=>'],
+]) {
+  if (!rendererSource.includes(fragment)) throw new Error(`Missing complete content rendering: ${label}.`);
 }
-if (!rendererSource.includes('class="gym-page-scroll"')) {
-  throw new Error('Training guidance, schedule and history must be inside their own scroll container.');
+if (rendererSource.includes('.slice(0,10),isRunning=')) {
+  throw new Error('Focus history is still capped at ten sessions.');
 }
-const cssWithoutComments = viewportStyles.replace(/\/\*[\s\S]*?\*\//g, '');
+if (rendererSource.includes('(state.workoutSessions||[]).slice(-8)')) {
+  throw new Error('Training history is still capped at eight sessions.');
+}
+const cssWithoutComments = styles.replace(/\/\*[\s\S]*?\*\//g, '');
 if ((cssWithoutComments.match(/\{/g) || []).length !== (cssWithoutComments.match(/\}/g) || []).length) {
-  throw new Error('Unbalanced CSS rule braces in the viewport layout system.');
+  throw new Error('Unbalanced CSS rule braces in styles.css.');
 }
 
 process.stdout.write(`Checked ${jsFiles.length} JavaScript files and desktop security invariants.\n`);
