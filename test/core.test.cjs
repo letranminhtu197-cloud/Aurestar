@@ -65,3 +65,29 @@ test('alarm scheduler fires on absolute time, replaces duplicate names and resum
   scheduler.resume(); assert.equal(fired.length, 2);
   scheduler.close();
 });
+
+
+test('state normalization repairs missing or malformed collections without discarding valid data', () => {
+  const { normalizeStateCollections } = require('../src/core/persistence.cjs');
+  const defaults = { tasks: [], habits: [], settings: { theme: 'dark' }, profile: { xp: 0 } };
+  const result = normalizeStateCollections({
+    tasks: [{ id: 't1' }], habits: null, focusSessions: 'invalid',
+    settings: { language: 'vi' }, profile: { xp: 42 }
+  }, defaults);
+  assert.deepEqual(result.tasks, [{ id: 't1' }]);
+  assert.deepEqual(result.habits, []);
+  assert.deepEqual(result.focusSessions, []);
+  assert.deepEqual(result.settings, { theme: 'dark', language: 'vi' });
+  assert.deepEqual(result.profile, { xp: 42 });
+});
+
+test('import JSON reader rejects oversized, malformed and non-object backups', t => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'aurestar-import-'));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const malformed = path.join(root, 'broken.json');
+  const arrayRoot = path.join(root, 'array.json');
+  fs.writeFileSync(malformed, '{bad');
+  fs.writeFileSync(arrayRoot, '[]');
+  assert.equal(readJsonFile(malformed).valid, false);
+  assert.equal(readJsonFile(arrayRoot).valid, false);
+});
