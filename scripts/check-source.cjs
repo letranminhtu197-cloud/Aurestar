@@ -34,6 +34,11 @@ if (!/app\.requestSingleInstanceLock\(\)/.test(mainProcess)) throw new Error('El
 if (!/render-process-gone/.test(mainProcess) || !/webContents\.reload\(\)/.test(mainProcess)) throw new Error('Main window must have bounded renderer crash recovery.');
 if (!/readJsonFile\(r\.filePaths\[0\]\)/.test(mainProcess)) throw new Error('Backup import must validate JSON before replacing live state.');
 if (!/normalizeStateCollections\(merged,base\)/.test(mainProcess)) throw new Error('Loaded state collections must be normalized before rendering.');
+const backgroundProcess = fs.readFileSync(path.join(root, 'resources', 'aurestar-chrome', 'background.js'), 'utf8');
+const rendererProcess = fs.readFileSync(path.join(root, 'src', 'renderer.js'), 'utf8');
+if (!/case"updateHabit":/.test(backgroundProcess) || !/action\("updateHabit"/.test(rendererProcess)) throw new Error('Habit editing must be available in the UI and background action handler.');
+if (/focusSessions\|\|\[\]\)\]\.sort\([^]*?\.slice\(0,10\)/.test(rendererProcess)) throw new Error('Focus history must not be truncated to ten sessions.');
+if (/workoutSessions\|\|\[\]\)\.slice\(-8\)/.test(rendererProcess)) throw new Error('Training history must not be truncated to eight sessions.');
 const readyStart = mainProcess.indexOf('app.whenReady().then(()=>{');
 const readyEnd = mainProcess.indexOf('\n});', readyStart);
 const displaySubscriptions = [...mainProcess.matchAll(/screen\.on\(['"]display-(?:metrics-changed|added|removed)['"]/g)];

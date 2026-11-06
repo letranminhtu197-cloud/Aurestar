@@ -91,3 +91,22 @@ test('import JSON reader rejects oversized, malformed and non-object backups', t
   assert.equal(readJsonFile(malformed).valid, false);
   assert.equal(readJsonFile(arrayRoot).valid, false);
 });
+
+
+test('functional audit: habit edit action validates fields and preserves completion history', () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'resources', 'aurestar-chrome', 'background.js'), 'utf8');
+  assert.match(source, /case"updateHabit":\{const h=s\.habits\.find/);
+  assert.match(source, /Habit name is required/);
+  assert.match(source, /Habit frequency must be daily or weekly/);
+  assert.match(source, /Object\.assign\(h,\{title,frequency,xp:habitXP/);
+  assert.doesNotMatch(source, /case"updateHabit":[^]*?completions:\[\]/);
+});
+
+test('functional audit: habit edit is reachable and long histories are not truncated in Focus or Training', () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer.js'), 'utf8');
+  assert.match(source, /data-edit-habit/);
+  assert.match(source, /openHabitForm\(b\.dataset\.editHabit\)/);
+  assert.match(source, /action\("updateHabit"/);
+  assert.doesNotMatch(source, /focusSessions\|\|\[\]\)\]\.sort\([^]*?\.slice\(0,10\)/);
+  assert.doesNotMatch(source, /workoutSessions\|\|\[\]\)\.slice\(-8\)/);
+});
