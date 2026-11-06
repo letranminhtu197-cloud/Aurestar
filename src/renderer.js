@@ -1,6 +1,6 @@
 let state=null;
 const initialRoute=(document.body.dataset.initialView||location.hash.replace(/^#/,"")||"dashboard");
-let activeView=initialRoute==="habits"?"tasks":["dashboard","today","tasks","focus","gym","calendar","analytics","settings"].includes(initialRoute)?initialRoute:"dashboard";
+let activeView=["dashboard","today","tasks","habits","focus","gym","calendar","analytics","settings"].includes(initialRoute)?initialRoute:"dashboard";
 let selectedList="all";
 let taskMode="today";
 let searchQuery="";
@@ -27,7 +27,7 @@ const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 const send=(type,payload={})=>new Promise((resolve,reject)=>chrome.runtime.sendMessage({type,...payload},r=>{const e=chrome.runtime.lastError;if(e)return reject(new Error(e.message));resolve(r)}));
 const sendWithTimeout=(type,payload={},timeoutMs=5000)=>new Promise((resolve,reject)=>{let settled=false;const timerId=setTimeout(()=>{if(settled)return;settled=true;reject(new Error(`Timed out waiting for background response: ${type}`));},timeoutMs);send(type,payload).then(value=>{if(settled)return;settled=true;clearTimeout(timerId);resolve(value);},error=>{if(settled)return;settled=true;clearTimeout(timerId);reject(error);});});
 const priorityLabel={low:"Low",medium:"Medium",high:"High",urgent:"Urgent"};
-const viewTitles={dashboard:"Overview",today:"Today",tasks:"Tasks & Habits",habits:"Tasks & Habits",focus:"Focus",gym:"Training",calendar:"Calendar",analytics:"Progress",settings:"Settings"};
+const viewTitles={dashboard:"Overview",today:"Today",tasks:"Tasks & Habits",habits:"Habits",focus:"Focus",gym:"Training",calendar:"Calendar",analytics:"Progress",settings:"Settings"};
 const attrMeta={};
 
 const LOCALES = {
@@ -234,7 +234,7 @@ function renderShell(){
     renderView("settings");
     return;
   }
-  const primaryForView=v=>({today:"dashboard",tasks:"tasks",habits:"tasks",calendar:"calendar",gym:"gym",analytics:"analytics",settings:""}[v]||v);
+  const primaryForView=v=>({today:"dashboard",calendar:"calendar",gym:"gym",analytics:"analytics",settings:""}[v]||v);
   $$('[data-view]').forEach(b=>{
     const active=b.dataset.view===primaryForView(activeView);
     b.classList.toggle("active",active);
@@ -255,8 +255,8 @@ function renderShell(){
   $("#exportTop")&&( $("#exportTop").onclick=openTaskExportMenu );
   renderView(activeView);renderListsSidebar();localizeDOM();refreshItsukiCompanion();bindItsukiCompanion();
 }
-function navigate(view){if(view==="habits")view="tasks";if(!viewTitles[view])return;activeView=view;history.replaceState(null,"",`#${view}`);renderShell()}
-function renderView(view){const el=$("#view");document.body.classList.toggle("view-settings",view==="settings");if(clockInterval){clearInterval(clockInterval);clockInterval=null;}if(view!=="focus"&&focusUiTimer){clearInterval(focusUiTimer);focusUiTimer=null;}if(view!=="gym"&&gymUiTimer){clearInterval(gymUiTimer);gymUiTimer=null;gymLastStateKey="";}const renderer={dashboard:renderDashboard,today:renderToday,tasks:renderTasks,habits:renderTasks,focus:renderFocus,gym:renderGym,calendar:renderCalendar,analytics:renderAnalytics,settings:renderSettings}[view]||renderToday;renderer(el);injectSectionNav(view,el);localizeDOM(el)}
+function navigate(view){if(!viewTitles[view])return;activeView=view;history.replaceState(null,"",`#${view}`);renderShell()}
+function renderView(view){const el=$("#view");document.body.classList.toggle("view-settings",view==="settings");if(clockInterval){clearInterval(clockInterval);clockInterval=null;}if(view!=="focus"&&focusUiTimer){clearInterval(focusUiTimer);focusUiTimer=null;}if(view!=="gym"&&gymUiTimer){clearInterval(gymUiTimer);gymUiTimer=null;gymLastStateKey="";}const renderer={dashboard:renderDashboard,today:renderToday,tasks:renderTasks,habits:renderHabits,focus:renderFocus,gym:renderGym,calendar:renderCalendar,analytics:renderAnalytics,settings:renderSettings}[view]||renderToday;renderer(el);injectSectionNav(view,el);localizeDOM(el)}
 function injectSectionNav(view,el){
   // Tasks and habits now live together on one workspace. Calendar is a first-class
   // page in the main sidebar, so only the related Progress sub-navigation remains.
@@ -298,9 +298,9 @@ function renderDashboard(el){
  const goalRows=goals.map(g=>`<div class="overview-goal-row"><div><b>${esc(g.title)}</b><small>${goalProgress(g)}/${Number(g.target)||0} days</small></div><button type="button" class="icon-btn danger-icon" data-delete-goal="${esc(g.id)}" title="Delete goal">×</button></div>`).join("");
  const weekDays=days.map(day=>`<button type="button" class="overview-calendar-day ${day===k?"today":""}" data-cal-day="${day}"><b>${fromKey(day).getDate()}</b><small>${fromKey(day).toLocaleDateString("en-US",{weekday:"short"})}</small><i class="${activeDates.has(day)?"active":""}"></i></button>`).join("");
  el.innerHTML=`<div class="overview-v2"><header class="overview-v2-head"><div><span class="eyebrow">OVERVIEW</span><h2>Today</h2><small>${fromKey(k).toLocaleDateString("en-US",{weekday:"long",day:"numeric",month:"long"})}</small></div><section class="overview-streak"><div><span>Streak</span><strong>🔥 ${Math.max(0,Number(streak.current)||0)}</strong><small>Best ${Math.max(Number(streak.best)||0,Number(streak.current)||0)} days</small></div><div class="overview-streak-days">${days.map(day=>`<i class="${activeDates.has(day)?"active":""}">${fromKey(day).toLocaleDateString("en-US",{weekday:"narrow"})}</i>`).join("")}</div></section></header>
- <section class="overview-progress"><button type="button" class="overview-progress-card" data-nav="tasks"><span>Tasks</span><strong>${taskDoneCount}<small> / ${todayTasks.length}</small></strong><div class="overview-progress-track"><i style="width:${taskPct}%"></i></div><small>${taskPct}% complete</small></button><button type="button" class="overview-progress-card" data-nav="tasks"><span>Habits</span><strong>${habitDoneCount}<small> / ${habits.length}</small></strong><div class="overview-progress-track"><i style="width:${habitPct}%"></i></div><small>${habitPct}% complete</small></button><button type="button" class="overview-progress-card" data-nav="focus"><span>Focus time</span><strong>${formatDuration(focusMinutes)}<small> / ${formatDuration(focusGoal)}</small></strong><div class="overview-progress-track"><i style="width:${focusPct}%"></i></div><small>${focusPct}% of daily goal</small></button></section>
+ <section class="overview-progress"><button type="button" class="overview-progress-card" data-nav="tasks"><span>Tasks</span><strong>${taskDoneCount}<small> / ${todayTasks.length}</small></strong><div class="overview-progress-track"><i style="width:${taskPct}%"></i></div><small>${taskPct}% complete</small></button><button type="button" class="overview-progress-card" data-nav="habits"><span>Habits</span><strong>${habitDoneCount}<small> / ${habits.length}</small></strong><div class="overview-progress-track"><i style="width:${habitPct}%"></i></div><small>${habitPct}% complete</small></button><button type="button" class="overview-progress-card" data-nav="focus"><span>Focus time</span><strong>${formatDuration(focusMinutes)}<small> / ${formatDuration(focusGoal)}</small></strong><div class="overview-progress-track"><i style="width:${focusPct}%"></i></div><small>${focusPct}% of daily goal</small></button></section>
  <div class="overview-v2-grid"><section class="overview-panel overview-momentum"><div class="overview-panel-head"><h3>Activity</h3><button type="button" class="ghost" data-nav="calendar">Calendar →</button></div><div class="overview-momentum-total"><strong>${momentum.reduce((n,x)=>n+x.count,0)}</strong><span>actions · last 7 days</span></div><div class="overview-bars">${momentum.map(x=>`<button type="button" class="overview-bar-day" data-cal-day="${x.day}" title="${x.day} · ${x.count} actions"><span><i style="height:${x.count?Math.max(8,Math.round(x.count/maxMomentum*100)):3}%"></i></span><b>${x.count}</b><small>${fromKey(x.day).toLocaleDateString("en-US",{weekday:"narrow"})}</small></button>`).join("")}</div></section>
- <section class="overview-panel overview-today-actions"><div class="overview-panel-head"><h3>Today</h3><span>${openTasks.length} tasks left</span></div><div class="overview-action-columns"><div class="overview-action-group"><div class="overview-subhead"><b>Tasks</b><button type="button" class="ghost" data-nav="tasks">All →</button></div><div class="overview-scroll-list">${todayTaskRows||'<div class="empty">No tasks</div>'}</div></div><div class="overview-action-group"><div class="overview-subhead"><b>Habits</b><button type="button" class="ghost" data-nav="tasks">All →</button></div><div class="overview-scroll-list">${habitRows||'<div class="empty">No habits</div>'}</div></div></div></section>
+ <section class="overview-panel overview-today-actions"><div class="overview-panel-head"><h3>Today</h3><span>${openTasks.length} tasks left</span></div><div class="overview-action-columns"><div class="overview-action-group"><div class="overview-subhead"><b>Tasks</b><button type="button" class="ghost" data-nav="tasks">All →</button></div><div class="overview-scroll-list">${todayTaskRows||'<div class="empty">No tasks</div>'}</div></div><div class="overview-action-group"><div class="overview-subhead"><b>Habits</b><button type="button" class="ghost" data-nav="habits">All →</button></div><div class="overview-scroll-list">${habitRows||'<div class="empty">No habits</div>'}</div></div></div></section>
  <section class="overview-panel overview-goals-calendar"><div class="overview-panel-head"><h3>Goals</h3><button type="button" class="ghost" data-nav="calendar">Open →</button></div><div class="overview-goal-list">${goalRows||'<div class="empty">No goals</div>'}</div><div class="overview-panel-head overview-calendar-head"><h3>Calendar</h3><button type="button" class="ghost" data-nav="calendar">Month →</button></div><div class="overview-calendar-strip">${weekDays}</div></section></div></div>`;
  bindGlobal();$$('[data-cal-day]').forEach(b=>b.addEventListener('click',()=>{selectedDate=b.dataset.calDay;calendarDate=fromKey(selectedDate);navigate('calendar')}));
 }
@@ -468,11 +468,6 @@ function renderTasks(el){
     <div class="task-page-head"><div><div class="eyebrow">${esc(modeLabel.toUpperCase())}</div><div class="task-heading-row"><h2>${esc(heading)}</h2></div><p class="task-date-line">${esc(sub)}</p></div><div class="task-head-actions"><button class="ghost" id="importTasksBtn">Import</button><button class="ghost" id="exportTasksBtn">Export</button><button class="primary" id="newTaskFocus"> + Tasks <kbd>N</kbd></button></div></div>
     <div class="task-controls"><div class="view-tabs">${[["today","Today"],["tomorrow","Tomorrow"],["next7","7 days"],["all","All"],["inbox","Inbox"],["completed","Completed"]].map(x=>`<button class="${taskMode===x[0]?"active":""}" data-task-switch="${x[0]}">${x[1]}</button>`).join("")}</div></div>
     ${quickTaskForm()}
-    <section class="unified-habits" aria-label="Daily habits">
-      <div class="unified-habits-head"><div><span class="section-kicker">DAILY RHYTHM</span><h3>Habits</h3><p>Check off the small things that keep you consistent.</p></div><div class="unified-habit-progress"><strong>${state.habits.filter(h=>habitDone(h,k)).length}/${state.habits.length}</strong><span>done today</span></div></div>
-      <form id="habitAdd" class="habit-quick-add"><input name="title" placeholder="Add a habit…" maxlength="80" required aria-label="Habit name"><select name="frequency" aria-label="Habit frequency"><option value="daily" selected>Daily</option><option value="weekly">Weekly</option></select><button class="primary" type="submit">＋ Add habit</button></form>
-      <div class="habit-inline-grid">${state.habits.map(h=>habitCompact(h)).join("")||`<div class="habit-inline-empty">No habits yet. Add one small routine to get started.</div>`}</div>
-    </section>
     <div class="task-reference-layout">
       <section class="task-center-panel"><div class="task-board-title"><div><span class="section-kicker">TASK LIST</span><h3>${esc(heading)}</h3></div><span>${open.length} open</span></div><div class="task-reference-groups">${groups.map(g=>`<section class="task-group"><div class="task-group-head"><b>${g.day===k?"Today":fromKey(g.day).toLocaleDateString("en-US",{weekday:"long",day:"numeric",month:"numeric"})}</b><span>${g.items.length}</span></div><div class="task-list">${g.items.map(t=>taskCard(t,g.day,taskMode==="completed")).join("")||`<div class="empty">No tasks in this view.</div>`}</div></section>`).join("")}${taskMode!=="completed"&&doneToday.length?`<section class="task-group completed-group"><div class="task-group-head"><b>Completed today</b><span>${doneToday.length}</span></div><div class="task-list">${doneToday.map(t=>taskCard(t,k)).join("")}</div></section>`:""}</div></section>
       <aside class="task-reference-rail">
@@ -491,7 +486,41 @@ function manageLists(){const body=state.lists.map(l=>`<div class="manage-list"><
 function habitCompact(h){const done=habitDone(h),frequency=h.frequency==="weekly"?"Weekly":"Daily";return `<article class="habit-inline-card ${done?"done":""}"><button type="button" class="habit-inline-check ${done?"checked":""}" data-habit-toggle="${esc(h.id)}" aria-label="${done?"Mark habit incomplete":"Complete habit"}">${done?"✓":""}</button><div class="habit-inline-copy"><b>${esc(h.title)}</b><small>${frequency} · ${(h.completions||[]).length} check-ins</small></div><button type="button" class="habit-inline-edit" data-edit-habit="${esc(h.id)}" aria-label="Edit habit" title="Edit habit">✎</button><button type="button" class="habit-inline-delete" data-delete-habit="${esc(h.id)}" aria-label="Delete habit" title="Delete habit">×</button></article>`}
 function bindHabitQuickAdd(){const form=$("#habitAdd");if(!form)return;form.addEventListener("submit",async e=>{e.preventDefault();const f=new FormData(form),title=String(f.get("title")||"").trim(),frequency=String(f.get("frequency")||"daily");if(!title)return;const r=await action("addHabit",{item:{title,xp:30,frequency}});if(r){renderShell();toast("Habit added","success")}})}
 function openHabitForm(id){const h=state.habits.find(x=>String(x.id)===String(id));if(!h)return;openModal(`<div class="modal-head"><div><span class="badge">EDIT HABIT</span><h3>Edit habit</h3></div><button class="icon-btn" data-close-modal>×</button></div><form id="habitEditForm" class="modal-form"><label>Habit name<input name="title" maxlength="80" required value="${esc(h.title)}"></label><label>Frequency<select name="frequency"><option value="daily" ${h.frequency!=="weekly"?"selected":""}>Daily</option><option value="weekly" ${h.frequency==="weekly"?"selected":""}>Weekly</option></select></label><div class="modal-actions"><button type="button" class="ghost" data-close-modal>Cancel</button><button type="submit" class="primary">Save changes</button></div></form>`);$("#habitEditForm")?.addEventListener("submit",async e=>{e.preventDefault();const form=new FormData(e.currentTarget),title=String(form.get("title")||"").trim(),frequency=String(form.get("frequency")||"daily");if(!title)return;const r=await action("updateHabit",{id:h.id,item:{title,frequency}});if(r){closeModal();renderShell();toast("Habit updated","success")}})}
-function renderHabits(el){navigate("tasks")}
+function renderHabits(el){
+  const k=today(),habits=state.habits||[];
+  const days=Array.from({length:7},(_,i)=>addDays(k,i-6));
+  const completedToday=habits.filter(h=>habitDone(h,k)).length;
+  const weekCheckins=habits.reduce((n,h)=>n+(h.completions||[]).filter(d=>days.includes(d)).length,0);
+  const history=(h)=>days.map(day=>{
+    const done=(h.completions||[]).includes(day);
+    const label=fromKey(day).toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
+    return `<span class="habit-week-cell ${done?"is-done":""} ${day===k?"is-today":""}" title="${esc(label)} · ${done?"Completed":"Not completed"}"><i></i><small>${fromKey(day).toLocaleDateString("en-US",{weekday:"narrow"})}</small></span>`;
+  }).join("");
+  const cards=habits.map(h=>{
+    const done=habitDone(h,k),frequency=h.frequency==="weekly"?"Weekly":"Daily";
+    return `<article class="habit-board-card ${done?"is-complete":""}">
+      <div class="habit-board-main">
+        <button type="button" class="habit-inline-check ${done?"checked":""}" data-habit-toggle="${esc(h.id)}" aria-label="${done?"Mark habit incomplete":"Complete habit"}">${done?"✓":""}</button>
+        <div class="habit-board-copy"><b>${esc(h.title)}</b><small>${frequency} · ${(h.completions||[]).length} check-ins</small></div>
+        <div class="habit-board-actions"><button type="button" class="habit-inline-edit" data-edit-habit="${esc(h.id)}" aria-label="Edit habit" title="Edit habit">✎</button><button type="button" class="habit-inline-delete" data-delete-habit="${esc(h.id)}" aria-label="Delete habit" title="Delete habit">×</button></div>
+      </div>
+      <div class="habit-week-history" aria-label="Last seven days">${history(h)}</div>
+    </article>`;
+  }).join("");
+  el.innerHTML=`<div class="habits-workspace">
+    <header class="habits-page-head"><div><span class="eyebrow">DAILY RHYTHM</span><h2>Habits</h2><p>Build consistency through small, repeatable actions.</p></div><div class="habits-head-date"><span>Today</span><b>${fromKey(k).toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric"})}</b></div></header>
+    <section class="habits-summary-grid">
+      <article class="habits-summary-card"><span>Active habits</span><strong>${habits.length}</strong></article>
+      <article class="habits-summary-card"><span>Completed today</span><strong>${completedToday}<small> / ${habits.length}</small></strong></article>
+      <article class="habits-summary-card"><span>Check-ins · 7 days</span><strong>${weekCheckins}</strong></article>
+    </section>
+    <section class="habit-create-panel"><div><span class="section-kicker">NEW ROUTINE</span><h3>Add a habit</h3></div><form id="habitAdd" class="habit-quick-add"><input name="title" placeholder="e.g. Read for 20 minutes" maxlength="80" required aria-label="Habit name"><select name="frequency" aria-label="Habit frequency"><option value="daily" selected>Daily</option><option value="weekly">Weekly</option></select><button class="primary" type="submit">＋ Add habit</button></form></section>
+    <section class="habit-board-section"><div class="habit-board-heading"><div><span class="section-kicker">YOUR ROUTINES</span><h3>Habit tracker</h3></div><span class="muted">Last 7 days</span></div>
+      <div class="habit-board-list">${cards||'<div class="empty habit-empty">No habits yet. Add your first routine above.</div>'}</div>
+    </section>
+  </div>`;
+  bindGlobal();bindHabitQuickAdd();
+}
 function habitDetail(h){const done=habitDone(h);const freq=h.frequency==="weekly"?"weekly":"daily";return `<article class="habit-detail ${done?"done":""}"><div class="habit-detail-head"><button class="check ${done?"checked":""}" data-habit-toggle="${esc(h.id)}">${done?"✓":""}</button><div><h3>${esc(h.title)}</h3><p>${freq} habit</p></div><button class="icon-btn danger-icon" data-delete-habit="${esc(h.id)}">×</button></div><div class="habit-stats"><div><b>${(h.completions||[]).length}</b><small>check-ins</small></div><div><b>${done?"Done":"Pending"}</b><small>today</small></div><div><b>${freq}</b><small>frequency</small></div></div></article>`}
 
 let focusUiState={active:false,phase:"idle",mode:25,remaining:25*60,elapsed:0,paused:false,endsAt:0,pomodorosCompleted:0,roundsTarget:4,taskId:"",breakKind:"short",countdown:true,free:false,todayFocusMinutes:0,dailyFocusGoalMin:120};
