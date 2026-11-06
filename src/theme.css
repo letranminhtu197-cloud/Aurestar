@@ -526,3 +526,7 @@ input[type=checkbox],input[type=range]{accent-color:var(--rose)}
 .overview-month-day:hover{border-color:var(--rose)}
 .overview-goals-calendar .overview-calendar-head,.overview-goals-calendar .overview-calendar-strip{display:none}
 .gym-page:not(.gym-active-page)>.gym-customization-panel{grid-column:1/-1}
+
+/* Keep a compact Calendar shortcut beneath the Overview goals, not a duplicate week strip. */
+.overview-goals-calendar .overview-calendar-head{display:flex;margin-top:auto;padding-top:12px;border-top:1px solid var(--line)}
+.overview-goals-calendar .overview-calendar-strip{display:none}
