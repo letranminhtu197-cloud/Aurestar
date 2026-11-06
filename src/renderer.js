@@ -477,7 +477,7 @@ function renderTasks(el){
     </div>
   </div>`;
   const quick=$("#quickTask"),taskPanel=$(".task-center-panel");if(quick&&taskPanel)taskPanel.prepend(quick);bindGlobal();bindQuickTask();renderHabits($("#dailyRoutineHabits"));
-  $('[data-task-switch]').forEach(b=>b.onclick=()=>{taskMode=b.dataset.taskSwitch;selectedList="all";renderShell()});
+  $$('[data-task-switch]').forEach(b=>b.onclick=()=>{taskMode=b.dataset.taskSwitch;selectedList="all";renderShell()});
   $("#newTaskFocus")?.addEventListener("click",openTaskForm);$("#importTasksBtn")?.addEventListener("click",openTaskImportPicker);$("#exportTasksBtn")?.addEventListener("click",openTaskExportMenu);
 }
 
