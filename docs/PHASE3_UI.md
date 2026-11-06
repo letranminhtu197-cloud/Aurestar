@@ -2,7 +2,7 @@
 
 Date: 2026-11-07
 Branch: `feature/phase3-itsuki-design-system`
-Base: `feature/phase3-complete-ui-redesign`
+Base: `feature/phase2-functional-audit`
 
 ## Design direction
 
