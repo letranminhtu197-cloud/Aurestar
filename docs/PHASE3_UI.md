@@ -1,30 +1,39 @@
-# Phase 3 — Complete UI redesign
+# Phase 3 — Itsuki visual system and layout redesign
 
-Date: 2026-11-06
-Branch: `feature/phase3-complete-ui-redesign`
-Base: `feature/phase2-functional-audit`
+Date: 2026-11-07
+Branch: `feature/phase3-itsuki-design-system`
+Base: `feature/phase3-complete-ui-redesign`
 
 ## Design direction
 
-Aurestar uses a Dark Plum Professional visual system: deep plum surfaces, restrained rose accents, muted violet depth and warm gold highlights. The design keeps Aurestar's identity rather than copying another product.
+Restore the original Itsuki companion palette as Aurestar's primary visual identity:
+- Deep plum / near-black wine backgrounds.
+- Warm rose as the primary interactive accent.
+- Soft ivory text and muted mauve secondary text.
+- Restrained gold for rewards and important progress.
+- The main app and both floating widgets share the same palette language.
 
-## Scope of this implementation batch
+The design changes page hierarchy and layout proportions while retaining existing renderer templates, event handlers, state, storage, and Electron window behavior.
 
-- Establish shared color, typography, surface, border, radius, shadow and focus-ring tokens.
-- Restyle the application shell, sidebar, topbar, navigation, buttons, inputs, cards, badges, progress indicators, task rows, modal surfaces, notifications and floating add action.
-- Apply a consistent visual layer to Overview, Tasks/Habits, Focus, Calendar, Training, Progress and Settings using existing renderer class hooks.
-- Improve responsive behavior: compact icon rail at tablet widths, horizontal navigation on narrow windows, responsive topbar and single-column content layouts.
-- Preserve existing page templates, renderer actions, storage model, Electron main/preload architecture and business logic.
-- Add visible keyboard focus treatment and reduced-motion support.
-- Keep inner list/history regions bounded while preserving the main page's natural vertical scroll.
+## Layout work
 
-## Verification
+- App shell: stable sidebar, compact topbar, one natural main-page scroll region.
+- Overview: streak and three progress indicators first; activity, today's tasks/habits, goals and calendar arranged in a balanced three-column desktop grid.
+- Tasks & Habits: daily habits grouped above the task board; task list remains the primary column with summary metrics secondary.
+- Focus: timer is the primary surface; mode/round selection and controls remain grouped; daily stats, goal and complete history form a secondary rail.
+- Calendar: month grid and selected-day detail share a two-column layout; activity history and goals sit below.
+- Training: active workout and exercise progression are primary, with the session sequence in a secondary rail.
+- Progress: summary metrics, trend, breakdown and next actions have a clear hierarchy.
+- Settings: consistent two-column groups on desktop and one column on narrow windows.
+- Responsive breakpoints collapse grids and navigation without imposing a fixed minimum window width.
+- Modal, input, button, progress, focus-visible and reduced-motion states use the shared design tokens.
 
-This is a source-level CSS implementation and does not claim a completed visual QA pass. The Windows CI workflow must run `npm test`, `npm run check` and `npm run dist:win`. Visual verification is still required on Windows at common window sizes (1920x1080, 1366x768, 1024x768 and a narrow window), including scroll reachability, modal fit, keyboard focus and all page states.
+## Feature preservation
 
-## Known boundaries
+This batch is presentation-only. It does not intentionally change task, habit, focus, training, calendar, progress, backup, reminder, widget, or persistence logic. Existing buttons and renderer actions are retained.
 
-- This batch does not claim a complete redesign of every individual renderer template or a runtime screenshot review.
-- Existing Chrome-compatibility bridge and native widget behavior are intentionally not rewritten as part of a CSS design layer.
-- The Pomodoro and Itsuki windows have separate stylesheets and need their own dedicated visual QA pass.
-- Do not merge until CI and Windows visual QA have been reviewed.
+## Verification boundary
+
+The source changes are not proof that every feature works at runtime. CI results must be checked for the new head commit. Windows visual QA is still required at 1920x1080, 1366x768, 1024x768 and a narrow window, including scroll reachability, modal fit, keyboard focus, floating widget appearance, and interaction smoke tests for every page.
+
+Do not merge until CI and Windows runtime QA are reviewed.
