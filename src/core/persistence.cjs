@@ -61,6 +61,22 @@ function mergeStores(primary, fallback) {
   return merged;
 }
 
+const STATE_COLLECTION_KEYS = Object.freeze([
+  'tasks', 'habits', 'lists', 'focusSessions', 'workoutSessions', 'completions',
+  'achievements', 'goals', 'reviews', 'motivationVideos', 'challenges', 'penalties'
+]);
+
+function normalizeStateCollections(value, defaults = {}) {
+  const source = value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+  const result = { ...defaults, ...source };
+  for (const key of STATE_COLLECTION_KEYS) {
+    if (!Array.isArray(result[key])) result[key] = Array.isArray(defaults[key]) ? [...defaults[key]] : [];
+  }
+  result.settings = { ...(defaults.settings || {}), ...(source.settings || {}) };
+  result.profile = { ...(defaults.profile || {}), ...(source.profile || {}) };
+  return result;
+}
+
 function writeJsonAtomic(file, value) {
   const directory = path.dirname(file);
   fs.mkdirSync(directory, { recursive: true });
@@ -121,4 +137,4 @@ function migrateJsonStores({ canonicalPath, legacyPaths = [], preferredPaths = [
   return result;
 }
 
-module.exports = { mergeStores, migrateJsonStores, readJsonFile, writeJsonAtomic };
+module.exports = { mergeStores, migrateJsonStores, normalizeStateCollections, readJsonFile, writeJsonAtomic };
