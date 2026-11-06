@@ -73,13 +73,3 @@ This is source-level hardening. Automated Node tests and static checks must pass
 
 ### Remaining audit scope
 This phase is not a claim that every business rule is fully verified. Remaining work includes recurrence edge cases, task completion/XP idempotency, habit frequency semantics and streak accuracy, calendar/progress aggregation across timezone boundaries, workout completion/stop transitions, Focus round transitions after pause/resume and sleep/resume, settings persistence, and native widget synchronization. These require additional focused tests and Windows runtime validation.
-
-
-## Phase 3 — Complete UI redesign (2026-11-06)
-
-- Added a shared Dark Plum Professional design layer with Rose/Violet accents and restrained Gold highlights.
-- Unified shell, navigation, topbar, forms, buttons, cards, badges, progress, task surfaces, modal surfaces, toasts and floating add-task styling.
-- Added responsive icon-rail and narrow-window navigation behavior, keyboard focus styling and reduced-motion support.
-- Kept the renderer templates, business logic, Electron main/preload architecture and persisted data model unchanged in this CSS implementation batch.
-- See [PHASE3_UI.md](PHASE3_UI.md) for scope and verification boundaries.
-- This is not yet a claim of completed visual QA: Windows testing is still required for scroll reachability, modal fit, widget appearance, and all pages at common window sizes.
