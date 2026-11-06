@@ -30,6 +30,10 @@ for (const page of ['index.html', 'background-host.html', 'pomodoro-widget.html'
 }
 
 const mainProcess = fs.readFileSync(path.join(root, 'src', 'main.cjs'), 'utf8');
+if (!/app\.requestSingleInstanceLock\(\)/.test(mainProcess)) throw new Error('Electron must enforce a single application instance.');
+if (!/render-process-gone/.test(mainProcess) || !/webContents\.reload\(\)/.test(mainProcess)) throw new Error('Main window must have bounded renderer crash recovery.');
+if (!/readJsonFile\(r\.filePaths\[0\]\)/.test(mainProcess)) throw new Error('Backup import must validate JSON before replacing live state.');
+if (!/normalizeStateCollections\(merged,base\)/.test(mainProcess)) throw new Error('Loaded state collections must be normalized before rendering.');
 const readyStart = mainProcess.indexOf('app.whenReady().then(()=>{');
 const readyEnd = mainProcess.indexOf('\n});', readyStart);
 const displaySubscriptions = [...mainProcess.matchAll(/screen\.on\(['"]display-(?:metrics-changed|added|removed)['"]/g)];
