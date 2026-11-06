@@ -2,8 +2,15 @@ const { app, BrowserWindow, Tray, Menu, Notification, ipcMain, dialog, shell, na
 const fs = require('node:fs');
 const path = require('node:path');
 const { fileURLToPath } = require('node:url');
-const { migrateJsonStores, writeJsonAtomic } = require('./core/persistence.cjs');
+const { migrateJsonStores, normalizeStateCollections, readJsonFile, writeJsonAtomic } = require('./core/persistence.cjs');
 const { createAlarmScheduler } = require('./core/alarm-scheduler.cjs');
+
+const hasSingleInstanceLock = app.requestSingleInstanceLock();
+if (!hasSingleInstanceLock) app.quit();
+else app.on('second-instance', () => {
+  if (!app.isReady()) return;
+  showMainWindow('dashboard');
+});
 
 const testDataPath=!app.isPackaged&&process.env.AURESTAR_TEST_DATA_DIR?path.resolve(process.env.AURESTAR_TEST_DATA_DIR):null;
 const portableDataPath=process.env.PORTABLE_EXECUTABLE_DIR?path.join(process.env.PORTABLE_EXECUTABLE_DIR,'AurestarData'):null;
@@ -19,6 +26,8 @@ const dataDir = () => app.getPath('userData');
 const dataFile = () => path.join(dataDir(), 'aurestar-data.json');
 const backupDir = () => path.join(dataDir(), 'backups');
 let backgroundWin=null, chromeBackgroundReady=false;
+let rendererCrashTimes=[];
+let rendererRecoveryTimer=null;
 const pendingChromeMessages=new Map();
 const chromeBackgroundWaiters=[];
 const pendingNativeAlarms=[];
@@ -173,9 +182,9 @@ function readState(){
   const s=readChromeStorage();
   const base=defaultState();
   const merged={...base,...s,settings:{...base.settings,...s.settings},profile:{...base.profile,...s.profile},focus:{...base.focus,...s.focus},training:{...base.training,...s.training}};
-  merged.tasks=Array.isArray(merged.tasks)?merged.tasks:[];
-  merged.workoutSessions=Array.isArray(merged.workoutSessions)?merged.workoutSessions:[];
-  chromeStorageCache=merged;
+  const safe=normalizeStateCollections(merged,base);
+  safe.tasks=Array.isArray(safe.tasks)?safe.tasks:[];
+  chromeStorageCache=safe;
   return merged;
 }
 function saveState(){ if(!state||typeof state!=='object')return;chromeStorageCache=state;saveChromeStorage(); }
@@ -311,6 +320,23 @@ function createWindow(initialView='dashboard'){
   bindAltToggle(win);
   win.loadFile(path.join(__dirname,'index.html'),{hash:route.replace(/^#/,'')});
   win.once('ready-to-show',()=>win.show());
+  win.webContents.on('render-process-gone',(_event,details)=>{
+    if(app.isQuitting||!win||win.isDestroyed())return;
+    const now=Date.now();
+    rendererCrashTimes=rendererCrashTimes.filter(at=>now-at<60_000);
+    rendererCrashTimes.push(now);
+    console.error('Aurestar renderer process exited:',details);
+    if(rendererCrashTimes.length>2){
+      dialog.showErrorBox('Aurestar renderer stopped', 'The interface stopped repeatedly. Aurestar will close safely. Your saved data remains on disk.');
+      app.quit();
+      return;
+    }
+    if(rendererRecoveryTimer)clearTimeout(rendererRecoveryTimer);
+    rendererRecoveryTimer=setTimeout(()=>{
+      rendererRecoveryTimer=null;
+      if(!app.isQuitting&&win&&!win.isDestroyed())win.webContents.reload();
+    },800);
+  });
   win.on('close',(e)=>{if(state?.settings?.minimizeToTray && tray && !app.isQuitting){e.preventDefault();win.hide();}});
   win.on('closed',()=>{win=null;});
 }
@@ -422,7 +448,21 @@ ipcMain.handle('task:complete',(_e,{id,date=today()})=>{
   saveState();return {ok:true,done:!done,state};
 });
 ipcMain.handle('data:export',async()=>{const r=await dialog.showSaveDialog(win,{title:'Export Aurestar backup',defaultPath:`Aurestar-${today()}.json`,filters:[{name:'JSON backup',extensions:['json']}]});if(r.canceled||!r.filePath)return {canceled:true};writeJsonAtomic(r.filePath,state);return {ok:true,filePath:r.filePath};});
-ipcMain.handle('data:import',async()=>{const r=await dialog.showOpenDialog(win,{title:'Restore Aurestar backup',properties:['openFile'],filters:[{name:'JSON backup',extensions:['json']}]});if(r.canceled||!r.filePaths[0])return {canceled:true};const next=JSON.parse(fs.readFileSync(r.filePaths[0],'utf8'));if(!next||typeof next!=='object'||!Array.isArray(next.tasks))throw new Error('This file is not a valid Aurestar data backup.');if(fs.existsSync(dataFile())){fs.mkdirSync(backupDir(),{recursive:true});fs.copyFileSync(dataFile(),path.join(backupDir(),`aurestar-pre-import-${Date.now()}.json`));}state={...defaultState(),...next,settings:{...defaultState().settings,...next.settings}};chromeStorageCache=state;saveState();win?.webContents.send('aurestar:state',state);return {ok:true,state};});
+ipcMain.handle('data:import',async()=>{
+  const r=await dialog.showOpenDialog(win,{title:'Restore Aurestar backup',properties:['openFile'],filters:[{name:'JSON backup',extensions:['json']}]});
+  if(r.canceled||!r.filePaths[0])return {canceled:true};
+  const imported=readJsonFile(r.filePaths[0]);
+  if(!imported.valid||!Array.isArray(imported.value?.tasks))throw new Error('This file is not a valid Aurestar data backup. The current data was not changed.');
+  if(fs.existsSync(dataFile())){
+    fs.mkdirSync(backupDir(),{recursive:true});
+    fs.copyFileSync(dataFile(),path.join(backupDir(),`aurestar-pre-import-${Date.now()}.json`));
+  }
+  state=normalizeStateCollections(imported.value,defaultState());
+  chromeStorageCache=state;
+  saveState();
+  win?.webContents.send('aurestar:state',state);
+  return {ok:true,state};
+});
 ipcMain.handle('backup:now',()=>{fs.mkdirSync(backupDir(),{recursive:true});const p=path.join(backupDir(),`aurestar-${today()}-${Date.now()}.json`);fs.copyFileSync(dataFile(),p);return {ok:true,path:p};});
 ipcMain.handle('notification:test',()=>{notify(APP_NAME,'Notifications are working.');return {ok:true};});
 ipcMain.handle('app:open-external',async(_e,value)=>{let url;try{url=new URL(String(value||''));}catch{return false;}if(!['http:','https:'].includes(url.protocol))return false;await shell.openExternal(url.href);return true;});
@@ -448,6 +488,7 @@ function initializeNativeServices(){
   powerMonitor.on('unlock-screen',()=>{lastIdleState='idle';pollSystemIdle();});
 }
 app.whenReady().then(()=>{
+  if(!hasSingleInstanceLock)return;
   // Electron's screen APIs are only available after the app is ready.
   screen.on('display-metrics-changed',repositionWidgetsForDisplayChange);
   screen.on('display-added',repositionWidgetsForDisplayChange);
@@ -460,7 +501,7 @@ app.whenReady().then(()=>{
   if(process.platform==='win32' && state.settings.startWithWindows){app.setLoginItemSettings({openAtLogin:true});}
   app.on('activate',()=>{if(!win)createWindow();else win.show();const prefs=chromeStorageGet('settings').settings||{};if(!pomodoroWidget&&prefs.focusWidgetEnabled!==false)createPomodoroWidget();});
 });
-app.on('before-quit',()=>{app.isQuitting=true;if(reminderTimer)clearTimeout(reminderTimer);if(idlePollTimer)clearInterval(idlePollTimer);nativeAlarms?.close();persistWidgetPositionNow('pomodoro',pomodoroWidget);persistWidgetPositionNow('itsuki',itsukiWindow);globalShortcut.unregisterAll();if(state&&chromeStorageCache)saveState();});
+app.on('before-quit',()=>{app.isQuitting=true;if(rendererRecoveryTimer)clearTimeout(rendererRecoveryTimer);if(reminderTimer)clearTimeout(reminderTimer);if(idlePollTimer)clearInterval(idlePollTimer);nativeAlarms?.close();persistWidgetPositionNow('pomodoro',pomodoroWidget);persistWidgetPositionNow('itsuki',itsukiWindow);globalShortcut.unregisterAll();if(state&&chromeStorageCache)saveState();});
 app.on('window-all-closed',()=>{if(process.platform!=='darwin' && !state?.settings?.minimizeToTray)app.quit();});
 app.whenReady().catch(error=>{
   console.error('Aurestar startup failed safely:',error);
