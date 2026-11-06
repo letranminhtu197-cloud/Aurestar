@@ -5,6 +5,7 @@ const approvedMessages={
   'wind-down':'Wind down now. Close distractions and give yourself time to rest.',
   sleep:'Your day is complete. Put your devices away and get ready for sleep.'
 };
+const statusNotes={focus:'One step at a time','wind-down':'Make room for a calm evening',sleep:'Rest well and recharge'};
 function contextFor(record){
   const context=String(record?.context||record?.event||'').toLowerCase();
   if(context==='sleep'||context.includes('sleep'))return 'sleep';
@@ -22,11 +23,15 @@ async function refreshItsuki(record){
     const context=contextFor(record),line=String(record.message||'').trim().replace(/[\r\n\t]+/g,' ').slice(0,220);
     $('itsukiLine').textContent=line||approvedMessages[context];
     const status=$('itsukiStatus');status.textContent=context==='wind-down'?'WIND DOWN':context.toUpperCase();status.dataset.context=context;
+    $('itsukiStatusNote').textContent=statusNotes[context];
     const src=String(record.imageSrc||''),fileName=src.split('/').pop()||'',dot=fileName.lastIndexOf('.');
     const imageNumber=dot>0?fileName.slice(0,dot):'',imageExt=dot>0?fileName.slice(dot+1).toLowerCase():'';
     if(src.startsWith('assets/itsuki/')&&!src.includes('..')&&/^[0-9]+$/.test(imageNumber)&&['jpg','png'].includes(imageExt)){
       const imageKey=String(record.imageId||imageNumber);
-      if(displayedImage!==imageKey){displayedImage=imageKey;$('itsukiArt').src=await window.aurestarDesktop.getItsukiArtUrl(Number(imageNumber));}
+      if(displayedImage!==imageKey){
+        const imageUrl=await window.aurestarDesktop.getItsukiArtUrl(Number(imageNumber));
+        if(imageUrl){$('itsukiArt').src=imageUrl;displayedImage=imageKey;}
+      }
     }
     return true;
   }catch(error){console.error('Could not display companion state',error);return false;}
@@ -35,13 +40,16 @@ chrome.storage.onChanged.addListener((changes,area)=>{
   if(area==='local'&&changes.itsukiExpressionState?.newValue)refreshItsuki(changes.itsukiExpressionState.newValue);
 });
 async function boot(){
-  $('itsukiArt').src=await window.aurestarDesktop.getItsukiArtUrl(1);
-  const stored=await chrome.storage.local.get('itsukiExpressionState');
-  if(Number(stored?.itsukiExpressionState?.schemaVersion||0)<11)await sendItsukiEvent('periodic');
-  if(!await refreshItsuki()){
-    await sendItsukiEvent('periodic');
-    await refreshItsuki();
-  }
+  try{
+    const firstImage=await window.aurestarDesktop.getItsukiArtUrl(1);
+    if(firstImage){$('itsukiArt').src=firstImage;displayedImage='1';}
+    const stored=await chrome.storage.local.get('itsukiExpressionState');
+    if(Number(stored?.itsukiExpressionState?.schemaVersion||0)<11)await sendItsukiEvent('periodic');
+    if(!await refreshItsuki()){
+      await sendItsukiEvent('periodic');
+      await refreshItsuki();
+    }
+  }catch(error){console.error('Itsuki widget startup failed',error);}
 }
 $('hideItsuki').addEventListener('click',()=>window.aurestarDesktop.hideItsuki());
 boot();
