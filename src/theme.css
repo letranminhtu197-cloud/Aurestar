@@ -382,3 +382,40 @@ input[type=checkbox],input[type=range]{accent-color:var(--rose)}
 .habit-empty{padding:28px 12px;text-align:center}
 @media(max-width:900px){.habit-create-panel{grid-template-columns:1fr}.habit-create-panel .habit-quick-add{grid-template-columns:minmax(0,1fr) 120px auto}}
 @media(max-width:620px){.habits-page-head{align-items:flex-start;flex-direction:column}.habits-summary-grid{gap:7px}.habits-summary-card{padding:12px}.habits-summary-card span{font-size:9px}.habits-summary-card strong{font-size:21px}.habit-create-panel .habit-quick-add{grid-template-columns:minmax(0,1fr) 104px}.habit-create-panel .habit-quick-add button{grid-column:1/-1}.habit-week-history{margin-left:0}}
+
+
+/* Balanced-density rules: keep controls legible without inflating the interface. */
+:root{
+  --control-height:40px;
+  --control-height-compact:34px;
+  --content-gutter:clamp(18px,2.4vw,34px);
+}
+.view{padding-inline:var(--content-gutter)}
+.view button:not(.check):not(.habit-inline-check):not(.habit-inline-edit):not(.habit-inline-delete){min-height:36px}
+.view input:not([type=checkbox]):not([type=radio]),.view select{min-height:38px}
+.view textarea{min-height:88px;line-height:1.5}
+.page-intro,.ref-page-head,.task-page-head,.overview-v2,.task-workspace,.task-reference-page,.habits-workspace{width:100%}
+.overview-v2-grid>* , .overview-progress-card, .task-rail-card, .reference-card{min-width:0}
+.overview-panel,.task-center-panel,.task-rail-card,.reference-card,.settings-card,.progress-panel,.calendar-history-card,.gym-workout-panel{padding:clamp(14px,1.25vw,19px)}
+.task-row,.task-item,.habit-inline-card,.habit-board-card{min-height:54px}
+.section-kicker,.eyebrow{font-size:10px}
+@media(max-width:1100px){
+  .overview-v2-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .overview-v2-grid>:last-child{grid-column:1/-1}
+}
+@media(max-width:760px){
+  .app-shell{grid-template-columns:68px minmax(0,1fr)}
+  .topbar{grid-template-columns:minmax(0,1fr) auto;gap:10px;padding-inline:14px}
+  .top-search{display:none}
+  .view{padding:18px 14px 28px}
+  .overview-v2-grid{grid-template-columns:minmax(0,1fr)}
+  .overview-v2-grid>:last-child{grid-column:auto}
+}
+@media(max-width:520px){
+  .overview-progress{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .overview-progress-card{padding:13px}
+  .overview-progress-card>strong{font-size:22px}
+  .habits-summary-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .habits-summary-card{padding:10px}
+  .habits-summary-card strong{font-size:19px}
+}
