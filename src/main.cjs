@@ -20,7 +20,7 @@ const APP_NAME = 'Aurestar';
 let win = null, tray = null, pomodoroWidget = null, itsukiWindow = null, reminderWindow = null, reminderTimer = null;
 let state = null;
 const widgetPositionTimers=new Map();
-const widgetLayout={pomodoro:{width:228,height:92,setting:'pomodoroWidgetPosition'},itsuki:{width:316,height:112,setting:'itsukiWidgetPosition'}};
+const widgetLayout={pomodoro:{width:228,height:92,setting:'pomodoroWidgetPosition'},itsuki:{width:460,height:260,setting:'itsukiWidgetPosition'}};
 const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
 const dataDir = () => app.getPath('userData');
 const dataFile = () => path.join(dataDir(), 'aurestar-data.json');
