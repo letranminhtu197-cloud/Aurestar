@@ -55,3 +55,21 @@ Scope: startup lifecycle, state-shape recovery, backup import validation and ren
 
 ### Verification boundary
 This is source-level hardening. Automated Node tests and static checks must pass on the resulting commit. A clean Windows install/upgrade test, renderer-crash injection, power-resume test and real user-data migration test still require a Windows runtime and representative data backups; they are not claimed as completed by CI alone.
+
+
+## Phase 2 — Functional audit (2026-11-06)
+
+### Confirmed gaps from source inspection
+- Habits had add, complete and delete actions but no edit action exposed in the UI or background message dispatcher.
+- Focus history rendered only the latest 10 sessions despite the requirement to retain and show complete history.
+- Training history rendered only the latest 8 sessions despite the requirement to retain and show complete history.
+
+### Changes implemented on `feature/phase2-functional-audit`
+- Added an Edit action to each habit card and a modal to edit its title and daily/weekly frequency.
+- Added a validated `updateHabit` background action. It preserves ID, creation timestamp, completion dates, streak metadata and all existing history while changing only title, frequency and derived XP.
+- Normalized new habit frequency to the supported `daily` / `weekly` values.
+- Removed the Focus and Training history display caps so older sessions remain accessible.
+- Added regression tests and static source checks for the UI-to-engine habit edit path and uncapped histories.
+
+### Remaining audit scope
+This phase is not a claim that every business rule is fully verified. Remaining work includes recurrence edge cases, task completion/XP idempotency, habit frequency semantics and streak accuracy, calendar/progress aggregation across timezone boundaries, workout completion/stop transitions, Focus round transitions after pause/resume and sleep/resume, settings persistence, and native widget synchronization. These require additional focused tests and Windows runtime validation.
