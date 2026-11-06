@@ -730,8 +730,8 @@ function bindGlobal(){
   $$('[data-focus-task]').forEach(b=>b.onclick=async e=>{e.stopPropagation();const r=await action('focusSetTask',{taskId:b.dataset.focusTask});if(r){window.location.hash='#focus';activeView='focus';renderShell();}});
   $$('[data-gym-task]').forEach(b=>b.onclick=async e=>{e.stopPropagation();await startGymFromTask(b.dataset.gymTask);});
   $$('[data-checklist]').forEach(b=>b.onclick=async e=>{e.stopPropagation();const r=await action("toggleChecklist",{id:b.dataset.checklist,index:Number(b.dataset.index)});if(r)renderShell()});
-  $('[data-habit-toggle]').forEach(b=>b.onclick=async()=>{const r=await action("toggleHabit",{id:b.dataset.habitToggle});if(r)renderShell()});
-  $('[data-edit-habit]').forEach(b=>b.onclick=e=>{e.stopPropagation();openHabitForm(b.dataset.editHabit)});
+  $$('[data-habit-toggle]').forEach(b=>b.onclick=async()=>{const r=await action("toggleHabit",{id:b.dataset.habitToggle});if(r)renderShell()});
+  $$('[data-edit-habit]').forEach(b=>b.onclick=e=>{e.stopPropagation();openHabitForm(b.dataset.editHabit)});
   $$('[data-delete-habit]').forEach(b=>b.onclick=async()=>{if(confirm("Delete this habit?")){const r=await action("deleteHabit",{id:b.dataset.deleteHabit});if(r)renderShell()}});
   $$('[data-delete-goal]').forEach(b=>b.onclick=async()=>{if(confirm("Delete this goal?")){const r=await action("deleteGoal",{id:b.dataset.deleteGoal});if(r)renderShell()}});
   $$('[data-nav]').forEach(b=>b.onclick=()=>navigate(b.dataset.nav));
