@@ -419,3 +419,95 @@ input[type=checkbox],input[type=range]{accent-color:var(--rose)}
   .habits-summary-card{padding:10px}
   .habits-summary-card strong{font-size:19px}
 }
+
+
+/* Aurestar information architecture — unified Daily Routine and page-specific grids. */
+.overview-v2-grid{grid-template-columns:minmax(0,.83fr) minmax(0,1.5fr) minmax(0,1fr);gap:14px}
+.overview-streak{margin-left:auto}
+.overview-progress{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:12px 0 14px}
+.overview-progress-card{padding:10px 13px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:5px 12px;min-height:72px}
+.overview-progress-card>span{font-size:11px;letter-spacing:.04em}
+.overview-progress-card>strong{font-size:19px}
+.overview-progress-track{grid-column:1/-1;height:5px}
+.overview-progress-card>small:last-child{grid-column:1/-1;font-size:10px}
+.overview-momentum,.overview-goals-calendar{display:flex;flex-direction:column}
+.overview-goals-calendar .overview-utility{margin-top:auto}
+.overview-utility{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding-top:12px;margin-top:12px;border-top:1px solid var(--line)}
+.overview-utility button{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#211019;color:var(--text-2);font-size:11px}
+.overview-utility button:hover{border-color:var(--line-strong);color:var(--rose)}
+.daily-routine-page{max-width:1480px;margin:0 auto}
+.daily-routine-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:16px}
+.daily-routine-head h2{margin:5px 0;font-size:30px;letter-spacing:-.04em}
+.daily-routine-head p{margin:3px 0 0;color:var(--muted);font-size:12px}
+.routine-head-side{display:flex;align-items:center;gap:14px}
+.routine-counts{display:flex;gap:12px;color:var(--muted);font-size:11px}
+.routine-counts b{color:var(--text);font-size:14px}
+.routine-filters{display:flex;gap:4px;padding:4px;border:1px solid var(--line);border-radius:11px;background:#211019}
+.routine-filters button{padding:7px 11px;border-radius:8px;color:var(--muted);font-size:11px}
+.routine-filters button.active{background:rgba(242,139,156,.16);color:#ffe2e8}
+.task-reference-layout{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
+.task-reference-rail{min-width:0}
+.task-reference-rail>.habits-workspace{max-width:none;margin:0}
+.task-reference-rail .habits-page-head{margin-bottom:10px}
+.task-reference-rail .habits-page-head h2{font-size:19px}
+.task-reference-rail .habits-page-head p,.task-reference-rail .habits-head-date{display:none}
+.task-reference-rail .habits-summary-grid{gap:7px;margin-bottom:10px}
+.task-reference-rail .habits-summary-card{padding:9px}
+.task-reference-rail .habits-summary-card span{font-size:9px}
+.task-reference-rail .habits-summary-card strong{font-size:19px}
+.task-reference-rail .habit-create-panel{grid-template-columns:1fr;padding:11px;gap:8px;margin-bottom:10px}
+.task-reference-rail .habit-create-panel h3{font-size:14px}
+.task-reference-rail .habit-create-panel .habit-quick-add{grid-template-columns:minmax(0,1fr) 95px}
+.task-reference-rail .habit-create-panel .habit-quick-add button{grid-column:1/-1}
+.task-reference-rail .habit-board-section{padding:11px}
+.task-reference-rail .habit-board-heading{margin-bottom:8px}
+.task-reference-rail .habit-board-heading h3{font-size:14px}
+.task-reference-rail .habit-board-card{padding:10px}
+.task-reference-rail .habit-week-history{margin-left:0}
+.focus-workspace{max-width:1400px}
+.focus-workspace-head{display:grid;grid-template-columns:minmax(150px,1fr) auto auto;align-items:center;gap:16px}
+.focus-title-group h2{margin:4px 0;font-size:30px}
+.focus-mode-picker-head{margin:0;justify-self:center}
+.focus-round-picker{justify-self:end}
+.focus-workspace-grid{grid-template-columns:minmax(0,1.5fr) minmax(330px,1fr);gap:16px}
+.focus-session-card{min-height:540px;display:flex;flex-direction:column;justify-content:space-between}
+.focus-clock-shell{margin:auto 0}
+.focus-history-scroll{max-height:360px;overflow:auto}
+.calendar-bottom-grid{display:flex;flex-direction:column;gap:14px}
+.calendar-goals-strip{order:0;width:100%}
+.calendar-history-card{order:1;width:100%}
+.calendar-history-scroll{max-height:none;overflow-x:auto;overflow-y:hidden;padding-bottom:5px}
+.year-heatmap-wrap{width:max-content;max-width:100%;margin-inline:auto}
+.calendar-goals-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}
+.gym-page:not(.gym-active-page){display:grid;grid-template-columns:minmax(0,1.5fr) minmax(300px,1fr);gap:14px;align-items:start}
+.gym-page:not(.gym-active-page)>.gym-hero,.gym-page:not(.gym-active-page)>.gym-howto{grid-column:1/-1}
+.gym-page:not(.gym-active-page)>.gym-workout-panel,.gym-page:not(.gym-active-page)>.gym-history-panel{min-width:0;margin:0}
+.gym-page:not(.gym-active-page)>.gym-history-panel{position:sticky;top:12px}
+.gym-task-card{gap:10px}
+.progress-v2{max-width:1480px}
+.progress-metrics{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.progress-bottom-grid{grid-template-columns:minmax(0,1.5fr) minmax(300px,1fr)}
+@media(max-width:1180px){
+ .overview-v2-grid{grid-template-columns:minmax(0,1fr) minmax(0,1.5fr)}
+ .overview-goals-calendar{grid-column:1/-1}
+ .focus-workspace-grid{grid-template-columns:minmax(0,1fr) 300px}
+ .progress-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:900px){
+ .task-reference-layout,.gym-page:not(.gym-active-page),.progress-bottom-grid{grid-template-columns:minmax(0,1fr)}
+ .task-reference-rail{grid-column:1}
+ .gym-page:not(.gym-active-page)>.gym-history-panel{position:static}
+ .focus-workspace-head{grid-template-columns:1fr auto}
+ .focus-mode-picker-head{grid-column:1/-1;grid-row:2;justify-self:stretch}
+}
+@media(max-width:640px){
+ .daily-routine-head,.routine-head-side{align-items:stretch;flex-direction:column}
+ .routine-head-side{gap:8px}
+ .routine-counts{justify-content:space-between}
+ .overview-v2-grid,.overview-progress{grid-template-columns:minmax(0,1fr)}
+ .overview-goals-calendar{grid-column:auto}
+ .focus-workspace-grid{grid-template-columns:minmax(0,1fr)}
+ .focus-workspace-head{grid-template-columns:minmax(0,1fr) auto}
+ .focus-session-card{min-height:0}
+ .progress-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
