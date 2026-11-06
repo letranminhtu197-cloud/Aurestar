@@ -30,3 +30,17 @@ These are interaction/layout references only; Aurestar retains its own Itsuki-in
 - Preserve hierarchy: page title and primary action first, key status/metrics second, detailed lists and history after that.
 - Do not expose every low-frequency action as a full-size button. Keep the common workflow obvious and secondary actions accessible through labeled menus or contextual controls.
 - Acceptance checks for each page: at a normal desktop window, key content and primary actions are visible without hunting; no clipping/overlap; no tiny text; no oversized empty cards; narrow windows reflow rather than compress; keyboard focus remains visible.
+
+
+## Page-specific workspace layout
+- Overview: streak aligned to the upper-right, compact Tasks/Habits/Focus metrics, three-column Activity + Today's Focus + Goals composition, and a month grid alongside activity.
+- Daily Routine: Tasks and Habits share one workspace in balanced columns; task quick capture stays with the task column, while habit creation, completion and seven-day check-ins remain in the habit column. Date filters and task completion groups remain available.
+- Focus: timer mode presets are in the page header; the main timer and task selector use the wider column, with daily metrics and scrollable session history in the secondary column.
+- Calendar: month grid and selected-day schedule remain above the goals strip and a full-width 365-day activity heatmap, selected to the full-year range by default.
+- Training: today's exercise schedule and prior-session history use a two-column layout, with the primary actions and summary counts retained in the header.
+- Progress: four primary metrics stay on one row at desktop widths; completed-action trend and breakdown use a weighted two-column layout.
+- Responsive behavior stacks these columns when the viewport cannot preserve readable controls and labels.
+
+## Verification boundary for this layout batch
+- Source and regression checks are being rerun on the pull request branch.
+- Visual verification in the installed Windows application is still required; this commit does not claim that all layouts have passed runtime QA.
