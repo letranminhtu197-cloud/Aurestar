@@ -511,3 +511,18 @@ input[type=checkbox],input[type=range]{accent-color:var(--rose)}
  .focus-session-card{min-height:0}
  .progress-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+
+
+/* Overview month calendar and utility hierarchy. */
+.overview-mini-calendar-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:15px;padding-top:12px;border-top:1px solid var(--line)}
+.overview-mini-calendar-head b{font-size:12px;color:var(--text-2)}
+.overview-mini-weekdays,.overview-mini-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.overview-mini-weekdays{margin:9px 0 5px;color:var(--muted);font-size:9px;text-align:center}
+.overview-mini-grid{grid-auto-rows:26px}
+.overview-month-day,.overview-month-empty{display:grid;place-items:center;min-width:0;min-height:0;border-radius:7px}
+.overview-month-day{border:1px solid transparent;background:#211019;color:var(--text-2);font-size:10px}
+.overview-month-day.active{background:rgba(242,139,156,.2);border-color:rgba(242,139,156,.28);color:#ffe2e8}
+.overview-month-day.today{outline:1px solid var(--gold);color:var(--gold);font-weight:850}
+.overview-month-day:hover{border-color:var(--rose)}
+.overview-goals-calendar .overview-calendar-head,.overview-goals-calendar .overview-calendar-strip{display:none}
+.gym-page:not(.gym-active-page)>.gym-customization-panel{grid-column:1/-1}
