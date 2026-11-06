@@ -44,3 +44,15 @@ These are interaction/layout references only; Aurestar retains its own Itsuki-in
 ## Verification boundary for this layout batch
 - Source and regression checks are being rerun on the pull request branch.
 - Visual verification in the installed Windows application is still required; this commit does not claim that all layouts have passed runtime QA.
+
+
+## Supplied Study Space HTML reference
+- The app shell uses a persistent left navigation, top breadcrumb/search/actions and a content workspace. Import/export remain available as native actions.
+- Overview follows the three-column Activity / Today's Focus / Goals hierarchy, with Tasks and Habits stacked in the middle panel and live progress metrics above.
+- Daily Routine uses balanced 50/50 Tasks and Habits columns.
+- Focus uses one centered timer station, header presets, task selection, round selection and four live summary metrics. The engine and session history remain intact; the history panel is omitted from this page layout.
+- Calendar uses a 70/30 month and selected-day split, followed by a full-width yearly activity graph. Existing date navigation, goal actions and heatmap range controls remain active.
+- Training uses a three-column exercise-card grid. History data is retained but the separate history panel is omitted; workout engine, exercise editing and customization remain intact.
+- Progress presents the four live metrics from the existing progress calculations. The date-range selector remains available; lower-level charts are hidden to match the supplied reference composition.
+- The HTML file is treated as a layout reference only. Tailwind CDN, FontAwesome CDN, static sample data and its standalone demo timer are not copied into the Electron application.
+- Verification boundary: CI and Windows runtime screenshot/interaction QA are required before claiming pixel-level parity.
