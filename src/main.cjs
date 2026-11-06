@@ -185,7 +185,7 @@ function readState(){
   const safe=normalizeStateCollections(merged,base);
   safe.tasks=Array.isArray(safe.tasks)?safe.tasks:[];
   chromeStorageCache=safe;
-  return merged;
+  return safe;
 }
 function saveState(){ if(!state||typeof state!=='object')return;chromeStorageCache=state;saveChromeStorage(); }
 function notify(title,body){
