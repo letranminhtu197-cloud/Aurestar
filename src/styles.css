@@ -1802,3 +1802,172 @@ body.view-settings .view{overflow:auto;padding:24px 28px 36px}
 .focus-mode-picker button:focus-visible{outline:2px solid var(--cyan-soft);outline-offset:2px}
 .settings-description{margin:-3px 0 14px;font-size:12px;line-height:1.5;color:var(--muted)}
 @media(max-width:560px){.focus-mode-picker{gap:5px}.focus-mode-picker button{grid-template-columns:20px 1fr;gap:6px;padding:7px}.focus-mode-picker small{grid-column:2}}
+
+
+/* ==========================================================================
+   AURESTAR PHASE 3 — DARK PLUM PROFESSIONAL DESIGN SYSTEM
+   Shared visual layer. Keeps existing renderer templates and business logic.
+   ========================================================================== */
+:root{
+  color-scheme:dark;
+  --bg:#171018;
+  --bg-2:#110b13;
+  --surface:#211620;
+  --surface-2:#2b1b27;
+  --surface-3:#190f19;
+  --line:#3b2938;
+  --line-strong:#574052;
+  --text:#f7edf4;
+  --text-2:#e7d8e3;
+  --muted:#b5a1b2;
+  --muted-2:#887487;
+  --cyan:#df7897;
+  --cyan-soft:#f0a3b9;
+  --blue:#c85d82;
+  --indigo:#a84b76;
+  --violet:#8f4d83;
+  --gold:#e8c47c;
+  --gold-soft:#f1d99f;
+  --danger:#e47786;
+  --shadow:0 22px 60px rgba(0,0,0,.38),0 5px 18px rgba(0,0,0,.22);
+  --shadow-soft:0 12px 32px rgba(0,0,0,.22);
+  --radius:16px;
+  --radius-sm:10px;
+  --sidebar:248px;
+}
+html,body{min-width:0;background:var(--bg-2);color:var(--text)}
+body{font-family:Inter,"Segoe UI",system-ui,-apple-system,sans-serif;font-size:14px;line-height:1.5}
+button,input,select,textarea{font-family:inherit}
+button{ -webkit-tap-highlight-color:transparent }
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{
+  outline:2px solid var(--cyan-soft);outline-offset:2px
+}
+::selection{background:rgba(223,120,151,.3);color:#fff}
+.app-body{background:radial-gradient(ellipse at 78% 0%,rgba(143,77,131,.13),transparent 38%),radial-gradient(ellipse at 0% 100%,rgba(200,93,130,.08),transparent 34%),var(--bg-2)}
+.app-shell{grid-template-columns:var(--sidebar) minmax(0,1fr);min-width:0;min-height:0}
+.sidebar{background:linear-gradient(180deg,#1b111b 0%,#160e17 100%);border-right:1px solid var(--line);box-shadow:8px 0 28px rgba(0,0,0,.16)}
+.brand-row{padding:22px 18px 19px;gap:12px}
+.brand-mark{background:linear-gradient(145deg,rgba(223,120,151,.2),rgba(143,77,131,.2));border:1px solid rgba(240,163,185,.3);color:var(--gold-soft);box-shadow:0 8px 24px rgba(200,93,130,.12)}
+.brand-copy strong{font-size:17px;letter-spacing:.015em}
+.brand-copy small{color:var(--muted-2);background:none;-webkit-text-fill-color:initial;letter-spacing:.1em}
+.nav-label{color:#8e788d;font-size:9px;letter-spacing:.16em}
+.smart-nav{gap:5px}
+.smart-nav button,.settings-link{min-height:42px;padding:10px 12px;border-radius:10px;color:#b6a3b5;font-size:13px;font-weight:650}
+.smart-nav button:hover,.settings-link:hover{background:rgba(223,120,151,.075);color:var(--text);transform:none}
+.smart-nav button.active{background:linear-gradient(90deg,rgba(223,120,151,.17),rgba(143,77,131,.08));color:#fff;box-shadow:inset 0 0 0 1px rgba(223,120,151,.18)}
+.smart-nav button.active::before{background:linear-gradient(180deg,var(--cyan-soft),var(--violet))}
+.nav-icon,.smart-nav button.active .nav-icon{color:var(--cyan-soft)}
+.sidebar-bottom{background:rgba(17,11,19,.72);border-color:var(--line)}
+.main-area{background:radial-gradient(ellipse at 78% 0%,rgba(143,77,131,.08),transparent 34%),var(--bg);grid-template-rows:72px minmax(0,1fr)}
+.topbar{grid-template-columns:minmax(180px,1fr) minmax(220px,440px) auto;gap:18px;padding:0 clamp(16px,2.2vw,32px);background:rgba(23,16,24,.88);border-color:var(--line)}
+.crumb{color:#9d879b}
+.top-title h1{font-size:25px;letter-spacing:-.035em}
+.top-search{height:42px;border-radius:11px;background:#1c121d;border-color:var(--line)}
+.top-search input{background:transparent}
+.top-search kbd{background:#2a1b2a;border-color:var(--line-strong)}
+.top-action{width:36px;height:36px;background:#211621;border-color:var(--line);border-radius:10px}
+.top-action:hover{background:rgba(223,120,151,.1);border-color:rgba(223,120,151,.4);color:var(--cyan-soft)}
+.view{min-height:0;min-width:0;padding:clamp(16px,2vw,28px) clamp(16px,2.4vw,34px) 36px;scrollbar-color:#594052 transparent}
+.view::-webkit-scrollbar-thumb{background:#594052}
+.page-intro,.ref-page-head,.task-page-head{max-width:1500px;margin-bottom:22px}
+.page-intro h2,.ref-page-head h2,.task-page-head h2{font-size:clamp(24px,2vw,32px);letter-spacing:-.04em}
+.page-intro p,.ref-page-head p,.task-page-head p{color:var(--muted);line-height:1.6}
+.card,.reference-card,.task-rail-card,.settings-card,.habit-card,.char-card-ref,.profile-hero-ref,.economy-card-ref,.progress-card-ref,.focus-main,.sound-panel,.task-center-panel{
+  background:linear-gradient(155deg,rgba(43,27,39,.96),rgba(29,19,29,.98));
+  border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-soft)
+}
+.section-head h3,.reference-card-title h3,.task-board-title h3{font-weight:750;letter-spacing:-.015em}
+.stat{background:rgba(35,22,34,.88);border-color:var(--line);border-radius:13px}
+.stat span{color:#aa94a8}
+.stat strong{font-size:clamp(21px,1.7vw,26px);letter-spacing:-.04em}
+.primary,.quick-submit{background:linear-gradient(135deg,#df7897,#bd5e83);color:#1c1019;box-shadow:0 8px 20px rgba(200,93,130,.18)}
+.primary:hover{box-shadow:0 12px 26px rgba(200,93,130,.25);filter:brightness(1.06)}
+.ghost{background:rgba(38,25,38,.8);border-color:var(--line);color:var(--text-2)}
+.ghost:hover{background:rgba(223,120,151,.09);border-color:rgba(223,120,151,.36);color:#ffe8ef}
+.danger{background:rgba(228,119,134,.1);border-color:rgba(228,119,134,.28);color:#f3a4af}
+input,select,textarea{background:#190f19;border-color:var(--line);border-radius:10px;color:var(--text)}
+input:focus,select:focus,textarea:focus{border-color:rgba(240,163,185,.62);box-shadow:0 0 0 3px rgba(223,120,151,.12);background:#211522}
+input::placeholder,textarea::placeholder{color:#806d80}
+.empty{border-color:#594052;background:rgba(25,15,25,.55);color:var(--muted)}
+.progress{background:#170e18;border-color:#453044}
+.progress i{background:linear-gradient(90deg,#d76e91,#a85b91,#e8c47c);box-shadow:0 0 18px rgba(223,120,151,.2)}
+.check{background:#1a111b;border-color:#61465a;color:var(--cyan-soft)}
+.check.checked{background:linear-gradient(135deg,#df7897,#bd5e83);color:#21111b}
+.badge{background:rgba(223,120,151,.09);border-color:rgba(223,120,151,.2);color:#f0a3b9}
+.yellow-badge{background:rgba(232,196,124,.09);border-color:rgba(232,196,124,.2);color:var(--gold-soft)}
+.view-tabs,.quick-add,.task-group,.task-board-title{border-color:var(--line)}
+.view-tabs{background:#1a111b}
+.view-tabs button.active{background:rgba(223,120,151,.13);color:#f4b0c3;box-shadow:inset 0 0 0 1px rgba(223,120,151,.18)}
+.quick-add{background:linear-gradient(145deg,#2b1b29,#1d131e)}
+.quick-plus{background:rgba(223,120,151,.1);border-color:rgba(223,120,151,.22);color:var(--cyan-soft)}
+.task-row{border-color:rgba(59,41,56,.75)}
+.task-row:hover{background:rgba(223,120,151,.045)}
+.task-row.done{opacity:.7}
+.task-row.done .task-title-line b{color:#a58f9f}
+.task-reference-layout{grid-template-columns:minmax(0,1fr) minmax(220px,270px);gap:16px}
+.task-reference-rail{min-width:0}
+.task-reference-rail .task-rail-card{min-height:0}
+.overview-v2,.task-reference-page,.focus-workspace,.calendar-page-fit,.gym-page{width:100%;max-width:1500px;margin-inline:auto}
+.overview-v2-grid{gap:14px}
+.overview-panel,.overview-progress-card,.focus-session-card,.focus-side-v4>section{border-color:var(--line);border-radius:var(--radius)}
+.overview-panel{background:linear-gradient(155deg,rgba(43,27,39,.95),rgba(29,19,29,.98))}
+.overview-streak{background:linear-gradient(110deg,rgba(223,120,151,.13),rgba(143,77,131,.08));border-color:rgba(223,120,151,.2)}
+.overview-progress-card{background:rgba(34,22,34,.92);border-color:var(--line)}
+.focus-clock-v4 .timer-display{font-variant-numeric:tabular-nums;letter-spacing:-.055em}
+.focus-mode-picker button[aria-pressed="true"]{border-color:rgba(240,163,185,.55);background:rgba(223,120,151,.15);color:#ffe8ef}
+.calendar-main-v53,.calendar-day-panel-v53,.calendar-history-v25,.calendar-goals-strip{background:rgba(32,21,32,.92);border-color:var(--line);border-radius:14px}
+.calendar-main-v53 .calendar-day{border-color:rgba(59,41,56,.8)}
+.gym-page .gym-hero,.gym-workout-panel,.gym-history-panel{border-color:var(--line);border-radius:var(--radius)}
+.settings-card{background:linear-gradient(155deg,rgba(43,27,39,.96),rgba(29,19,29,.98))}
+.task-menu-actions,.dropdown-menu,.context-menu,[role="menu"]{background:#241827;border:1px solid var(--line-strong);border-radius:12px;box-shadow:var(--shadow)}
+.modal,.modal-backdrop,.dialog,.dialog-backdrop{backdrop-filter:blur(12px)}
+.modal-content,.modal-card,.dialog-card{background:#241827;border:1px solid var(--line-strong);border-radius:16px;box-shadow:var(--shadow)}
+.toast{border:1px solid var(--line-strong);border-radius:12px;box-shadow:var(--shadow)}
+.floating-add-task{background:linear-gradient(135deg,#df7897,#bd5e83);color:#1b111a;box-shadow:0 12px 30px rgba(200,93,130,.28)}
+.floating-add-task:hover{filter:brightness(1.07);transform:translateY(-2px)}
+:where(.task-list,.overview-scroll-list,.focus-history-scroll,.calendar-schedule-scroll,.calendar-history-scroll,.calendar-goals-scroll,.gym-task-list,.gym-history-list){overscroll-behavior:contain}
+:where(.task-row,.habit-card,.overview-panel,.focus-session-card,.settings-card,.calendar-day-panel-v53,.gym-workout-panel){min-width:0}
+@media(max-width:980px){
+  :root{--sidebar:76px}
+  .brand-row{justify-content:center;padding:18px 8px}
+  .brand-copy,.nav-label,.smart-nav button span,.settings-link span,.smart-nav em{display:none}
+  .smart-nav button,.settings-link{display:flex;justify-content:center;padding:11px 8px;min-height:44px}
+  .nav-icon{font-size:16px}
+  .nav-section{padding:0 10px}
+  .topbar{grid-template-columns:minmax(120px,1fr) minmax(160px,340px) auto;gap:10px}
+  .top-title h1{font-size:22px}
+  .view{padding:16px}
+  .task-reference-layout{grid-template-columns:minmax(0,1fr) 220px}
+}
+@media(max-width:720px){
+  .app-shell{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}
+  .sidebar{height:auto;min-height:0;display:grid;grid-template-columns:48px minmax(0,1fr) auto;align-items:center;padding:4px 8px;border-right:0;border-bottom:1px solid var(--line);box-shadow:0 6px 18px rgba(0,0,0,.14)}
+  .brand-row{padding:4px;justify-content:start}
+  .brand-mark{width:34px;height:34px}
+  .nav-section{padding:0;min-width:0}
+  .smart-nav{flex-direction:row;gap:3px;overflow-x:auto;scrollbar-width:none}
+  .smart-nav::-webkit-scrollbar{display:none}
+  .smart-nav button{flex:0 0 38px;width:38px;min-height:38px;padding:6px}
+  .sidebar-bottom{margin:0;padding:0;border:0;background:transparent}
+  .settings-link{width:38px;min-height:38px;padding:6px}
+  .main-area{grid-template-rows:auto minmax(0,1fr);min-height:0}
+  .topbar{grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:10px 12px;min-height:64px}
+  .top-search{grid-column:1/-1;grid-row:2;height:38px}
+  .top-actions{grid-column:2;grid-row:1}
+  .top-title h1{font-size:20px}
+  .crumb{display:none}
+  .view{padding:14px 12px 28px;overflow:auto}
+  .task-reference-layout,.overview-v2-grid,.overview-progress,.focus-workspace-grid,.calendar-core-fit,.calendar-bottom-grid{grid-template-columns:minmax(0,1fr)}
+  .task-reference-rail{overflow:visible}
+  .calendar-page-fit,.gym-page,.focus-workspace,.overview-v2,.task-reference-page{height:auto;min-height:0}
+}
+@media(max-width:460px){
+  .sidebar{grid-template-columns:40px minmax(0,1fr) 38px;padding-inline:5px}
+  .smart-nav button{flex-basis:34px;width:34px}
+  .view{padding-inline:10px}
+  .page-intro,.ref-page-head,.task-page-head{flex-direction:column;align-items:stretch;gap:12px}
+  .top-action{width:32px;height:32px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
