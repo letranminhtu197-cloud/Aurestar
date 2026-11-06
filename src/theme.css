@@ -153,7 +153,7 @@ input[type=checkbox],input[type=range]{accent-color:var(--rose)}
 .task-board-title h3{font-size:17px}
 .task-group{background:rgba(24,12,18,.36);border-color:rgba(104,64,74,.55)}
 .task-group-head{background:rgba(58,32,44,.55)}
-.task-row{grid-template-columns:28px minmax(0,1fr) auto 34px;gap:10px;padding:12px 13px}
+.task-row{grid-template-columns:28px minmax(0,1fr) 12px auto 34px;gap:10px;padding:12px 13px}
 .task-row:hover{background:rgba(242,139,156,.045)}
 .task-row.done{opacity:.68}
 .task-title-line b{font-size:14px}
