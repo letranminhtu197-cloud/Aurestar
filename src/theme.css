@@ -1,0 +1,348 @@
+/* Aurestar — Itsuki design system
+   Shared visual language: deep plum, warm rose, soft ivory and restrained gold.
+   This file changes presentation only; renderer actions and persistence remain untouched. */
+:root{
+  color-scheme:dark;
+  --bg:#180c12;
+  --bg-2:#211019;
+  --surface:#2a1720;
+  --surface-2:#351c27;
+  --surface-3:#24131b;
+  --surface-raised:#3a202c;
+  --line:#4b2a36;
+  --line-strong:#68404a;
+  --text:#f8edf0;
+  --text-2:#ead5dc;
+  --muted:#bd9ba4;
+  --muted-2:#92727d;
+  --rose:#f28b9c;
+  --rose-strong:#d94e67;
+  --rose-deep:#8e3448;
+  --rose-soft:rgba(242,139,156,.12);
+  --gold:#f6c555;
+  --danger:#ef7186;
+  --shadow:0 18px 46px rgba(0,0,0,.32);
+  --shadow-soft:0 8px 24px rgba(0,0,0,.2);
+  --radius:16px;
+  --radius-sm:11px;
+  --sidebar:248px;
+  --cyan:var(--rose-strong);
+  --cyan-soft:var(--rose);
+  --blue:var(--rose-strong);
+  --indigo:var(--rose-deep);
+  --violet:var(--rose-deep);
+  --gold-soft:var(--gold);
+}
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;min-width:0;margin:0;background:var(--bg);color:var(--text)}
+body{font:14px/1.5 Inter,"Segoe UI",system-ui,-apple-system,BlinkMacSystemFont,Arial,sans-serif;overflow:hidden}
+::selection{background:rgba(242,139,156,.28);color:#fff}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+button:disabled{cursor:not-allowed;opacity:.48}
+a{color:var(--rose)}
+input,select,textarea{background:var(--surface-3);border:1px solid var(--line);border-radius:10px;color:var(--text)}
+input:focus,select:focus,textarea:focus{outline:0;border-color:var(--rose);box-shadow:0 0 0 3px rgba(242,139,156,.13)}
+:focus-visible{outline:2px solid var(--rose);outline-offset:2px}
+.hidden{display:none!important}
+.muted{color:var(--muted)}
+/* App frame */
+.app-body{background:radial-gradient(ellipse at 80% 0%,rgba(142,52,72,.15),transparent 34%),var(--bg)}
+.app-shell{height:100%;min-width:0;min-height:0;display:grid;grid-template-columns:var(--sidebar) minmax(0,1fr)}
+.sidebar{min-width:0;height:100%;display:flex;flex-direction:column;overflow:hidden;background:linear-gradient(180deg,#1d1017,#180c12);border-right:1px solid var(--line);box-shadow:8px 0 28px rgba(0,0,0,.16);z-index:3}
+.brand-row{min-height:76px;padding:17px 18px;gap:12px;border-bottom:1px solid rgba(104,64,74,.28)}
+.brand-mark{width:40px;height:40px;border-radius:13px;background:linear-gradient(145deg,rgba(242,139,156,.22),rgba(142,52,72,.24));border:1px solid rgba(242,139,156,.38);color:#ffdce3;box-shadow:0 5px 20px rgba(217,78,103,.14)}
+.brand-copy strong{font-size:17px;letter-spacing:.04em}
+.brand-copy small{color:var(--rose);background:none;-webkit-text-fill-color:initial;font-size:9px;letter-spacing:.1em}
+.nav-section{padding:16px 12px 8px}
+.nav-label{padding:0 10px 9px;color:var(--muted-2);font-size:9px;letter-spacing:.16em}
+.smart-nav{gap:4px}
+.smart-nav button,.settings-link{min-height:42px;padding:9px 11px;border:1px solid transparent;border-radius:10px;color:var(--muted);font-size:13px}
+.smart-nav button:hover,.settings-link:hover{background:rgba(242,139,156,.07);color:var(--text);transform:none}
+.smart-nav button.active{background:linear-gradient(90deg,rgba(217,78,103,.2),rgba(142,52,72,.08));border-color:rgba(242,139,156,.2);color:#fff0f3;box-shadow:none}
+.smart-nav button.active::before{background:var(--rose);top:8px;bottom:8px}
+.smart-nav button.active .nav-icon{color:var(--rose)}
+.nav-icon{font-size:15px}
+.sidebar-bottom{padding:12px;border-top:1px solid var(--line);background:rgba(24,12,18,.7)}
+.settings-link{width:100%}
+.main-area{height:100%;min-width:0;min-height:0;display:grid;grid-template-rows:72px minmax(0,1fr);overflow:hidden;background:transparent}
+.topbar{min-width:0;grid-template-columns:minmax(180px,1fr) minmax(220px,440px) auto;gap:18px;padding:0 26px;background:rgba(24,12,18,.88);border-bottom:1px solid var(--line);backdrop-filter:blur(18px)}
+.top-title h1{font-size:23px;letter-spacing:-.035em}
+.crumb{color:var(--muted-2);font-size:9px;letter-spacing:.15em}
+.top-search{height:40px;background:var(--surface);border-color:var(--line);border-radius:11px}
+.top-search input{background:transparent}
+.top-search kbd{background:#1c1017;border-color:var(--line);color:var(--muted)}
+.top-action{width:36px;height:36px;border-radius:10px;background:var(--surface);border-color:var(--line);color:var(--muted)}
+.top-action:hover{background:var(--rose-soft);border-color:rgba(242,139,156,.4);color:var(--rose)}
+.view{min-width:0;min-height:0;overflow:auto;padding:26px clamp(18px,2.4vw,34px) 42px;scrollbar-color:#68404a transparent;scrollbar-width:thin}
+.view::-webkit-scrollbar{width:9px}
+.view::-webkit-scrollbar-thumb{background:#68404a;border:2px solid transparent;background-clip:padding-box;border-radius:20px}
+.view>*{min-width:0}
+.page-intro,.ref-page-head,.task-page-head{max-width:1440px}
+.page-intro h2,.ref-page-head h2,.task-page-head h2{font-size:30px;letter-spacing:-.04em}
+.eyebrow,.section-kicker,.badge{color:var(--rose);letter-spacing:.12em}
+.badge{background:rgba(242,139,156,.1);border-color:rgba(242,139,156,.22);color:#ffc4ce}
+.yellow-badge{color:var(--gold);background:rgba(246,197,85,.09);border-color:rgba(246,197,85,.2)}
+.card,.reference-card,.task-rail-card,.settings-card,.habit-card,.char-card-ref,.profile-hero-ref,.economy-card-ref,.progress-card-ref,.focus-main,.sound-panel,.task-center-panel,.overview-panel,.focus-session-card,.focus-stats-card,.focus-goal,.focus-history-panel,.calendar-history-card,.calendar-goals-strip,.gym-focus-card,.gym-sidebar-card,.gym-workout-panel,.gym-history-panel,.progress-panel,.progress-metric,.progress-hero-card{background:linear-gradient(155deg,rgba(58,32,44,.96),rgba(35,19,27,.98));border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-soft)}
+.primary,.quick-submit,.gym-big-primary{background:linear-gradient(135deg,#f28b9c,#d94e67);color:#28131c;border:1px solid rgba(255,220,227,.18);box-shadow:0 7px 20px rgba(217,78,103,.16)}
+.primary:hover,.quick-submit:hover,.gym-big-primary:hover{filter:brightness(1.06);transform:translateY(-1px)}
+.ghost,.icon-btn,.top-action{background:var(--surface-3);border-color:var(--line);color:var(--text-2)}
+.ghost:hover,.icon-btn:hover{background:var(--rose-soft);border-color:rgba(242,139,156,.38);color:#ffdce3}
+.danger{background:rgba(239,113,134,.1);border-color:rgba(239,113,134,.28);color:#ff9eae}
+input,select,textarea{accent-color:var(--rose)}
+input[type=checkbox],input[type=range]{accent-color:var(--rose)}
+.progress,.progress-track,.overview-progress-track,.focus-goal-track,.gym-progress,.rail-xp>i,.hero-xp i{background:#1b1017;border-color:var(--line)}
+.progress i,.overview-progress-track i,.focus-goal-track i,.gym-progress i,.rail-xp em,.hero-xp em{background:linear-gradient(90deg,var(--rose-strong),var(--rose),#f6c555)}
+.check{border-color:#68404a;background:#211019;color:var(--rose)}
+.check.checked{background:linear-gradient(135deg,var(--rose),var(--rose-strong));color:#28131c}
+/* Overview — hierarchy: streak and progress first, activity and actions second */
+.overview-v2{max-width:1440px;margin:0 auto}
+.overview-v2-head{align-items:center;margin-bottom:18px}
+.overview-v2-head h2{font-size:30px;letter-spacing:-.04em}
+.overview-streak{padding:13px 16px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(120deg,rgba(217,78,103,.13),rgba(58,32,44,.72))}
+.overview-streak strong{color:var(--gold);font-size:23px}
+.overview-streak-days i{background:#211019;border:1px solid var(--line);color:var(--muted)}
+.overview-streak-days i.active{background:rgba(242,139,156,.18);border-color:rgba(242,139,156,.38);color:#ffe3e8}
+.overview-progress{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.overview-progress-card{min-width:0;padding:16px 18px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(150deg,#38202b,#25141c);text-align:left}
+.overview-progress-card:hover{border-color:rgba(242,139,156,.42);transform:translateY(-1px)}
+.overview-progress-card>span{color:var(--muted);font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.overview-progress-card>strong{display:block;margin:7px 0;font-size:25px;color:var(--text)}
+.overview-progress-card>strong small{font-size:13px;color:var(--muted)}
+.overview-progress-track{height:7px;border-radius:99px;overflow:hidden}
+.overview-progress-track i{display:block;height:100%;border-radius:inherit}
+.overview-v2-grid{grid-template-columns:minmax(220px,.88fr) minmax(340px,1.35fr) minmax(240px,.95fr);gap:14px;align-items:stretch}
+.overview-panel{min-width:0;padding:17px}
+.overview-panel-head h3{font-size:15px}
+.overview-momentum-total strong{color:var(--rose);font-size:28px}
+.overview-bars{gap:8px}
+.overview-bar-day>span{background:#211019;border:1px solid var(--line)}
+.overview-bar-day>span i{background:linear-gradient(180deg,var(--rose),var(--rose-deep))}
+.overview-bar-day>b{color:var(--text-2)}
+.overview-action-columns{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.overview-scroll-list{max-height:360px;overflow:auto}
+.overview-habit-row,.overview-goal-row{border-bottom:1px solid rgba(104,64,74,.35)}
+.overview-calendar-day{background:#211019;border:1px solid var(--line);border-radius:9px}
+.overview-calendar-day.today{border-color:var(--rose);background:rgba(242,139,156,.12)}
+.overview-calendar-day i.active{background:var(--rose)}
+/* Tasks & habits — a clear daily routine strip above the task board */
+.task-workspace,.task-reference-page{max-width:1440px;margin:0 auto}
+.task-page-head{align-items:flex-end;margin-bottom:16px}
+.task-head-actions{gap:8px}
+.task-controls{margin-bottom:12px}
+.view-tabs{background:#211019;border-color:var(--line);border-radius:12px}
+.view-tabs button{border-radius:8px}
+.view-tabs button.active{background:rgba(242,139,156,.15);color:#ffdce3;box-shadow:inset 0 0 0 1px rgba(242,139,156,.22)}
+.quick-add{grid-template-columns:42px minmax(0,1fr) auto auto;background:var(--surface);border-color:var(--line);border-radius:14px}
+.quick-add input{min-width:0}
+.quick-plus{background:rgba(242,139,156,.12);border-color:rgba(242,139,156,.25);color:var(--rose)}
+.unified-habits{padding:16px;margin:0 0 16px;border:1px solid var(--line);border-radius:15px;background:linear-gradient(145deg,rgba(58,32,44,.9),rgba(35,19,27,.9))}
+.unified-habits-head{align-items:center}
+.unified-habits-head h3{margin:3px 0;font-size:17px}
+.unified-habits-head p{margin:3px 0 0;color:var(--muted);font-size:12px}
+.unified-habit-progress strong{color:var(--rose);font-size:20px}
+.habit-quick-add{display:grid;grid-template-columns:minmax(0,1fr) 130px auto;gap:8px;margin:12px 0}
+.habit-inline-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px}
+.habit-inline-card{min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:11px;background:rgba(24,12,18,.55)}
+.habit-inline-card:hover{border-color:rgba(242,139,156,.34)}
+.habit-inline-copy{min-width:0}
+.habit-inline-copy b{overflow-wrap:anywhere}
+.task-reference-layout{grid-template-columns:minmax(0,1fr) 270px;gap:14px;align-items:start}
+.task-center-panel{padding:17px}
+.task-board-title{padding-bottom:13px}
+.task-board-title h3{font-size:17px}
+.task-group{background:rgba(24,12,18,.36);border-color:rgba(104,64,74,.55)}
+.task-group-head{background:rgba(58,32,44,.55)}
+.task-row{grid-template-columns:28px minmax(0,1fr) 12px auto 34px;gap:10px;padding:12px 13px}
+.task-row:hover{background:rgba(242,139,156,.045)}
+.task-row.done{opacity:.68}
+.task-title-line b{font-size:14px}
+.task-meta{font-size:10px}
+.priority-mark{box-shadow:0 0 0 3px rgba(242,139,156,.07)}
+.task-rail-card{padding:14px}
+.rail-stat-card{display:grid;grid-template-columns:1fr;gap:12px}
+.rail-stat-card>div{display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.rail-stat-card>div:last-child{padding-bottom:0;border:0}
+.rail-stat-card span{color:var(--muted);font-size:11px}
+.rail-stat-card strong{color:var(--rose);font-size:20px}
+/* Focus — primary timer receives visual priority; controls and history stay secondary */
+.focus-workspace{max-width:1200px;margin:0 auto}
+.focus-workspace-head{align-items:center;margin-bottom:16px}
+.focus-workspace-head h2{font-size:30px}
+.focus-round-picker{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.focus-round-picker label{color:var(--muted);font-size:12px}
+.focus-round-picker select{width:76px}
+.focus-workspace-grid{grid-template-columns:minmax(0,1fr) 300px;gap:15px;align-items:start}
+.focus-session-card{padding:22px;min-width:0}
+.focus-session-top{align-items:center}
+.focus-mode-picker{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:16px 0}
+.focus-mode-picker button{min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#211019}
+.focus-mode-picker button[aria-pressed=true]{background:rgba(242,139,156,.13);border-color:rgba(242,139,156,.42);color:#ffe2e8}
+.focus-mode-picker b{background:rgba(242,139,156,.12);border-color:rgba(242,139,156,.25);color:var(--rose)}
+.focus-clock-shell{min-height:270px;margin:12px 0;padding:26px;border:1px solid rgba(242,139,156,.24);border-radius:18px;background:radial-gradient(circle at 50% 42%,rgba(217,78,103,.17),transparent 55%),#211019}
+.focus-phase-label{color:var(--rose);letter-spacing:.18em}
+.timer-display-v3{font-size:clamp(54px,8vw,82px);color:#fff1f4;text-shadow:0 0 28px rgba(242,139,156,.12)}
+.focus-timer-meta{color:var(--muted)}
+.focus-controls-v4{display:flex;justify-content:center;gap:9px;margin-top:15px}
+.focus-controls-v4 button{min-width:112px;min-height:42px}
+.focus-widget-row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:18px;padding-top:14px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}
+.focus-side-v4{display:grid;gap:12px}
+.focus-stats-card{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;padding:13px}
+.focus-stats-card>div{min-width:0;padding:7px 4px;text-align:center}
+.focus-stats-card span{display:block;color:var(--muted);font-size:10px}
+.focus-stats-card strong{display:block;margin-top:4px;color:var(--rose);font-size:16px}
+.focus-goal,.focus-history-panel{padding:15px}
+.focus-history-scroll{max-height:340px;overflow:auto}
+.focus-history-row{border-bottom:1px solid rgba(104,64,74,.35)}
+/* Calendar — calendar grid and selected-day detail share a balanced split */
+.calendar-page-v53{max-width:1440px;margin:0 auto}
+.calendar-header-v53{align-items:center;margin-bottom:15px}
+.calendar-header-v53 h2{font-size:30px}
+.calendar-core-v53{grid-template-columns:minmax(0,1fr) 310px;gap:14px;align-items:stretch}
+.calendar-main-v53,.calendar-day-panel-v53{min-width:0;padding:16px;border:1px solid var(--line);border-radius:15px;background:linear-gradient(155deg,rgba(58,32,44,.92),rgba(35,19,27,.96))}
+.calendar-toolbar{margin-bottom:13px}
+.calendar-toolbar h3{font-size:17px}
+.calendar.weekdays,.calendar.grid{gap:6px}
+.calendar.weekdays b{padding:8px 2px;color:var(--muted);font-size:10px}
+.calendar-day{min-width:0;min-height:76px;padding:9px;border:1px solid var(--line);border-radius:10px;background:#211019;color:var(--text)}
+.calendar-day:hover{border-color:rgba(242,139,156,.42);background:rgba(242,139,156,.06)}
+.calendar-day.today-day{border-color:var(--rose)}
+.calendar-day.selected-day{background:rgba(242,139,156,.13);box-shadow:inset 0 0 0 1px rgba(242,139,156,.24)}
+.activity-dot{background:var(--rose)}
+.calendar-day-stats-v53{gap:7px}
+.calendar-day-stats-v53>div{padding:10px 6px;border:1px solid var(--line);border-radius:10px;background:#211019}
+.calendar-day-stats-v53 b{color:var(--rose)}
+.calendar-schedule-scroll{max-height:340px;overflow:auto}
+.calendar-bottom-grid{grid-template-columns:minmax(0,1.5fr) minmax(260px,1fr);gap:14px;margin-top:14px}
+.calendar-history-card,.calendar-goals-strip{min-width:0;padding:15px}
+.calendar-history-scroll,.calendar-goals-scroll{max-height:300px;overflow:auto}
+/* Training — one session overview with the active exercise as the focal panel */
+.gym-page{max-width:1280px;margin:0 auto}
+.gym-hero{align-items:center;padding:20px 22px;margin-bottom:14px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(115deg,rgba(217,78,103,.16),rgba(58,32,44,.86) 52%,rgba(35,19,27,.95))}
+.gym-hero h2{font-size:26px}
+.gym-hero p{max-width:680px;color:var(--muted);font-size:12px}
+.gym-hero-status{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(24,12,18,.56)}
+.gym-active-grid{grid-template-columns:minmax(0,1fr) 300px;gap:14px}
+.gym-focus-card,.gym-sidebar-card,.gym-workout-panel,.gym-history-panel{padding:17px}
+.gym-timer-display{font-size:clamp(40px,6vw,62px);color:#fff0f3}
+.gym-task-stack-row{border-bottom:1px solid var(--line)}
+.gym-task-stack-row.current{background:rgba(242,139,156,.1);border-color:rgba(242,139,156,.3)}
+.gym-task-stack-row.done{opacity:.62}
+/* Progress — overview metrics, trend, and actionable breakdown */
+.progress-v2{max-width:1440px;margin:0 auto}
+.progress-v2-head{align-items:center;margin-bottom:16px}
+.progress-v2-head h2{font-size:30px}
+.progress-v2-head p{max-width:720px;color:var(--muted)}
+.progress-range{padding:4px;border:1px solid var(--line);border-radius:11px;background:#211019}
+.progress-range button{padding:8px 12px;border-radius:8px;color:var(--muted)}
+.progress-range button.active{background:rgba(242,139,156,.16);color:#ffe2e8}
+.progress-hero-card{display:flex;justify-content:space-between;gap:20px;align-items:center;padding:19px 22px;margin-bottom:14px}
+.progress-hero-main h3{font-size:34px;color:var(--rose)}
+.progress-hero-main h3 span{font-size:14px;color:var(--muted)}
+.progress-hero-side{min-width:150px;padding-left:20px;border-left:1px solid var(--line)}
+.progress-hero-side strong{display:block;color:var(--gold);font-size:26px}
+.progress-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.progress-metric{padding:14px}
+.progress-metric-top span{color:var(--muted);font-size:11px}
+.progress-metric-top b{color:var(--rose);font-size:20px}
+.progress-panel{padding:17px;margin-bottom:14px}
+.progress-bottom-grid{grid-template-columns:1fr 1fr;gap:14px}
+.progress-break-row{border-bottom:1px solid var(--line)}
+.progress-break-icon{color:var(--rose)}
+.progress-next-value{color:var(--gold)}
+/* Settings — compact two-column form with consistent labels and controls */
+.settings-grid{max-width:1200px;margin:0 auto;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.settings-card{min-width:0;padding:18px}
+.settings-card h3{font-size:16px}
+.settings-card label:not(.switch-row){color:var(--muted);font-size:11px}
+.settings-card input:not([type=checkbox]),.settings-card select{min-height:38px}
+.switch-row{border-bottom:1px solid rgba(104,64,74,.35);color:var(--text-2)}
+.settings-pill{color:var(--rose);border-color:rgba(242,139,156,.24)}
+.info-row{border-bottom-color:rgba(104,64,74,.35)}
+/* Dialogs, menus and feedback */
+.modal-backdrop{background:rgba(12,6,10,.82);padding:18px}
+.modal{background:linear-gradient(160deg,#38202b,#1d1017);border-color:var(--line-strong);box-shadow:0 28px 80px rgba(0,0,0,.55)}
+.modal-head{gap:14px}
+.modal-form{gap:13px}
+.modal-form label{color:var(--muted)}
+.repeat-box,.weekdays-picker label,.manage-list,.import-preview>div,.export-format{background:#211019;border-color:var(--line)}
+.toast{background:#351c27;border-color:var(--line-strong)}
+.toast.success{border-color:rgba(242,139,156,.3)}
+.toast.error{border-color:rgba(239,113,134,.4);color:#ff9eae}
+.levelup-overlay{background:rgba(12,6,10,.86)}
+.levelup-card{background:linear-gradient(160deg,#3a202c,#1d1017);border-color:var(--line-strong)}
+.levelup-num{color:var(--rose);text-shadow:0 0 24px rgba(242,139,156,.16)}
+.floating-add-task{background:linear-gradient(135deg,#f28b9c,#d94e67);color:#28131c;box-shadow:0 10px 28px rgba(217,78,103,.26)}
+.floating-add-task:hover{filter:brightness(1.06);transform:translateY(-2px)}
+/* No nested page scrollers except deliberate history/list panels. */
+.view{overscroll-behavior:contain}
+.overview-scroll-list,.focus-history-scroll,.calendar-schedule-scroll,.calendar-history-scroll,.calendar-goals-scroll,.gym-task-list,.gym-history-list{overscroll-behavior:contain;scrollbar-width:thin}
+.task-row,.habit-inline-card,.overview-panel,.focus-session-card,.settings-card,.calendar-day-panel-v53,.gym-workout-panel{min-width:0}
+/* Tablet */
+@media(max-width:1240px){
+  .overview-v2-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .overview-goals-calendar{grid-column:1/-1}
+  .task-reference-layout{grid-template-columns:minmax(0,1fr) 230px}
+  .calendar-core-v53{grid-template-columns:minmax(0,1fr) 270px}
+  .progress-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:980px){
+  :root{--sidebar:72px}
+  .brand-row{justify-content:center;padding:14px 6px}
+  .brand-copy,.nav-label,.smart-nav button span,.smart-nav em,.settings-link span{display:none}
+  .smart-nav button,.settings-link{display:flex;justify-content:center;padding:10px 6px;min-height:42px}
+  .nav-section{padding:12px 8px}
+  .topbar{grid-template-columns:minmax(120px,1fr) minmax(150px,300px) auto;gap:10px;padding:0 16px}
+  .view{padding:20px 16px 34px}
+  .task-reference-layout{grid-template-columns:minmax(0,1fr) 210px}
+  .focus-workspace-grid{grid-template-columns:minmax(0,1fr) 260px}
+  .calendar-core-v53{grid-template-columns:minmax(0,1fr) 250px}
+  .gym-active-grid{grid-template-columns:minmax(0,1fr) 250px}
+}
+@media(max-width:760px){
+  .app-shell{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
+  .sidebar{height:auto;min-height:58px;display:grid;grid-template-columns:44px minmax(0,1fr) 38px;align-items:center;border-right:0;border-bottom:1px solid var(--line);overflow:hidden}
+  .brand-row{min-height:0;padding:6px;justify-content:center;border:0}
+  .brand-mark{width:34px;height:34px}
+  .nav-section{min-width:0;padding:4px 0}
+  .smart-nav{flex-direction:row;gap:3px;overflow-x:auto;scrollbar-width:none}
+  .smart-nav::-webkit-scrollbar{display:none}
+  .smart-nav button{flex:0 0 38px;width:38px;min-height:38px;padding:5px}
+  .sidebar-bottom{padding:0;border:0;background:transparent}
+  .settings-link{width:36px;min-height:36px;padding:5px}
+  .main-area{grid-template-rows:auto minmax(0,1fr)}
+  .topbar{grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:9px 12px;min-height:62px}
+  .top-search{grid-column:1/-1;grid-row:2;height:36px}
+  .top-actions{grid-column:2;grid-row:1}
+  .top-title h1{font-size:19px}
+  .crumb{display:none}
+  .view{padding:16px 12px 30px}
+  .overview-v2-grid,.overview-progress,.task-reference-layout,.focus-workspace-grid,.calendar-core-v53,.calendar-bottom-grid,.gym-active-grid,.progress-bottom-grid,.settings-grid{grid-template-columns:minmax(0,1fr)}
+  .overview-goals-calendar{grid-column:auto}
+  .overview-action-columns{grid-template-columns:minmax(0,1fr)}
+  .task-reference-rail{overflow:visible}
+  .calendar-day-panel-v53{min-height:0}
+  .progress-hero-card{align-items:flex-start;flex-direction:column}
+  .progress-hero-side{width:100%;padding:12px 0 0;border-left:0;border-top:1px solid var(--line)}
+  .settings-grid{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:480px){
+  .page-intro,.ref-page-head,.task-page-head,.calendar-header-v53,.progress-v2-head{flex-direction:column;align-items:stretch;gap:12px}
+  .task-head-actions,.calendar-header-actions{display:flex;flex-wrap:wrap}
+  .habit-quick-add{grid-template-columns:minmax(0,1fr) 100px}
+  .habit-quick-add button{grid-column:1/-1}
+  .task-row{grid-template-columns:26px minmax(0,1fr) 30px;gap:7px}
+  .task-estimate{display:none}
+  .focus-session-card{padding:15px}
+  .focus-mode-picker{gap:5px}
+  .focus-mode-picker button{padding:8px 6px}
+  .focus-controls-v4{flex-wrap:wrap}
+  .focus-controls-v4 button{flex:1;min-width:90px}
+  .calendar-day{min-height:56px;padding:6px}
+  .calendar.weekdays,.calendar.grid{gap:4px}
+  .progress-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .export-format-grid{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
