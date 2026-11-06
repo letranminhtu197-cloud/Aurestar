@@ -27,7 +27,7 @@ const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 const send=(type,payload={})=>new Promise((resolve,reject)=>chrome.runtime.sendMessage({type,...payload},r=>{const e=chrome.runtime.lastError;if(e)return reject(new Error(e.message));resolve(r)}));
 const sendWithTimeout=(type,payload={},timeoutMs=5000)=>new Promise((resolve,reject)=>{let settled=false;const timerId=setTimeout(()=>{if(settled)return;settled=true;reject(new Error(`Timed out waiting for background response: ${type}`));},timeoutMs);send(type,payload).then(value=>{if(settled)return;settled=true;clearTimeout(timerId);resolve(value);},error=>{if(settled)return;settled=true;clearTimeout(timerId);reject(error);});});
 const priorityLabel={low:"Low",medium:"Medium",high:"High",urgent:"Urgent"};
-const viewTitles={dashboard:"Overview",today:"Today",tasks:"Tasks & Habits",habits:"Habits",focus:"Focus",gym:"Training",calendar:"Calendar",analytics:"Progress",settings:"Settings"};
+const viewTitles={dashboard:"Overview",today:"Today",tasks:"Tasks",habits:"Habits",focus:"Focus",gym:"Training",calendar:"Calendar",analytics:"Progress",settings:"Settings"};
 const attrMeta={};
 
 const LOCALES = {
