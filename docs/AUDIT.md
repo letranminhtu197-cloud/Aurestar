@@ -40,3 +40,18 @@ The automated suite covers JSON migration and backups, preservation of corrupt i
 The source tests pass, static checks pass, `npm audit` reports zero vulnerabilities, and both Windows packages build. A UI launch of Electron 45.2.1 was blocked in this host environment before Aurestar's main process opened: Chromium reported `install_dir_access.cc:52` and `0x80000003`, saying the Electron install directory had a sandbox package ACE without the `ALL APPLICATION PACKAGES` read ACE. This matches a reported Windows sandbox/ACL failure affecting Chromium/Electron apps on this Codex host ([OpenAI Codex issue #15777](https://github.com/openai/codex/issues/15777)). No ACL was changed and the installed Aurestar app/data were not used for this attempt. Validate the packaged app on a clean Windows profile before release.
 
 A Windows signature and unattended auto-update are not enabled because no publisher certificate or trusted release credentials were supplied. Browser-level website blocking remains unavailable by design: this desktop build does not attach to an external browser or alter operating-system network settings.
+
+
+## Phase 1 — Stability hardening (2026-11-06)
+
+Scope: startup lifecycle, state-shape recovery, backup import validation and renderer crash recovery. Implemented on branch `feature/phase1-stability-hardening`, based on `feature/desktop-professional-edition`.
+
+### Changes in this phase
+- Enforce one running Aurestar instance; a second launch brings the existing workspace to the foreground instead of starting a second background engine against the same JSON file.
+- Add bounded recovery for a crashed main renderer: reload once/twice within a rolling 60-second window, then close the app rather than entering an infinite crash loop. Persisted data remains owned by the main process and JSON store.
+- Normalize all persisted collection fields and merge settings/profile defaults before the renderer/background consumers use them. Invalid collection shapes are repaired to empty arrays while valid records remain intact.
+- Validate backup imports through the same bounded JSON reader used by migration. Malformed, oversized and non-object JSON backups are rejected before the live store is changed; current data is backed up before a valid import is applied.
+- Extend Node tests and source invariants for collection normalization, import parsing, single-instance behavior and bounded renderer recovery.
+
+### Verification boundary
+This is source-level hardening. Automated Node tests and static checks must pass on the resulting commit. A clean Windows install/upgrade test, renderer-crash injection, power-resume test and real user-data migration test still require a Windows runtime and representative data backups; they are not claimed as completed by CI alone.
