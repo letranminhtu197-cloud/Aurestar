@@ -530,3 +530,96 @@ input[type=checkbox],input[type=range]{accent-color:var(--rose)}
 /* Keep a compact Calendar shortcut beneath the Overview goals, not a duplicate week strip. */
 .overview-goals-calendar .overview-calendar-head{display:flex;margin-top:auto;padding-top:12px;border-top:1px solid var(--line)}
 .overview-goals-calendar .overview-calendar-strip{display:none}
+
+
+/* Study Space HTML reference layout — native Electron UI, no CDN or demo content. */
+:root{--sidebar:252px}
+@media(min-width:981px){
+ .sidebar{width:var(--sidebar);min-width:var(--sidebar)}
+ .brand-row{justify-content:flex-start;padding:20px 18px}
+ .brand-copy{display:grid}
+ .nav-label,.smart-nav button span,.smart-nav button em,.settings-link span{display:initial}
+ .smart-nav button{justify-content:flex-start;padding:12px 14px;min-height:46px}
+ .settings-link{justify-content:flex-start;padding:12px 14px}
+}
+.top-avatar{width:36px;height:36px;flex:none;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,rgba(255,77,125,.28),rgba(255,183,3,.2));border:1px solid rgba(255,77,125,.48);color:#ff7e9f;font-size:11px;font-weight:850;letter-spacing:.04em}
+.top-actions{align-items:center;gap:8px}
+.overview-v2-grid{grid-template-columns:minmax(220px,.28fr) minmax(360px,.44fr) minmax(220px,.28fr);gap:18px}
+.overview-action-columns{grid-template-columns:minmax(0,1fr);gap:18px}
+.overview-action-group{min-width:0}
+.overview-scroll-list{max-height:240px;overflow:auto}
+.overview-panel{background:rgba(37,23,29,.9);backdrop-filter:blur(12px);border-radius:16px}
+@media(max-width:1180px){.overview-v2-grid{grid-template-columns:minmax(0,1fr) minmax(0,1.5fr)}}
+@media(max-width:900px){.overview-v2-grid{grid-template-columns:minmax(0,1fr)}.overview-goals-calendar{grid-column:auto}}
+/* Daily Routine is a balanced 50/50 Tasks and Habits workspace. */
+.task-reference-layout{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.task-center-panel,.task-reference-rail{min-width:0}
+.task-reference-rail>.habits-workspace{width:100%}
+@media(max-width:900px){.task-reference-layout{grid-template-columns:minmax(0,1fr)}}
+/* Focus: centered timer station and four live summary cells. */
+.focus-workspace{max-width:1180px;margin-inline:auto}
+.focus-workspace-head{grid-template-columns:minmax(180px,1fr) auto auto}
+.focus-workspace-grid{display:block}
+.focus-session-card{width:min(100%,900px);min-height:0;margin:18px auto 0;padding:clamp(22px,3vw,42px);border-radius:24px}
+.focus-session-top{width:100%;max-width:620px;margin-inline:auto}
+.focus-clock-shell{min-height:250px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.timer-display-v3{font-size:clamp(76px,10vw,116px);line-height:1.05}
+.focus-controls-v4{justify-content:center}
+.focus-side-v4{display:none!important}
+.focus-reference-stats{width:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding-top:22px;border-top:1px solid var(--line)}
+.focus-reference-stats article{min-width:0;padding:13px 10px;text-align:center;border:1px solid var(--line);border-radius:12px;background:rgba(19,11,14,.55)}
+.focus-reference-stats span{display:block;color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.focus-reference-stats strong{display:block;margin-top:6px;color:var(--text);font-size:16px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+@media(max-width:760px){.focus-workspace-head{grid-template-columns:1fr auto}.focus-reference-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.focus-clock-shell{min-height:190px}}
+/* Calendar: 70/30 month and selected-day panels, followed by a full-width 365-day graph. */
+.calendar-core-v53{grid-template-columns:minmax(0,7fr) minmax(260px,3fr);gap:18px}
+.calendar-bottom-grid{display:flex;flex-direction:column;gap:14px}
+.calendar-history-card{order:0;width:100%;margin-top:18px}
+.calendar-goals-strip{order:1;width:100%}
+.calendar-history-scroll{width:100%;overflow-x:auto}
+@media(max-width:900px){.calendar-core-v53{grid-template-columns:minmax(0,1fr)}}
+/* Training: header summary plus a three-column exercise-card grid. History remains in storage. */
+.gym-page:not(.gym-active-page){display:block;max-width:1480px;margin-inline:auto}
+.gym-page:not(.gym-active-page) .gym-howto,.gym-page:not(.gym-active-page) .gym-history-panel{display:none!important}
+.gym-page:not(.gym-active-page) .gym-hero{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:20px}
+.gym-page:not(.gym-active-page) .gym-hero-summary{display:flex;gap:10px}
+.gym-page:not(.gym-active-page) .gym-workout-panel{margin-top:18px}
+.gym-page:not(.gym-active-page) .gym-task-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.gym-page:not(.gym-active-page) .gym-task-card{display:grid;grid-template-columns:32px minmax(0,1fr);align-items:start;gap:10px;padding:16px;min-height:148px;border:1px solid var(--line);border-radius:15px;background:rgba(37,23,29,.9)}
+.gym-page:not(.gym-active-page) .gym-task-main{min-width:0}
+.gym-page:not(.gym-active-page) .gym-task-title{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.gym-page:not(.gym-active-page) .gym-task-title b{font-size:14px}
+.gym-page:not(.gym-active-page) .gym-task-details{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;color:var(--muted);font-size:11px}
+.gym-page:not(.gym-active-page) .gym-task-actions{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:10px;border-top:1px solid var(--line)}
+.gym-page:not(.gym-active-page) .gym-empty-state{grid-column:1/-1}
+.gym-page:not(.gym-active-page) .gym-customization-panel{margin-top:14px}
+@media(max-width:1120px){.gym-page:not(.gym-active-page) .gym-task-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.gym-page:not(.gym-active-page) .gym-hero{grid-template-columns:1fr}.gym-page:not(.gym-active-page) .gym-task-list{grid-template-columns:minmax(0,1fr)}}
+/* Progress: four live metric cards as in the supplied HTML reference. */
+.progress-reference{max-width:1480px;margin-inline:auto}
+.progress-reference .progress-v2-head{margin-bottom:18px}
+.progress-reference .progress-metrics{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.progress-reference .progress-hero-card,.progress-reference .progress-trend-panel,.progress-reference .progress-bottom-grid{display:none!important}
+.progress-reference .progress-metrics{margin-top:20px}
+.progress-reference .progress-metric{min-width:0;padding:20px;border-radius:16px;background:rgba(37,23,29,.9)}
+.progress-reference .progress-metric-top span{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+.progress-reference .progress-metric-top b{font-size:clamp(22px,2vw,30px)}
+.progress-reference .progress-metric small{font-size:11px;line-height:1.5}
+@media(max-width:1100px){.progress-reference .progress-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.progress-reference .progress-metrics{grid-template-columns:minmax(0,1fr)}}
+
+
+/* Calendar inline goal badges in the yearly activity header. */
+.calendar-history-title{min-width:180px}
+.calendar-history-title h3{margin:4px 0;font-size:19px;color:var(--text)}
+.calendar-history-title p{margin:3px 0 0;color:var(--muted);font-size:11px}
+.calendar-history-actions{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap}
+.calendar-goals-inline{display:flex;align-items:center;gap:8px;min-width:0}
+.calendar-goals-inline>span{color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.calendar-goals-chips{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.calendar-goal-chip{display:inline-flex;align-items:center;gap:7px;max-width:230px;padding:5px 8px;border:1px solid var(--line);border-radius:999px;background:rgba(255,77,125,.1);font-size:10px}
+.calendar-goal-chip b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.calendar-goal-chip small{color:var(--rose);white-space:nowrap}
+.calendar-goal-chip .icon-btn{width:20px;height:20px;min-height:20px;padding:0}
+.calendar-history-actions .calendar-range-switch{display:flex;gap:3px}
+@media(max-width:900px){.calendar-history-actions{justify-content:flex-start;align-items:flex-start;flex-direction:column}}
