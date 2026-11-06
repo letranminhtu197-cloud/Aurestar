@@ -475,7 +475,7 @@ function renderTasks(el){
       </aside>
     </div>
   </div>`;
-  bindGlobal();bindQuickTask();bindHabitQuickAdd();renderHabits($("#dailyRoutineHabits"));
+  bindGlobal();bindQuickTask();renderHabits($("#dailyRoutineHabits"));
   $('[data-task-switch]').forEach(b=>b.onclick=()=>{taskMode=b.dataset.taskSwitch;selectedList="all";renderShell()});
   $("#newTaskFocus")?.addEventListener("click",openTaskForm);$("#importTasksBtn")?.addEventListener("click",openTaskImportPicker);$("#exportTasksBtn")?.addEventListener("click",openTaskExportMenu);
 }
