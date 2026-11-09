@@ -685,24 +685,24 @@ async function loadItsukiLocalCatalog(){
   return itsukiCatalogPromise;
 }
 const ITSUKI_STUDY_LINES=[
-  "Choose one clear task and begin with its first small step.",
-  "Stay with the task in front of you. You are making steady progress.",
-  "Take a calm breath, open your notes, and start where you left off.",
-  "One focused step is enough to get moving.",
-  "Keep your attention on the task you chose. You can do this.",
-  "Make the next step clear, then give it your full attention.",
-  "Progress grows one small action at a time.",
-  "Take your time and return to the work when you are ready."
+  "Chọn một việc quan trọng nhất rồi bắt đầu từ bước nhỏ đầu tiên nhé.",
+  "Tập trung vào việc trước mắt thôi. Cậu đang tiến bộ từng chút một.",
+  "Hít thở nhẹ, mở tài liệu và tiếp tục từ chỗ cậu đã dừng lại nhé.",
+  "Chỉ cần bắt đầu bằng một bước tập trung là đủ rồi.",
+  "Giữ sự chú ý vào nhiệm vụ đã chọn nhé. Cậu làm được mà.",
+  "Xác định bước tiếp theo rồi dành trọn sự tập trung cho nó.",
+  "Tiến bộ được tạo nên từ những hành động nhỏ mỗi ngày.",
+  "Cứ bình tĩnh làm tiếp khi cậu đã sẵn sàng nhé."
 ];
 const ITSUKI_WIND_DOWN_LINES=[
-  "Wind down now. Close distractions and give yourself time to rest.",
-  "Ease into the evening. Put work aside and prepare for sleep.",
-  "A steady day ends with a quiet wind-down."
+  "Đến lúc thư giãn rồi. Tạm gác việc học và dành thời gian nghỉ ngơi nhé.",
+  "Buổi tối rồi, hãy khép lại công việc và chuẩn bị cho giấc ngủ.",
+  "Một ngày hiệu quả nên kết thúc bằng khoảng thời gian thật yên tĩnh."
 ];
 const ITSUKI_SLEEP_LINES=[
-  "Your day is complete. Put your devices away and get ready for sleep.",
-  "Close your screens and let yourself rest. Tomorrow can wait.",
-  "You have done enough for today. Let your mind settle and rest."
+  "Hôm nay cậu đã hoàn thành đủ rồi. Cất thiết bị và chuẩn bị đi ngủ nhé.",
+  "Tạm rời màn hình và nghỉ ngơi thôi. Ngày mai chúng ta tiếp tục.",
+  "Cậu đã cố gắng cả ngày rồi. Hãy để tâm trí được thư giãn nhé."
 ];
 function itsukiTimeBand(now=new Date()){
   const minute=now.getHours()*60+now.getMinutes();

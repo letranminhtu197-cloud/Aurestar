@@ -1,4 +1,4 @@
-# Phase 3 — Layout patterns and separate Habits workspace
+# Phase 3 — Study Space HTML reference layout
 
 ## Design references translated into Aurestar patterns
 - Linear: persistent navigation hierarchy, compact metadata, clear action menus, restrained density.
@@ -9,12 +9,12 @@
 These are interaction/layout references only; Aurestar retains its own Itsuki-inspired plum, rose, ivory and gold identity.
 
 ## Implemented in this batch
-- Split Tasks and Habits into separate first-class navigation destinations.
-- Replace the former Habits navigation alias with a dedicated Habits workspace.
-- Move habit creation, completion, editing and deletion to that workspace; preserve existing action handlers and persistence APIs.
+- Combine Tasks and Habits in one Daily Routine destination with balanced side-by-side columns.
+- Keep Habits out of the main navigation; manage them in the Habits column of Daily Routine.
+- Keep habit creation, completion, editing and deletion in Daily Routine; preserve existing action handlers and persistence APIs.
 - Add a seven-day completion history strip per habit, with historical cells informational only. The existing completion action continues to toggle today's date only.
-- Remove the duplicated habit panel from the Tasks page.
-- Link Overview's habit progress and habit shortcut directly to Habits.
+- Do not expose a separate Habits page; Daily Routine is the unified Tasks + Habits workspace.
+- Link Overview's habit progress and shortcut to Daily Routine.
 
 ## Verification boundary
 - This is a renderer/layout change; it does not change habit storage or completion semantics.
@@ -35,12 +35,24 @@ These are interaction/layout references only; Aurestar retains its own Itsuki-in
 ## Page-specific workspace layout
 - Overview: streak aligned to the upper-right, compact Tasks/Habits/Focus metrics, three-column Activity + Today's Focus + Goals composition, and a month grid alongside activity.
 - Daily Routine: Tasks and Habits share one workspace in balanced columns; task quick capture stays with the task column, while habit creation, completion and seven-day check-ins remain in the habit column. Date filters and task completion groups remain available.
-- Focus: timer mode presets are in the page header; the main timer and task selector use the wider column, with daily metrics and scrollable session history in the secondary column.
-- Calendar: month grid and selected-day schedule remain above the goals strip and a full-width 365-day activity heatmap, selected to the full-year range by default.
-- Training: today's exercise schedule and prior-session history use a two-column layout, with the primary actions and summary counts retained in the header.
-- Progress: four primary metrics stay on one row at desktop widths; completed-action trend and breakdown use a weighted two-column layout.
+- Focus: use a centered timer station, header presets, task/round selection and a four-cell live summary row; retain engine/session data without a visible history panel.
+- Calendar: month grid and selected-day schedule use a 70/30 split; a full-width yearly heatmap follows, with goal badges in its header.
+- Training: use a three-column exercise-card grid with summary counts and primary actions in the header; retain workout history data without a separate history panel.
+- Progress: show four live metrics (Execution, Focus Time, Consistency, Active Days) in one row, retaining the date-range selector.
 - Responsive behavior stacks these columns when the viewport cannot preserve readable controls and labels.
 
 ## Verification boundary for this layout batch
 - Source and regression checks are being rerun on the pull request branch.
 - Visual verification in the installed Windows application is still required; this commit does not claim that all layouts have passed runtime QA.
+
+
+## Supplied Study Space HTML reference
+- The app shell uses a persistent left navigation, top breadcrumb/search/actions and a content workspace. Import/export remain available as native actions.
+- Overview follows the three-column Activity / Today's Focus / Goals hierarchy, with Tasks and Habits stacked in the middle panel and live progress metrics above.
+- Daily Routine uses balanced 50/50 Tasks and Habits columns.
+- Focus uses one centered timer station, header presets, task selection, round selection and four live summary metrics. The engine and session history remain intact; the history panel is omitted from this page layout.
+- Calendar uses a 70/30 month and selected-day split, followed by a full-width yearly activity graph. Existing date navigation, goal actions and heatmap range controls remain active.
+- Training uses a three-column exercise-card grid. History data is retained but the separate history panel is omitted; workout engine, exercise editing and customization remain intact.
+- Progress presents the four live metrics from the existing progress calculations. The date-range selector remains available; lower-level charts are hidden to match the supplied reference composition.
+- The HTML file is treated as a layout reference only. Tailwind CDN, FontAwesome CDN, static sample data and its standalone demo timer are not copied into the Electron application.
+- Verification boundary: CI and Windows runtime screenshot/interaction QA are required before claiming pixel-level parity.
