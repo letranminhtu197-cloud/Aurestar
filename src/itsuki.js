@@ -1,11 +1,11 @@
 const $=id=>document.getElementById(id);
 let displayedImage='';
 const approvedMessages={
-  focus:'Choose one clear task and take the first step.',
-  'wind-down':'Wind down now. Close distractions and give yourself time to rest.',
-  sleep:'Your day is complete. Put your devices away and get ready for sleep.'
+  focus:'Chọn một việc quan trọng và bắt đầu từ bước nhỏ đầu tiên nhé.',
+  'wind-down':'Đến lúc thư giãn rồi. Tạm gác công việc và chuẩn bị nghỉ ngơi nhé.',
+  sleep:'Hôm nay cậu đã hoàn thành đủ rồi. Cất thiết bị và chuẩn bị đi ngủ nhé.'
 };
-const statusNotes={focus:'One step at a time','wind-down':'Make room for a calm evening',sleep:'Rest well and recharge'};
+const statusNotes={focus:'Từng bước một thôi','wind-down':'Dành thời gian thư giãn','sleep':'Nghỉ ngơi và nạp lại năng lượng'};
 function contextFor(record){
   const context=String(record?.context||record?.event||'').toLowerCase();
   if(context==='sleep'||context.includes('sleep'))return 'sleep';
