@@ -8,7 +8,89 @@ import { useWorkspace } from './store';
 import type { Goal, Milestone, Project, Task, Priority } from './types';
 import { Phase2Page, DataTools } from './Phase2Pages';
 
-type Page = 'home' | 'goals' | 'projects' | 'tasks' | 'habits' | 'focus' | 'journal' | 'review' | 'insights' | 'data';
+function errorText(error:unknown):string {
+ const message=error instanceof Error?error.message:String(error??'');
+ const exact:Record<string,string>={
+ 'Invalid calendar date.':'Ngày không hợp lệ.',
+ 'Habit name is required.':'Vui lòng nhập tên thói quen.',
+ 'Habit end date must be on or after start date.':'Ngày kết thúc thói quen phải bằng hoặc sau ngày bắt đầu.',
+ 'Habit not found.':'Không tìm thấy thói quen.',
+ 'Linked task does not exist.':'Công việc được liên kết không tồn tại.',
+ 'A different journal entry already exists for this date.':'Đã có một mục nhật ký khác cho ngày này.',
+ 'Week start is required.':'Vui lòng chọn ngày bắt đầu tuần.',
+ 'Week end must be on or after week start.':'Ngày kết thúc tuần phải bằng hoặc sau ngày bắt đầu.',
+ 'Insights end date must be on or after start date.':'Ngày kết thúc phân tích phải bằng hoặc sau ngày bắt đầu.',
+ 'Setting key is required.':'Thiếu khóa cài đặt.',
+ 'Unsupported Aurestar export format.':'Định dạng dữ liệu Aurestar không được hỗ trợ.',
+ 'Backup schema version is not supported by this application.':'Phiên bản cấu trúc bản sao lưu không được ứng dụng này hỗ trợ.',
+ 'Unsupported import mode.':'Chế độ nhập dữ liệu không được hỗ trợ.',
+ 'Import failed integrity validation: foreign key violations were detected.':'Không thể nhập dữ liệu vì phát hiện quan hệ tham chiếu không hợp lệ.',
+ 'Import failed SQLite integrity verification.':'Không thể nhập dữ liệu vì kiểm tra toàn vẹn SQLite thất bại.',
+ 'Date must use a valid YYYY-MM-DD calendar date.':'Ngày phải đúng định dạng YYYY-MM-DD và là ngày hợp lệ.',
+ 'Goal title is required.':'Vui lòng nhập tên mục tiêu.',
+ 'Select an existing goal.':'Hãy chọn một mục tiêu đang tồn tại.',
+ 'Milestone title is required.':'Vui lòng nhập tên cột mốc.',
+ 'Project name is required.':'Vui lòng nhập tên dự án.',
+ 'A linked goal no longer exists.':'Mục tiêu được liên kết không còn tồn tại.',
+ 'Task title is required.':'Vui lòng nhập tên công việc.',
+ 'A task cannot be its own parent.':'Một công việc không thể là công việc cha của chính nó.',
+ 'Parent task does not exist.':'Công việc cha không tồn tại.',
+ 'A task hierarchy cannot contain a cycle.':'Cấu trúc công việc không được chứa vòng lặp.',
+ 'Due time must use HH:MM format.':'Giờ đến hạn phải theo định dạng HH:MM.',
+ 'Invalid task status.':'Trạng thái công việc không hợp lệ.',
+ 'Task not found.':'Không tìm thấy công việc.',
+ 'Unsupported record type.':'Loại bản ghi không được hỗ trợ.',
+ 'Unsupported archive type.':'Loại dữ liệu lưu trữ không được hỗ trợ.',
+ 'Record not found.':'Không tìm thấy bản ghi.',
+ 'Goal not found.':'Không tìm thấy mục tiêu.',
+ 'Project not found.':'Không tìm thấy dự án.',
+ 'Invalid theme setting.':'Cài đặt giao diện không hợp lệ.',
+ 'Invalid density setting.':'Cài đặt mật độ giao diện không hợp lệ.',
+ 'Invalid sidebar setting.':'Cài đặt thanh bên không hợp lệ.',
+ 'Invalid default page.':'Trang mặc định không hợp lệ.',
+ 'Invalid first day of week.':'Ngày đầu tuần không hợp lệ.',
+ 'Invalid task priority.':'Mức ưu tiên công việc không hợp lệ.',
+ 'Invalid task view.':'Chế độ xem công việc không hợp lệ.',
+ 'Invalid task sorting.':'Cách sắp xếp công việc không hợp lệ.',
+ 'Invalid language.':'Ngôn ngữ không hợp lệ.',
+ 'Invalid date format.':'Định dạng ngày không hợp lệ.',
+ 'Invalid time format.':'Định dạng giờ không hợp lệ.',
+ 'Invalid journal type.':'Loại nhật ký không hợp lệ.',
+ 'Invalid accent color.':'Màu nhấn không hợp lệ.',
+ 'Invalid focus timer state.':'Trạng thái đồng hồ tập trung không hợp lệ.',
+ 'JSON file is too large or not a regular file':'Tệp JSON quá lớn hoặc không phải tệp hợp lệ.',
+ 'JSON root must be an object':'Dữ liệu JSON phải có đối tượng gốc.',
+ 'Aurestar data could not be read. The original file was preserved; no empty data file was written.':'Không thể đọc dữ liệu Aurestar. Tệp gốc đã được giữ nguyên và không tạo tệp dữ liệu rỗng.',
+ 'Unsafe ZIP entry path.':'Đường dẫn tệp bên trong ZIP không an toàn.',
+ 'Invalid ZIP backup: end record not found.':'Bản sao lưu ZIP không hợp lệ: thiếu bản ghi kết thúc.',
+ 'Invalid ZIP central directory.':'Danh mục trung tâm của ZIP không hợp lệ.',
+ 'ZIP backup exceeds the supported size limit.':'Bản sao lưu ZIP vượt quá giới hạn dung lượng được hỗ trợ.',
+ 'Invalid ZIP local header.':'Tiêu đề tệp ZIP không hợp lệ.',
+ 'ZIP local and central entry names do not match.':'Tên tệp trong phần đầu và danh mục ZIP không khớp.',
+ 'Unsupported ZIP compression method.':'Phương thức nén ZIP không được hỗ trợ.',
+ 'ZIP backup integrity check failed.':'Kiểm tra toàn vẹn bản sao lưu ZIP thất bại.',
+ 'Duplicate ZIP manifest.':'Bản sao lưu ZIP có nhiều tệp kê khai trùng lặp.',
+ 'Duplicate ZIP export.':'Bản sao lưu ZIP có nhiều tệp dữ liệu xuất trùng lặp.',
+ 'ZIP backup manifest is missing required database or metadata files.':'Tệp kê khai ZIP thiếu cơ sở dữ liệu hoặc thông tin phiên bản bắt buộc.',
+ 'ZIP backup does not contain a valid Aurestar export.':'Bản sao lưu ZIP không chứa dữ liệu Aurestar hợp lệ.'
+ };
+ if(exact[message])return exact[message];
+ const prefixes:Array<[string,string]>= [
+  ['Unsupported table in import: ','Bảng dữ liệu không được hỗ trợ khi nhập: '],
+  ['Invalid table data: ','Dữ liệu bảng không hợp lệ: '],
+  ['Invalid row in ','Bản ghi không hợp lệ trong bảng '],
+  ['Unknown column in ','Cột dữ liệu không được hỗ trợ trong bảng '],
+  ['Missing primary key in ','Thiếu khóa chính trong bảng '],
+  ['Invalid numeric preference: ','Giá trị số không hợp lệ cho tùy chọn '],
+  ['Invalid boolean preference: ','Giá trị bật/tắt không hợp lệ cho tùy chọn ']
+ ];
+ for(const [prefix,translation] of prefixes)if(message.startsWith(prefix))return translation+message.slice(prefix.length);
+ if(message.startsWith('Linked '))return 'Dữ liệu được liên kết không còn tồn tại hoặc không hợp lệ.';
+ if(/JSON|Unexpected token/i.test(message))return 'Tệp JSON không hợp lệ hoặc không thể đọc.';
+ console.error('Aurestar operation failed:',error);
+ return 'Đã xảy ra lỗi khi xử lý dữ liệu. Vui lòng kiểm tra thông tin và thử lại.';
+}
+\ntype Page = 'home' | 'goals' | 'projects' | 'tasks' | 'habits' | 'focus' | 'journal' | 'review' | 'insights' | 'data';
 type Modal = null | { kind: 'goal'; item?: Goal } | { kind: 'project'; item?: Project } | { kind: 'task'; item?: Task } | { kind: 'milestone'; goalId: string; item?: Milestone };
 const dateLabel = (value?: string | null) => { if(!value)return 'Chưa có ngày';const d=new Date(value+'T12:00:00'),locale=document.documentElement.dataset.locale||undefined,format=document.documentElement.dataset.dateFormat;if(format==='dd/MM/yyyy')return d.toLocaleDateString(locale,{day:'2-digit',month:'2-digit',year:'numeric'});if(format==='MM/dd/yyyy')return d.toLocaleDateString(locale,{month:'2-digit',day:'2-digit',year:'numeric'});return d.toLocaleDateString(locale,{month:'short',day:'numeric',year:'numeric'}); };
 const priorityLabel: Record<Priority, string> = { low: 'Thấp', medium: 'Trung bình', high: 'Cao', urgent: 'Khẩn cấp' };
@@ -68,7 +150,7 @@ function App() {
   };
   const addButton = page === 'goals' ? ['Mục tiêu mới',()=>open('goal')] as const : page === 'projects' ? ['Dự án mới',()=>open('project')] as const : ['Thêm nhanh',()=>open('task')] as const;
   const pageTitle = ({home:'Tổng quan',goals:'Mục tiêu',projects:'Dự án',tasks:'Công việc',habits:'Thói quen',focus:'Tập trung',journal:'Nhật ký',review:'Tổng kết tuần',insights:'Phân tích',data:'Quản lý dữ liệu'} as const)[page];
-  const handleError = (e: unknown) => setNotice(e instanceof Error ? e.message : 'Đã xảy ra lỗi.');
+  const handleError = (e: unknown) => setNotice(errorText(e));
   const persistSettings = (patch:Record<string,unknown>) => { void data.saveSettings(patch).catch(handleError); };
   return <div className={'app-shell '+(sidebarCollapsed?'is-collapsed':'')}>
     <aside className="sidebar">
