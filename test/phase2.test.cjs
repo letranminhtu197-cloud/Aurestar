@@ -55,6 +55,10 @@ test('export preview and merge/update/replace imports are transactional',t=>{
   assert.equal(p.listHabits().length,2);
   p.importData(snapshot,'replace');
   assert.equal(p.listHabits().length,1);
+  snapshot.tables.habits[0].name='Updated from backup';
+  const updated=p.importData(snapshot,'update');
+  assert.equal(updated.report.updated,1);
+  assert.equal(p.listHabits()[0].name,'Updated from backup');
   const invalid={...snapshot,tables:{...snapshot.tables,habits:[{name:'invalid'}]}};
   assert.throws(()=>p.importData(invalid,'update'));
   assert.equal(p.listHabits()[0].id,habit.id);
@@ -106,4 +110,17 @@ test('schema migration is idempotent across database restarts',t=>{
  assert.equal(second.loadWorkspace().goals[0].id,goal.id);
  const Database=require('better-sqlite3');const raw=new Database(file,{readonly:true});
  try{assert.equal(raw.pragma('user_version',{simple:true}),7);}finally{raw.close();}
+});
+
+test('active focus timer state survives database restart',t=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'aurestar-focus-recovery-'));
+ const file=path.join(dir,'db.sqlite');
+ const {createDatabase}=require('../src/core/sqlite.cjs');
+ const first=createDatabase(file);
+ const state={id:'session-recovery',status:'running',sessionType:'focus',plannedSeconds:1500,remainingSeconds:900,endTimestamp:Date.now()+900000};
+ first.saveSettings({focusTimerState:state});first.close();
+ const second=createDatabase(file);
+ t.after(()=>{second.close();fs.rmSync(dir,{recursive:true,force:true});});
+ assert.equal(second.loadWorkspace().settings.focusTimerState.id,'session-recovery');
+ assert.equal(second.loadWorkspace().settings.focusTimerState.endTimestamp,state.endTimestamp);
 });
