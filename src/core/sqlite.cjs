@@ -434,7 +434,7 @@ function createDatabase(filePath) {
       if (key === 'theme' && !['dark','light','system'].includes(value)) throw new Error('Invalid theme setting.');
       if (key === 'density' && !['comfortable','compact'].includes(value)) throw new Error('Invalid density setting.');
       if (key === 'sidebarCollapsed' && typeof value !== 'boolean') throw new Error('Invalid sidebar setting.');
-      if (key === 'defaultLandingPage' && !['home','goals','projects','tasks','habits','focus','journal','review','insights'].includes(value)) throw new Error('Invalid default page.');
+      if (key === 'defaultLandingPage' && !['home','goals','projects','tasks','habits','focus','journal' ,'review','insights','data'].includes(value)) throw new Error('Invalid default page.');
       if (key === 'weekStartsOn' && ![0,1,2,3,4,5,6].includes(value)) throw new Error('Invalid first day of week.');
       if (['focusDurationMinutes','shortBreakMinutes','longBreakMinutes','longBreakInterval','fontSize'].includes(key) && (!Number.isInteger(value) || value<1 || value>180)) throw new Error('Invalid numeric preference: '+key+'.');
       if (['journalAutosave','notificationsEnabled','privacyMode','backupReminderEnabled','focusSoundEnabled','focusAutoStartBreaks','focusAutoStartSessions'].includes(key) && typeof value!=='boolean') throw new Error('Invalid boolean preference: '+key+'.');
