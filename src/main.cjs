@@ -485,7 +485,7 @@ function createPhase2ZipBackup(destination) {
     const assetRoot=app.isPackaged?path.join(process.resourcesPath,'itsuki'):path.join(__dirname,'..','resources','itsuki');
     const addFiles=(directory,prefix)=>{if(!fs.existsSync(directory))return;for(const entry of fs.readdirSync(directory,{withFileTypes:true})){const full=path.join(directory,entry.name),name=prefix+'/'+entry.name;if(entry.isDirectory())addFiles(full,name);else if(entry.isFile())extras[name]=fs.readFileSync(full);}};
     addFiles(assetRoot,'assets/itsuki');
-    try{return createZipBackup(destination,database.phase2.exportData(),extras);}
+    try{return createZipBackup(destination,database.exportBackupData(temp),extras);}
     finally{fs.rmSync(temp,{force:true});}
   }).catch(error=>{fs.rmSync(temp,{force:true});throw error;});
 }
