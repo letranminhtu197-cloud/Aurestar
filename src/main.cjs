@@ -382,16 +382,26 @@ function createApplicationMenu(){
       {label:'Thêm công việc nhanh',accelerator:'CommandOrControl+N',click:openQuickAddTask},
       {type:'separator'},{label:'Thoát Aurestar',accelerator:'Alt+F4',click:()=>{app.isQuitting=true;app.quit();}}
     ]},
-    {label:'View',submenu:[
-      {label:'Overview',click:view('home')},{label:'Goals',click:view('goals')},
-      {label:'Projects',click:view('projects')},{label:'Tasks',click:view('tasks')}
+    {label:'Xem',submenu:[
+      {label:'Tổng quan',click:view('home')},
+      {label:'Mục tiêu',click:view('goals')},
+      {label:'Dự án',click:view('projects')},
+      {label:'Công việc',click:view('tasks')},
+      {type:'separator'},
+      {label:'Thói quen',click:view('habits')},
+      {label:'Tập trung',click:view('focus')},
+      {label:'Nhật ký',click:view('journal')},
+      {label:'Tổng kết tuần',click:view('review')},
+      {label:'Phân tích',click:view('insights')},
+      {label:'Quản lý dữ liệu',click:view('data')}
     ]},
-    {label:'Tools',submenu:[
-      {label:'Hiện Itsuki',click:createItsuki},{label:'Ẩn Itsuki',click:hideItsuki}
-    ]},
-    {label:'Help',submenu:[{label:`About ${APP_NAME}`,click:()=>dialog.showMessageBox({title:`About ${APP_NAME}`,message:`${APP_NAME} ${app.getVersion()}`,detail:'Không gian quản lý năng suất cá nhân, ưu tiên ngoại tuyến.'})}]}
+    {label:'Trợ giúp',submenu:[{
+      label:`Giới thiệu ${APP_NAME}`,
+      click:()=>dialog.showMessageBox({title:`Giới thiệu ${APP_NAME}`,message:`${APP_NAME} ${app.getVersion()}`,detail:'Không gian quản lý năng suất cá nhân, ưu tiên ngoại tuyến.'})
+    }]}
   ]));
 }
+
 async function toggleFocus(){
   try{
     const current=await sendChromeMessage({type:'getFocusState'});
