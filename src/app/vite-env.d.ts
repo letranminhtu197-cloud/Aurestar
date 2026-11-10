@@ -21,6 +21,12 @@ declare global {
       deleteMilestone(id: string): Promise<boolean>;
       deleteProject(id: string): Promise<boolean>;
       deleteTask(id: string): Promise<boolean>;
+      listHabits(): Promise<any[]>; saveHabit(input:any):Promise<any>; logHabit(input:any):Promise<any>; listHabitLogs(from?:string,to?:string):Promise<any[]>;
+      saveFocusSession(input:any):Promise<any>; listFocusSessions(limit?:number):Promise<any[]>;
+      saveJournalEntry(input:any):Promise<any>; listJournalEntries(limit?:number):Promise<any[]>;
+      saveWeeklyReview(input:any):Promise<any>; listWeeklyReviews(limit?:number):Promise<any[]>;
+      searchAll(query:string,limit?:number):Promise<any[]>; getInsights(from?:string,to?:string):Promise<any>;
+      exportData():Promise<any>; previewImport(payload:any):Promise<any>; applyImport(payload:any,mode:'merge'|'update'|'replace'):Promise<any>;
     };
     aurestarDesktop?: {
       showItsuki?: () => Promise<unknown>;
