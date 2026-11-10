@@ -9,7 +9,7 @@ const jsFiles = [];
 function walk(directory) {
   for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
     const file = path.join(directory, entry.name);
-    if (entry.isDirectory()) walk(file);
+    if (entry.isDirectory()) { if (['dist', 'node_modules'].includes(entry.name)) continue; walk(file); }
     else if (/\.(?:js|cjs)$/.test(entry.name)) jsFiles.push(file);
   }
 }
