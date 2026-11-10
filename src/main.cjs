@@ -317,7 +317,7 @@ function createPomodoroWidget(){
 function closePomodoroWidget(){if(pomodoroWidget&&!pomodoroWidget.isDestroyed())pomodoroWidget.close();}
 
 function createWindow(initialView='home'){
-  const allowedViews=['home','goals','projects','tasks'];
+  const allowedViews=['home','goals','projects','tasks','habits','focus','journal','review','insights','data'];
   const route=allowedViews.includes(String(initialView))?String(initialView):'home';
   win=new BrowserWindow({width:1440,height:920,minWidth:1024,minHeight:700,show:false,backgroundColor:'#211217',title:APP_NAME,autoHideMenuBar:true,webPreferences:{preload:path.join(__dirname,'preload-v2.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true}});
   secureWindow(win);
@@ -377,7 +377,7 @@ function showMainWindow(view='home'){
 function createApplicationMenu(){
   const view=(name)=>()=>showMainWindow(name);
   Menu.setApplicationMenu(Menu.buildFromTemplate([
-    {label:'File',submenu:[
+    {label:'Tệp',submenu:[
       {label:'Mở Aurestar',click:view('home')},
       {label:'Thêm công việc nhanh',accelerator:'CommandOrControl+N',click:openQuickAddTask},
       {type:'separator'},{label:'Thoát Aurestar',accelerator:'Alt+F4',click:()=>{app.isQuitting=true;app.quit();}}
