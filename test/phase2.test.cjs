@@ -74,11 +74,9 @@ test('export preview and merge/update/replace imports are transactional',t=>{
 
 test('replace with an empty validated export clears every workspace table safely',t=>{
  const p=fixture(t);
- const goal=p.saveGoal({title:'Clear marker'});
- const project=p.saveProject({name:'Clear project',goalIds:[goal.id]});
- const task=p.saveTask({title:'Clear task',projectId:project.id,goalIds:[goal.id]});
  const habit=p.saveHabit({name:'Clear habit'});
  p.logHabit({habitId:habit.id,date:'2026-11-10',completedCount:1});
+ p.saveFocusSession({id:'clear-focus',sessionType:'focus',startedAt:'2026-11-10T08:00:00.000Z',endedAt:'2026-11-10T08:25:00.000Z',plannedSeconds:1500,actualSeconds:1500,status:'completed'});
  p.saveJournalEntry({date:'2026-11-10',title:'Clear journal',content:'Temporary'});
  p.saveWeeklyReview({weekStart:'2026-11-09',weekEnd:'2026-11-15',wins:'Temporary'});
  const snapshot=p.exportData();
@@ -88,6 +86,7 @@ test('replace with an empty validated export clears every workspace table safely
  assert.equal(result.ok,true);
  assert.equal(p.listHabits().length,0);
  assert.equal(p.listHabitLogs('2026-11-10','2026-11-10').length,0);
+ assert.equal(p.listFocusSessions().length,0);
  assert.equal(p.listJournalEntries().length,0);
  assert.equal(p.listWeeklyReviews().length,0);
  assert.equal(p.searchAll('Clear').length,0);
