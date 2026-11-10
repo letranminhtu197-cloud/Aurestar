@@ -72,6 +72,27 @@ test('export preview and merge/update/replace imports are transactional',t=>{
   assert.equal(p.listHabits()[0].id,habit.id);
 });
 
+test('replace with an empty validated export clears every workspace table safely',t=>{
+ const p=fixture(t);
+ const goal=p.saveGoal({title:'Clear marker'});
+ const project=p.saveProject({name:'Clear project',goalIds:[goal.id]});
+ const task=p.saveTask({title:'Clear task',projectId:project.id,goalIds:[goal.id]});
+ const habit=p.saveHabit({name:'Clear habit'});
+ p.logHabit({habitId:habit.id,date:'2026-11-10',completedCount:1});
+ p.saveJournalEntry({date:'2026-11-10',title:'Clear journal',content:'Temporary'});
+ p.saveWeeklyReview({weekStart:'2026-11-09',weekEnd:'2026-11-15',wins:'Temporary'});
+ const snapshot=p.exportData();
+ const empty={...snapshot,tables:Object.fromEntries(Object.keys(snapshot.tables).map(table=>[table,[]]))};
+ assert.equal(p.previewImport(empty).valid,true);
+ const result=p.importData(empty,'replace');
+ assert.equal(result.ok,true);
+ assert.equal(p.listHabits().length,0);
+ assert.equal(p.listHabitLogs('2026-11-10','2026-11-10').length,0);
+ assert.equal(p.listJournalEntries().length,0);
+ assert.equal(p.listWeeklyReviews().length,0);
+ assert.equal(p.searchAll('Clear').length,0);
+});
+
 test('global search finds journal and habits',t=>{
   const p=fixture(t);
   p.saveHabit({name:'Read biology'});
