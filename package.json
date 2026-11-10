@@ -15,7 +15,7 @@
     "dist:win": "npm run build && electron-builder --win nsis portable --publish never"
   },
   "dependencies": {
-    "better-sqlite3": "^12.4.1",
+    "better-sqlite3": "^13.0.3",
     "lucide-react": "^0.468.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -37,7 +37,7 @@
     "appId": "com.aurestar.desktop",
     "productName": "Aurestar",
     "asar": true,
-    "npmRebuild": true,
+    "npmRebuild": false,
     "directories": {
       "output": "dist"
     },
