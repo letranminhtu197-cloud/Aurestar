@@ -6,6 +6,7 @@
   "license": "UNLICENSED",
   "main": "src/main.cjs",
   "scripts": {
+    "prebuild": "node scripts/make-icon.cjs",
     "dev": "npm run build && electron .",
     "typecheck": "tsc --noEmit",
     "build:ui": "vite build",
