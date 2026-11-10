@@ -83,23 +83,34 @@ function attachPhase2(db) {
   }
   function saveJournalEntry(input={}) {
     const entryDate=date(input.date)||new Date().toISOString().slice(0,10), id=clean(input.id,80)||randomUUID(), stamp=now();
-    db.prepare(`INSERT INTO journal_entries(id,entry_date,title,content,mood,energy,created_at,updated_at)
-      VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(entry_date) DO UPDATE SET title=excluded.title,content=excluded.content,
-      mood=excluded.mood,energy=excluded.energy,updated_at=excluded.updated_at`)
-      .run(id,entryDate,clean(input.title,180),clean(input.content,20000),clean(input.mood,40)||null,
-        input.energy==null?null:Math.max(1,Math.min(5,Math.round(Number(input.energy)||1))),stamp,stamp);
-    const saved=db.prepare('SELECT * FROM journal_entries WHERE entry_date=?').get(entryDate);
-    db.transaction(()=>{
+    const entryType=enumValue(input.entryType,['reflection','freewriting'],'reflection');
+    const mood=clean(input.mood,40)||null,energy=input.energy==null?null:Math.max(1,Math.min(5,Math.round(Number(input.energy)||1)));
+    const transaction=db.transaction(()=>{
+      db.prepare(`INSERT INTO journal_entries(id,entry_date,title,content,mood,energy,entry_type,wins,challenges,lessons,tomorrow_focus,notes,created_at,updated_at)
+        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(entry_date) DO UPDATE SET title=excluded.title,content=excluded.content,
+        mood=excluded.mood,energy=excluded.energy,entry_type=excluded.entry_type,wins=excluded.wins,challenges=excluded.challenges,
+        lessons=excluded.lessons,tomorrow_focus=excluded.tomorrow_focus,notes=excluded.notes,updated_at=excluded.updated_at`)
+        .run(id,entryDate,clean(input.title,180),clean(input.content,20000),mood,energy,entryType,clean(input.wins,5000),clean(input.challenges,5000),
+          clean(input.lessons,5000),clean(input.tomorrowFocus,5000),clean(input.notes,10000),stamp,stamp);
+      const saved=db.prepare('SELECT * FROM journal_entries WHERE entry_date=?').get(entryDate);
       for(const [kind,table,field,ids] of [['goal','journal_goal_links','goal_id',input.goalIds],['project','journal_project_links','project_id',input.projectIds],['task','journal_task_links','task_id',input.taskIds]]){
         db.prepare('DELETE FROM '+table+' WHERE journal_id=?').run(saved.id);
         const add=db.prepare('INSERT INTO '+table+'(journal_id,'+field+') VALUES(?,?)');
         for(const linked of [...new Set(Array.isArray(ids)?ids.map(x=>clean(x,80)).filter(Boolean):[])]){if(!db.prepare('SELECT id FROM '+(kind==='goal'?'goals':kind==='project'?'projects':'tasks')+' WHERE id=?').get(linked))throw new Error('Linked '+kind+' does not exist.');add.run(saved.id,linked);}
       }
-    })();
-    return {...saved,goalIds:db.prepare('SELECT goal_id FROM journal_goal_links WHERE journal_id=?').all(saved.id).map(x=>x.goal_id),projectIds:db.prepare('SELECT project_id FROM journal_project_links WHERE journal_id=?').all(saved.id).map(x=>x.project_id),taskIds:db.prepare('SELECT task_id FROM journal_task_links WHERE journal_id=?').all(saved.id).map(x=>x.task_id)};
+      return saved;
+    });
+    const saved=transaction();
+    return {...saved,goalIds:db.prepare('SELECT goal_id FROM journal_goal_links WHERE journal_id=?').all(saved.id).map(x=>x.goal_id),
+      projectIds:db.prepare('SELECT project_id FROM journal_project_links WHERE journal_id=?').all(saved.id).map(x=>x.project_id),
+      taskIds:db.prepare('SELECT task_id FROM journal_task_links WHERE journal_id=?').all(saved.id).map(x=>x.task_id)};
   }
+  function deleteJournalEntry(id) { return db.prepare('DELETE FROM journal_entries WHERE id=?').run(clean(id,80)).changes>0; }
   function listJournalEntries(limit=365) {
-    return db.prepare('SELECT * FROM journal_entries ORDER BY entry_date DESC LIMIT ?').all(Math.max(1,Math.min(5000,Number(limit)||365)));
+    return db.prepare('SELECT * FROM journal_entries ORDER BY entry_date DESC LIMIT ?').all(Math.max(1,Math.min(5000,Number(limit)||365))).map(row=>({...row,
+      goalIds:db.prepare('SELECT goal_id FROM journal_goal_links WHERE journal_id=?').all(row.id).map(x=>x.goal_id),
+      projectIds:db.prepare('SELECT project_id FROM journal_project_links WHERE journal_id=?').all(row.id).map(x=>x.project_id),
+      taskIds:db.prepare('SELECT task_id FROM journal_task_links WHERE journal_id=?').all(row.id).map(x=>x.task_id)}));
   }
   function saveWeeklyReview(input={}) {
     const start=date(input.weekStart); if(!start) throw new Error('Week start is required.');
@@ -188,7 +199,7 @@ function attachPhase2(db) {
     return {ok:true,mode,preview};
   }
   return {saveHabit,deleteHabit,archiveHabit,logHabit,listHabits:habitList,listHabitLogs,saveFocusSession,listFocusSessions,
-    saveJournalEntry,listJournalEntries,saveWeeklyReview,listWeeklyReviews,searchAll,getInsights,
+    saveJournalEntry,deleteJournalEntry,listJournalEntries,saveWeeklyReview,listWeeklyReviews,searchAll,getInsights,
     savePreference,exportData,previewImport,importData};
 }
 module.exports={attachPhase2};
