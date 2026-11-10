@@ -1,0 +1,162 @@
+const { randomUUID } = require('node:crypto');
+const now = () => new Date().toISOString();
+const clean = (v, max=5000) => String(v ?? '').trim().slice(0,max);
+const date = v => {
+  if (!v) return null;
+  const s=String(v);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s) || Number.isNaN(Date.parse(s+'T00:00:00Z')) || new Date(s+'T00:00:00Z').toISOString().slice(0,10)!==s) throw new Error('Invalid calendar date.');
+  return s;
+};
+const enumValue = (v, values, fallback) => values.includes(v) ? v : fallback;
+
+function attachPhase2(db) {
+  const habitList = () => db.prepare(`SELECT h.*,
+    COALESCE((SELECT SUM(completed_count) FROM habit_logs l WHERE l.habit_id=h.id),0) AS total_completions,
+    (SELECT completed_count FROM habit_logs l WHERE l.habit_id=h.id AND l.log_date=date('now','localtime')) AS today_count
+    FROM habits h ORDER BY h.archived_at IS NOT NULL,h.created_at DESC`).all();
+  function saveHabit(input={}) {
+    const id=clean(input.id,80)||randomUUID(), name=clean(input.name,160);
+    if(!name) throw new Error('Habit name is required.');
+    const stamp=now(), frequency=enumValue(input.frequency,['daily','weekdays','weekly','custom'],'daily');
+    const target=Math.max(1,Math.min(100,Math.round(Number(input.targetCount)||1)));
+    db.prepare(`INSERT INTO habits(id,name,description,frequency,target_count,color,created_at,updated_at)
+      VALUES(@id,@name,@description,@frequency,@target_count,@color,@created_at,@updated_at)
+      ON CONFLICT(id) DO UPDATE SET name=excluded.name,description=excluded.description,frequency=excluded.frequency,
+      target_count=excluded.target_count,color=excluded.color,updated_at=excluded.updated_at`)
+      .run({id,name,description:clean(input.description),frequency,target_count:target,
+        color:/^#[0-9a-f]{6}$/i.test(input.color||'')?input.color:'#B94A62',created_at:stamp,updated_at:stamp});
+    return db.prepare('SELECT * FROM habits WHERE id=?').get(id);
+  }
+  function logHabit(input={}) {
+    const habitId=clean(input.habitId,80), logDate=date(input.date)||new Date().toISOString().slice(0,10);
+    if(!db.prepare('SELECT id FROM habits WHERE id=? AND archived_at IS NULL').get(habitId)) throw new Error('Habit not found.');
+    const count=Math.max(0,Math.min(100,Math.round(Number(input.completedCount)||0))), stamp=now();
+    db.prepare(`INSERT INTO habit_logs(id,habit_id,log_date,completed_count,note,created_at,updated_at)
+      VALUES(?,?,?,?,?,?,?) ON CONFLICT(habit_id,log_date) DO UPDATE SET completed_count=excluded.completed_count,note=excluded.note,updated_at=excluded.updated_at`)
+      .run(randomUUID(),habitId,logDate,count,clean(input.note,1000),stamp,stamp);
+    return db.prepare('SELECT * FROM habit_logs WHERE habit_id=? AND log_date=?').get(habitId,logDate);
+  }
+  function listHabitLogs(from,to) {
+    const a=date(from)||'0001-01-01', b=date(to)||'9999-12-31';
+    return db.prepare('SELECT * FROM habit_logs WHERE log_date BETWEEN ? AND ? ORDER BY log_date DESC').all(a,b);
+  }
+  function saveFocusSession(input={}) {
+    const id=clean(input.id,80)||randomUUID(), taskId=clean(input.taskId,80)||null, stamp=now();
+    if(taskId&&!db.prepare('SELECT id FROM tasks WHERE id=?').get(taskId)) throw new Error('Linked task does not exist.');
+    const started=input.startedAt?new Date(input.startedAt).toISOString():stamp;
+    const ended=input.endedAt?new Date(input.endedAt).toISOString():null;
+    const planned=Math.max(60,Math.min(86400,Math.round(Number(input.plannedSeconds)||1500)));
+    const actual=Math.max(0,Math.min(86400,Math.round(Number(input.actualSeconds)||0)));
+    const type=enumValue(input.sessionType,['focus','short_break','long_break'],'focus');
+    const status=enumValue(input.status,['running','paused','completed','cancelled'],'completed');
+    db.prepare(`INSERT INTO focus_sessions(id,task_id,session_type,started_at,ended_at,planned_seconds,actual_seconds,status,note,created_at)
+      VALUES(@id,@task_id,@session_type,@started_at,@ended_at,@planned_seconds,@actual_seconds,@status,@note,@created_at)
+      ON CONFLICT(id) DO UPDATE SET task_id=excluded.task_id,session_type=excluded.session_type,started_at=excluded.started_at,
+      ended_at=excluded.ended_at,planned_seconds=excluded.planned_seconds,actual_seconds=excluded.actual_seconds,status=excluded.status,note=excluded.note`)
+      .run({id,task_id:taskId,session_type:type,started_at:started,ended_at:ended,planned_seconds:planned,actual_seconds:actual,status,note:clean(input.note,1000),created_at:stamp});
+    return db.prepare('SELECT * FROM focus_sessions WHERE id=?').get(id);
+  }
+  function listFocusSessions(limit=500) {
+    return db.prepare('SELECT f.*,t.title AS task_title FROM focus_sessions f LEFT JOIN tasks t ON t.id=f.task_id ORDER BY f.started_at DESC LIMIT ?').all(Math.max(1,Math.min(5000,Number(limit)||500)));
+  }
+  function saveJournalEntry(input={}) {
+    const entryDate=date(input.date)||new Date().toISOString().slice(0,10), id=clean(input.id,80)||randomUUID(), stamp=now();
+    db.prepare(`INSERT INTO journal_entries(id,entry_date,title,content,mood,energy,created_at,updated_at)
+      VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(entry_date) DO UPDATE SET title=excluded.title,content=excluded.content,
+      mood=excluded.mood,energy=excluded.energy,updated_at=excluded.updated_at`)
+      .run(id,entryDate,clean(input.title,180),clean(input.content,20000),clean(input.mood,40)||null,
+        input.energy==null?null:Math.max(1,Math.min(5,Math.round(Number(input.energy)||1))),stamp,stamp);
+    return db.prepare('SELECT * FROM journal_entries WHERE entry_date=?').get(entryDate);
+  }
+  function listJournalEntries(limit=365) {
+    return db.prepare('SELECT * FROM journal_entries ORDER BY entry_date DESC LIMIT ?').all(Math.max(1,Math.min(5000,Number(limit)||365)));
+  }
+  function saveWeeklyReview(input={}) {
+    const start=date(input.weekStart); if(!start) throw new Error('Week start is required.');
+    const end=date(input.weekEnd); if(!end||end<start) throw new Error('Week end must be on or after week start.');
+    const id=clean(input.id,80)||randomUUID(), stamp=now(), rating=input.rating==null?null:Math.max(1,Math.min(5,Math.round(Number(input.rating)||1)));
+    db.prepare(`INSERT INTO weekly_reviews(id,week_start,week_end,wins,challenges,lessons,next_week,rating,created_at,updated_at)
+      VALUES(?,?,?,?,?,?,?,?,?,?) ON CONFLICT(week_start) DO UPDATE SET week_end=excluded.week_end,wins=excluded.wins,
+      challenges=excluded.challenges,lessons=excluded.lessons,next_week=excluded.next_week,rating=excluded.rating,updated_at=excluded.updated_at`)
+      .run(id,start,end,clean(input.wins,5000),clean(input.challenges,5000),clean(input.lessons,5000),clean(input.nextWeek,5000),rating,stamp,stamp);
+    return db.prepare('SELECT * FROM weekly_reviews WHERE week_start=?').get(start);
+  }
+  function listWeeklyReviews(limit=52) {
+    return db.prepare('SELECT * FROM weekly_reviews ORDER BY week_start DESC LIMIT ?').all(Math.max(1,Math.min(520,Number(limit)||52)));
+  }
+  function searchAll(query,limit=50) {
+    const q=clean(query,200); if(q.length<2) return [];
+    const like='%'+q.replace(/[\\%_]/g,'\\$&')+'%';
+    const rows=[];
+    for(const [type,table,field] of [['goal','goals','title'],['project','projects','name'],['task','tasks','title'],['habit','habits','name'],['journal','journal_entries','title'],['weekly_review','weekly_reviews','wins']]) {
+      const extra=type==='journal'?' OR content LIKE ? ESCAPE \'\\\'':type==='weekly_review'?' OR challenges LIKE ? ESCAPE \'\\\' OR lessons LIKE ? ESCAPE \'\\\'':'';
+      const params=extra?extra.includes('lessons')?[like,like,like]:[like,like]:[like];
+      const result=db.prepare(`SELECT id,${field} AS title,updated_at FROM ${table} WHERE ${field} LIKE ? ESCAPE '\\'${extra} ORDER BY updated_at DESC LIMIT ?`).all(...params,Math.max(1,Math.min(200,limit)));
+      rows.push(...result.map(x=>({...x,type})));
+    }
+    return rows.sort((a,b)=>String(b.updated_at||'').localeCompare(String(a.updated_at||''))).slice(0,Math.max(1,Math.min(200,limit)));
+  }
+  function getInsights(from,to) {
+    const start=date(from)||new Date(Date.now()-29*86400000).toISOString().slice(0,10), end=date(to)||new Date().toISOString().slice(0,10);
+    const tasks=db.prepare(`SELECT COUNT(*) total,SUM(status='completed') completed FROM tasks WHERE date(updated_at) BETWEEN ? AND ? AND archived_at IS NULL`).get(start,end);
+    const focus=db.prepare(`SELECT COUNT(*) sessions,COALESCE(SUM(actual_seconds),0) seconds FROM focus_sessions WHERE session_type='focus' AND status='completed' AND date(started_at) BETWEEN ? AND ?`).get(start,end);
+    const habits=db.prepare(`SELECT COUNT(*) logs,COALESCE(SUM(completed_count),0) completions FROM habit_logs WHERE log_date BETWEEN ? AND ?`).get(start,end);
+    const daily=db.prepare(`SELECT date(started_at) day,COUNT(*) sessions,COALESCE(SUM(actual_seconds),0) seconds FROM focus_sessions WHERE session_type='focus' AND status='completed' AND date(started_at) BETWEEN ? AND ? GROUP BY date(started_at) ORDER BY day`).all(start,end);
+    return {from:start,to:end,tasks,focus,habits,daily};
+  }
+  function savePreference(key,value) {
+    const k=clean(key,80); if(!k) throw new Error('Setting key is required.');
+    db.prepare('INSERT INTO settings(key,value,updated_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at')
+      .run(k,JSON.stringify(value),now());
+    return value;
+  }
+  function exportData() {
+    const tables=['goals','milestones','projects','project_goal_links','tasks','task_goal_links','tags','task_tags','settings','habits','habit_logs','focus_sessions','journal_entries','weekly_reviews'];
+    const data={format:'aurestar-sqlite-export',version:1,exportedAt:now(),tables:{}};
+    for(const table of tables) data.tables[table]=db.prepare('SELECT * FROM '+table).all();
+    return data;
+  }
+  function previewImport(payload) {
+    if(!payload||payload.format!=='aurestar-sqlite-export'||!payload.tables||typeof payload.tables!=='object') throw new Error('Unsupported Aurestar export format.');
+    const allowedTables=['goals','milestones','projects','project_goal_links','tasks','task_goal_links','tags','task_tags','settings','habits','habit_logs','focus_sessions','journal_entries','weekly_reviews'];
+    const summary={};
+    for(const table of allowedTables) {
+      const rows=payload.tables[table]??[];
+      if(!Array.isArray(rows)) throw new Error('Invalid table data: '+table);
+      summary[table]={incoming:rows.length,existing:db.prepare('SELECT COUNT(*) n FROM '+table).get().n};
+      for(const row of rows) if(!row||typeof row!=='object'||Array.isArray(row)) throw new Error('Invalid row in '+table);
+    }
+    return {valid:true,version:payload.version||0,summary};
+  }
+  function importData(payload,mode='merge') {
+    const preview=previewImport(payload);
+    if(!['merge','update','replace'].includes(mode)) throw new Error('Unsupported import mode.');
+    const tables=['goals','projects','tasks','tags','milestones','project_goal_links','task_goal_links','task_tags','habits','habit_logs','focus_sessions','journal_entries','weekly_reviews','settings'];
+    const primary={project_goal_links:['project_id','goal_id'],task_goal_links:['task_id','goal_id'],task_tags:['task_id','tag_id']};
+    const transaction=db.transaction(()=>{
+      if(mode==='replace') for(const table of ['habit_logs','focus_sessions','journal_entries','weekly_reviews','task_tags','task_goal_links','project_goal_links','milestones','tasks','projects','goals','tags','habits','settings']) db.prepare('DELETE FROM '+table).run();
+      for(const table of tables) {
+        const rows=payload.tables[table]||[];
+        for(const row of rows) {
+          const keys=Object.keys(row);
+          if(!keys.length) continue;
+          const pk=primary[table]||['id'];
+          if(!pk.every(k=>Object.hasOwn(row,k))) throw new Error('Missing primary key in '+table);
+          const conflict=pk.join(',');
+          const columns=keys.map(k=>'`'+k+'`').join(',');
+          const placeholders=keys.map(()=>'?').join(',');
+          const updates=keys.filter(k=>!pk.includes(k)).map(k=>'`'+k+'`=excluded.`'+k+'`').join(',');
+          const sql=`INSERT INTO ${table}(${columns}) VALUES(${placeholders}) ON CONFLICT(${conflict}) ${updates?'DO UPDATE SET '+updates:'DO NOTHING'}`;
+          if(mode==='merge' && db.prepare('SELECT 1 FROM '+table+' WHERE '+pk.map(k=>'`'+k+'`=?').join(' AND ')).get(...pk.map(k=>row[k]))) continue;
+          db.prepare(sql).run(...keys.map(k=>row[k]));
+        }
+      }
+    });
+    transaction();
+    return {ok:true,mode,preview};
+  }
+  return {saveHabit,logHabit,listHabits:habitList,listHabitLogs,saveFocusSession,listFocusSessions,
+    saveJournalEntry,listJournalEntries,saveWeeklyReview,listWeeklyReviews,searchAll,getInsights,
+    savePreference,exportData,previewImport,importData};
+}
+module.exports={attachPhase2};
