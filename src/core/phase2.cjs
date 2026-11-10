@@ -232,8 +232,12 @@ function attachPhase2(db) {
     const milestones=db.prepare(`SELECT COUNT(*) total,SUM(status='completed') completed FROM milestones WHERE date(updated_at) BETWEEN ? AND ?`).get(start,end);
     const habits=db.prepare(`SELECT COUNT(*) logs,COALESCE(SUM(completed_count),0) completions,COUNT(DISTINCT habit_id) tracked
       FROM habit_logs WHERE log_date BETWEEN ? AND ? AND completed=1`).get(start,end);
-    habits.average_weekly_consistency=habitConsistencyBetween(start,end);
-    habits.average_monthly_consistency=habitConsistencyBetween(start,end);
+    const endDate=new Date(end+'T12:00:00Z');
+    const shiftStart=days=>{const d=new Date(endDate);d.setUTCDate(d.getUTCDate()-days+1);return d.toISOString().slice(0,10);};
+    const weeklyStart=shiftStart(7)>start?shiftStart(7):start;
+    const monthlyStart=shiftStart(30)>start?shiftStart(30):start;
+    habits.average_weekly_consistency=habitConsistencyBetween(weeklyStart,end);
+    habits.average_monthly_consistency=habitConsistencyBetween(monthlyStart,end);
     return {from:start,to:end,tasks,taskTrend,focus,daily,byWeekday,byHour,byTask,byProject,habitDaily,goals,milestones,habits};
   }
   function savePreference(key,value) {
