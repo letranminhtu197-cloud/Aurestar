@@ -8,7 +8,7 @@ import { useWorkspace } from './store';
 import type { Goal, Milestone, Project, Task, Priority } from './types';
 import { Phase2Page, DataTools } from './Phase2Pages';
 
-type Page = 'home' | 'goals' | 'projects' | 'tasks' | 'habits' | 'focus' | 'journal' | 'review' | 'insights';
+type Page = 'home' | 'goals' | 'projects' | 'tasks' | 'habits' | 'focus' | 'journal' | 'review' | 'insights' | 'data';
 type Modal = null | { kind: 'goal'; item?: Goal } | { kind: 'project'; item?: Project } | { kind: 'task'; item?: Task } | { kind: 'milestone'; goalId: string; item?: Milestone };
 const dateLabel = (value?: string | null) => value ? new Date(value + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'No date';
 const priorityLabel: Record<Priority, string> = { low: 'Low', medium: 'Medium', high: 'High', urgent: 'Urgent' };
@@ -16,7 +16,7 @@ const safeDate = (value?: string | null) => value || '';
 
 function App() {
   const data = useWorkspace();
-  const [page, setPage] = useState<Page>(() => (['home','goals','projects','tasks','habits','focus','journal','review','insights'].includes(location.hash.slice(1)) ? location.hash.slice(1) as Page : 'home'));
+  const [page, setPage] = useState<Page>(() => (['home','goals','projects','tasks','habits','focus','journal','review','insights','data'].includes(location.hash.slice(1)) ? location.hash.slice(1) as Page : 'home'));
   const [modal, setModal] = useState<Modal>(null);
   const [query, setQuery] = useState('');
   const [phase2Results,setPhase2Results] = useState<any[]>([]);
@@ -39,7 +39,7 @@ function App() {
     return () => stop?.();
   }, []);
   useEffect(() => {
-    const stop = window.aurestarDesktop?.onNavigate?.(view => { if(['home','goals','projects','tasks','habits','focus','journal','review','insights'].includes(view)) setPage(view as Page); });
+    const stop = window.aurestarDesktop?.onNavigate?.(view => { if(['home','goals','projects','tasks','habits','focus','journal','review','insights','data'].includes(view)) setPage(view as Page); });
     return () => stop?.();
   }, []);
   useEffect(() => { location.hash = page; }, [page]);
@@ -63,7 +63,7 @@ function App() {
     else setModal({ kind, item: item as Task|undefined });
   };
   const addButton = page === 'goals' ? ['New goal',()=>open('goal')] as const : page === 'projects' ? ['New project',()=>open('project')] as const : ['Quick Add',()=>open('task')] as const;
-  const pageTitle = ({home:'Overview',goals:'Goals',projects:'Projects',tasks:'Tasks',habits:'Habits',focus:'Focus',journal:'Journal',review:'Weekly Review',insights:'Insights'} as const)[page];
+  const pageTitle = ({home:'Overview',goals:'Goals',projects:'Projects',tasks:'Tasks',habits:'Habits',focus:'Focus',journal:'Journal',review:'Weekly Review',insights:'Insights',data:'Data Management'} as const)[page];
   const handleError = (e: unknown) => setNotice(e instanceof Error ? e.message : 'Something went wrong.');
   const persistSettings = (patch:Record<string,unknown>) => { void data.saveSettings(patch).catch(handleError); };
   return <div className={'app-shell '+(sidebarCollapsed?'is-collapsed':'')}>
@@ -81,6 +81,7 @@ function App() {
         <NavItem active={page==='journal'} icon={<Pencil/>} label="Journal" onClick={()=>setPage('journal')}/>
         <NavItem active={page==='review'} icon={<Check/>} label="Weekly Review" onClick={()=>setPage('review')}/>
         <NavItem active={page==='insights'} icon={<ArrowUpRight/>} label="Insights" onClick={()=>setPage('insights')}/>
+        <NavItem active={page==='data'} icon={<Archive/>} label="Data Management" onClick={()=>setPage('data')}/>
       </nav>
       <div className="sidebar-bottom"><div className="offline-state"><span/> Offline-first storage</div><button className="nav-item" onClick={()=>setSettingsOpen(true)}><Settings2 size={18}/> Settings</button><div className="sidebar-foot">AURESTAR 3.0 · PHASE 1</div></div>
     </aside>
@@ -97,7 +98,7 @@ function App() {
         page==='goals' ? <GoalsPage goals={filteredGoals} milestones={data.milestones} showArchived={showArchived} onToggleArchived={()=>setShowArchived(v=>!v)} onOpen={open} onDelete={id=>{if(window.confirm('Delete this goal and its milestones?'))void data.deleteGoal(id).catch(handleError);}} onArchive={(id,archived)=>void data.archiveGoal(id,archived).catch(handleError)} onDuplicate={id=>void data.duplicateGoal(id).catch(handleError)} onMilestoneDelete={id=>{if(window.confirm('Delete this milestone?'))void data.deleteMilestone(id).catch(handleError);}}/> :
         page==='projects' ? <ProjectsPage projects={filteredProjects} showArchived={showArchived} onToggleArchived={()=>setShowArchived(v=>!v)} onOpen={open} onDelete={id=>{if(window.confirm('Delete this project? Its tasks will remain.'))void data.deleteProject(id).catch(handleError);}} onArchive={(id,archived)=>void data.archiveProject(id,archived).catch(handleError)} onDuplicate={id=>void data.duplicateProject(id).catch(handleError)}/> :
         <TasksPage tasks={filteredTasks} filter={taskFilter} setFilter={setTaskFilter} sort={taskSort} setSort={setTaskSort} onOpen={open} onToggle={id=>void data.toggleTask(id).catch(handleError)} onStatus={(id,status)=>void data.setTaskStatus(id,status).catch(handleError)} onPriority={(task,priority)=>void data.saveTask({id:task.id,title:task.title,description:task.description,status:task.status,priority,startDate:task.start_date||undefined,dueDate:task.due_date||undefined,dueTime:task.due_time||undefined,estimatedMinutes:task.estimated_minutes||undefined,projectId:task.project_id||undefined,parentTaskId:task.parent_task_id||undefined,goalIds:task.goalIds,tags:task.tags}).catch(handleError)} onArchive={(id,archived)=>void data.archiveTask(id,archived).catch(handleError)} onDuplicate={id=>void data.duplicateTask(id).catch(handleError)} onDelete={id=>{if(window.confirm('Delete this task permanently?'))void data.deleteTask(id).catch(handleError);}}/> :
-        <Phase2Page page={page as 'habits'|'focus'|'journal'|'review'|'insights'}/>}
+        {page==='data'?<div className="page-content"><DataTools/></div>:<Phase2Page page={page as 'habits'|'focus'|'journal'|'review'|'insights'}/>} }
       {notice && <div className="toast"><span>{notice}</span><button onClick={()=>setNotice('')}><X size={15}/></button></div>}
     </main>
     {settingsOpen&&<SettingsModal initialTheme={String(data.settings.theme|| (dark?'dark':'light'))} initialDensity={String(data.settings.density||'comfortable')} initialDefaultPage={String(data.settings.defaultLandingPage||'home')} initialSettings={data.settings} onClose={()=>setSettingsOpen(false)} onSave={async values=>{await data.saveSettings(values);if(values.theme==='dark'||values.theme==='light')setDark(values.theme==='dark');else if(values.theme==='system')setDark(window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.dataset.density=String(values.density);document.documentElement.style.setProperty('--primary',String(values.accentColor||'#B94A62'));document.documentElement.style.fontSize=(Number(values.fontSize)||14)+'px';setSettingsOpen(false);}}/>}
