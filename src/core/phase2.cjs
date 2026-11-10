@@ -10,10 +10,25 @@ const date = v => {
 const enumValue = (v, values, fallback) => values.includes(v) ? v : fallback;
 
 function attachPhase2(db) {
-  const habitList = () => db.prepare(`SELECT h.*,
-    COALESCE((SELECT SUM(completed_count) FROM habit_logs l WHERE l.habit_id=h.id),0) AS total_completions,
-    (SELECT completed_count FROM habit_logs l WHERE l.habit_id=h.id AND l.log_date=date('now','localtime')) AS today_count
-    FROM habits h ORDER BY h.archived_at IS NOT NULL,h.created_at DESC`).all();
+  const habitList = () => {
+    const habits=db.prepare(`SELECT h.*,COALESCE((SELECT SUM(completed_count) FROM habit_logs l WHERE l.habit_id=h.id),0) AS total_completions,
+      (SELECT completed_count FROM habit_logs l WHERE l.habit_id=h.id AND l.log_date=date('now','localtime')) AS today_count
+      FROM habits h ORDER BY h.archived_at IS NOT NULL,h.created_at DESC`).all();
+    const allLogs=db.prepare('SELECT habit_id,log_date,completed,completed_count FROM habit_logs ORDER BY log_date').all();
+    const today=new Date();today.setHours(12,0,0,0);
+    const fmt=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    const shift=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x;};
+    return habits.map(h=>{
+      const logs=allLogs.filter(x=>x.habit_id===h.id), done=new Set(logs.filter(x=>x.completed&&x.completed_count>0).map(x=>x.log_date));
+      let weekdays=[];try{weekdays=JSON.parse(h.selected_weekdays||'[]');}catch{}
+      const scheduled=d=>{const key=fmt(d);if(h.start_date&&key<h.start_date)return false;if(h.end_date&&key>h.end_date)return false;const day=d.getDay();if(h.frequency==='daily')return true;if(h.frequency==='weekdays')return weekdays.length?weekdays.includes(day):day>=1&&day<=5;if(h.frequency==='weekly')return true;return weekdays.includes(day);};
+      let current=0, longest=0, streak=0;let first=logs[0]?.log_date||h.start_date||fmt(shift(today,-365));const firstDate=new Date(first+'T12:00:00');
+      for(let d=new Date(firstDate);d<=today;d=shift(d,1)){if(!scheduled(d))continue;if(done.has(fmt(d))){streak++;longest=Math.max(longest,streak);}else streak=0;}
+      let cursor=new Date(today);for(let n=0;n<370;n++,cursor=shift(cursor,-1)){if(!scheduled(cursor))continue;if(done.has(fmt(cursor)))current++;else break;}
+      const period=(days)=>{const from=shift(today,-days+1);const scheduledDays=[];for(let d=new Date(from);d<=today;d=shift(d,1))if(scheduled(d))scheduledDays.push(fmt(d));if(h.frequency==='weekly'){const total=logs.filter(x=>x.log_date>=fmt(from)&&x.log_date<=fmt(today)).reduce((n,x)=>n+(x.completed_count||0),0);return Math.min(100,Math.round(total/Math.max(1,h.target_count*(days/7))*100));}return scheduledDays.length?Math.round(scheduledDays.filter(d=>done.has(d)).length/scheduledDays.length*100):0;};
+      return {...h,current_streak:current,longest_streak:longest,weekly_consistency:period(7),monthly_consistency:period(30)};
+    });
+  };
   function saveHabit(input={}) {
     const id=clean(input.id,80)||randomUUID(), name=clean(input.name,160);
     if(!name) throw new Error('Habit name is required.');
