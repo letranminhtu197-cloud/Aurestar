@@ -105,5 +105,5 @@ test('schema migration is idempotent across database restarts',t=>{
  t.after(()=>{second.close();fs.rmSync(dir,{recursive:true,force:true});});
  assert.equal(second.loadWorkspace().goals[0].id,goal.id);
  const Database=require('better-sqlite3');const raw=new Database(file,{readonly:true});
- try{assert.equal(raw.pragma('user_version',{simple:true}),6);}finally{raw.close();}
+ try{assert.equal(raw.pragma('user_version',{simple:true}),7);}finally{raw.close();}
 });
