@@ -552,7 +552,7 @@ app.whenReady().then(()=>{
   screen.on('display-metrics-changed',repositionWidgetsForDisplayChange);
   screen.on('display-added',repositionWidgetsForDisplayChange);
   screen.on('display-removed',repositionWidgetsForDisplayChange);
-  initializeNativeServices();state=readState();saveState();database=createDatabase(path.join(dataDir(),'aurestar.sqlite'));createBackgroundWindow();createWindow();createTray();createApplicationMenu();state.settings={...(state.settings||{}),itsukiCompanionEnabled:false,itsukiWidgetHiddenByUser:true};saveState();
+  initializeNativeServices();state=readState();state.settings={...(state.settings||{}),itsukiCompanionEnabled:false,itsukiWidgetHiddenByUser:true};saveState();database=createDatabase(path.join(dataDir(),'aurestar.sqlite'));createBackgroundWindow();createWindow();createTray();createApplicationMenu();
   globalShortcut.register('CommandOrControl+Shift+L',toggleFocus);
   globalShortcut.register('CommandOrControl+Shift+K',openQuickAddTask);
   // A bare Alt key is handled by before-input-event while an Aurestar window is focused.
