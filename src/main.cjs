@@ -19,7 +19,7 @@ const testDataPath=!app.isPackaged&&process.env.AURESTAR_TEST_DATA_DIR?path.reso
 const portableDataPath=process.env.PORTABLE_EXECUTABLE_DIR?path.join(process.env.PORTABLE_EXECUTABLE_DIR,'AurestarData'):null;
 app.setPath('userData',testDataPath||portableDataPath||path.join(app.getPath('appData'),'aurestar-desktop'));
 
-const APP_NAME = 'Aurestar';
+const APP_NAME = 'Aurestar';\nconst companionWidgetsEnabled = false;
 let win = null, tray = null, pomodoroWidget = null, itsukiWindow = null, reminderWindow = null, reminderTimer = null;
 let state = null;
 const widgetPositionTimers=new Map();
@@ -174,7 +174,7 @@ function createBackgroundWindow(){
 
 const defaultState = () => ({
   schemaVersion: 1, createdAt: Date.now(),
-  settings: { notifications:true, dailyReminder:'08:00', taskReminders:true, autoBackup:true, backupTime:'23:30', focusPreset:25, focusShortBreak:5, focusLongBreak:15, focusLongBreakEvery:4, blockedWebsites:['tiktok.com','facebook.com','youtube.com'], blockDuringFocus:true, startWithWindows:false, minimizeToTray:true, theme:'dark', language:'vi' },
+  settings: { notifications:true, dailyReminder:'08:00', taskReminders:true, autoBackup:true, backupTime:'23:30', focusPreset:25, focusShortBreak:5, focusLongBreak:15, focusLongBreakEvery:4, blockedWebsites:['tiktok.com','facebook.com','youtube.com'], blockDuringFocus:true, startWithWindows:false, minimizeToTray:true, theme:'dark', language:'vi', itsukiCompanionEnabled:false, itsukiWidgetHiddenByUser:true },
   profile:{totalFocusMinutes:0,level:1,xp:0,streak:0,lastActiveDate:''},
   tasks:[], habits:[], lists:[{id:'inbox',name:'Inbox',color:'red',createdAt:Date.now()}],
   focusSessions:[], workoutSessions:[], completions:[], remindersSent:{}, training:{active:false,paused:false,remaining:0,elapsed:0,exerciseIndex:0,exercises:[]}, focus:{active:false,paused:false,phase:'focus',remaining:1500,total:1500,startedAt:0,taskId:null,completedCycles:0},
@@ -359,7 +359,7 @@ function createTray(){
     {label:'Ẩn Itsuki (F6)',click:()=>hideItsuki()},
     {label:'Bắt đầu / tạm dừng tập trung',click:()=>toggleFocus()},
     {label:'Thêm công việc nhanh',click:openQuickAddTask},
-    {type:'separator'},{label:'Quit',click:()=>{app.isQuitting=true;app.quit();}}
+    {type:'separator'},{label:'Thoát Aurestar',click:()=>{app.isQuitting=true;app.quit();}}
   ]));
   tray.on('double-click',()=>showMainWindow('home'));
 }
@@ -552,11 +552,11 @@ app.whenReady().then(()=>{
   screen.on('display-metrics-changed',repositionWidgetsForDisplayChange);
   screen.on('display-added',repositionWidgetsForDisplayChange);
   screen.on('display-removed',repositionWidgetsForDisplayChange);
-  initializeNativeServices();state=readState();saveState();database=createDatabase(path.join(dataDir(),'aurestar.sqlite'));createBackgroundWindow();createWindow();createTray();createApplicationMenu();if(state.settings?.itsukiCompanionEnabled!==false&&state.settings?.privacyMode!==true&&database.getSettings().privacyMode!==true)createItsuki({startup:true});
+  initializeNativeServices();state=readState();saveState();database=createDatabase(path.join(dataDir(),'aurestar.sqlite'));createBackgroundWindow();createWindow();createTray();createApplicationMenu();state.settings={...(state.settings||{}),itsukiCompanionEnabled:false,itsukiWidgetHiddenByUser:true};saveState();
   globalShortcut.register('CommandOrControl+Shift+L',toggleFocus);
   globalShortcut.register('CommandOrControl+Shift+K',openQuickAddTask);
   // A bare Alt key is handled by before-input-event while an Aurestar window is focused.
-  installItsukiHotkeys();
+  // Floating companion and Pomodoro widgets are disabled; Focus lives in the main workspace.
   if(process.platform==='win32' && state.settings.startWithWindows){app.setLoginItemSettings({openAtLogin:true});}
   app.on('activate',()=>{if(!win)createWindow();else win.show();});
 });
