@@ -45,7 +45,7 @@ function readZipBackup(filePath){
   }
   cursor+=46+nameLen+extraLen+commentLen;
  }
- if(!manifest||manifest.format!=='aurestar-zip-backup')throw new Error('ZIP backup manifest is missing or invalid.');
+ if(!manifest||manifest.format!=='aurestar-zip-backup'||!Array.isArray(manifest.files)||!manifest.files.includes('aurestar.sqlite')||!manifest.files.includes('metadata.json'))throw new Error('ZIP backup manifest is missing required database or metadata files.');
  if(!exportJson||exportJson.format!=='aurestar-sqlite-export')throw new Error('ZIP backup does not contain a valid Aurestar export.');
  return exportJson;
 }
