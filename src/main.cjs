@@ -472,6 +472,7 @@ ipcMain.handle('v2:phase2:focus:list',(event,limit)=>{assertWorkspaceSender(even
 ipcMain.handle('v2:phase2:journal:delete',(event,id)=>{assertWorkspaceSender(event);return database.phase2.deleteJournalEntry(id);});
 ipcMain.handle('v2:phase2:journal:save',(event,input)=>{assertWorkspaceSender(event);return database.phase2.saveJournalEntry(input);});
 ipcMain.handle('v2:phase2:journal:list',(event,limit)=>{assertWorkspaceSender(event);return database.phase2.listJournalEntries(limit);});
+ipcMain.handle('v2:phase2:review:summary',(event,from,to)=>{assertWorkspaceSender(event);return database.phase2.getWeeklyReviewSummary(from,to);});
 ipcMain.handle('v2:phase2:review:save',(event,input)=>{assertWorkspaceSender(event);return database.phase2.saveWeeklyReview(input);});
 ipcMain.handle('v2:phase2:review:list',(event,limit)=>{assertWorkspaceSender(event);return database.phase2.listWeeklyReviews(limit);});
 ipcMain.handle('v2:phase2:search',(event,q,limit)=>{assertWorkspaceSender(event);return database.phase2.searchAll(q,limit);});
