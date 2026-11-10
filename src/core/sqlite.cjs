@@ -170,6 +170,58 @@ function createDatabase(filePath) {
   });
   if (db.pragma('user_version', { simple: true }) < 6) migration6();
 
+  const migration7 = db.transaction(() => {
+    db.exec(`
+      CREATE TABLE journal_entries_new (
+        id TEXT PRIMARY KEY, entry_date TEXT NOT NULL, title TEXT NOT NULL DEFAULT '',
+        content TEXT NOT NULL DEFAULT '', mood TEXT, energy INTEGER,
+        created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+        entry_type TEXT NOT NULL DEFAULT 'reflection', wins TEXT NOT NULL DEFAULT '',
+        challenges TEXT NOT NULL DEFAULT '', lessons TEXT NOT NULL DEFAULT '',
+        tomorrow_focus TEXT NOT NULL DEFAULT '', notes TEXT NOT NULL DEFAULT ''
+      );
+      INSERT INTO journal_entries_new(id,entry_date,title,content,mood,energy,created_at,updated_at,entry_type,wins,challenges,lessons,tomorrow_focus,notes)
+        SELECT id,entry_date,title,content,mood,energy,created_at,updated_at,entry_type,wins,challenges,lessons,tomorrow_focus,notes FROM journal_entries;
+      CREATE TEMP TABLE journal_goal_links_backup AS SELECT * FROM journal_goal_links;
+      CREATE TEMP TABLE journal_project_links_backup AS SELECT * FROM journal_project_links;
+      CREATE TEMP TABLE journal_task_links_backup AS SELECT * FROM journal_task_links;
+      DROP TABLE journal_goal_links;
+      DROP TABLE journal_project_links;
+      DROP TABLE journal_task_links;
+      DROP TABLE journal_entries;
+      ALTER TABLE journal_entries_new RENAME TO journal_entries;
+      CREATE TABLE journal_goal_links (
+        journal_id TEXT NOT NULL REFERENCES journal_entries(id) ON DELETE CASCADE,
+        goal_id TEXT NOT NULL REFERENCES goals(id) ON DELETE CASCADE,
+        PRIMARY KEY(journal_id,goal_id)
+      );
+      CREATE TABLE journal_project_links (
+        journal_id TEXT NOT NULL REFERENCES journal_entries(id) ON DELETE CASCADE,
+        project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+        PRIMARY KEY(journal_id,project_id)
+      );
+      CREATE TABLE journal_task_links (
+        journal_id TEXT NOT NULL REFERENCES journal_entries(id) ON DELETE CASCADE,
+        task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+        PRIMARY KEY(journal_id,task_id)
+      );
+      INSERT INTO journal_goal_links SELECT * FROM journal_goal_links_backup;
+      INSERT INTO journal_project_links SELECT * FROM journal_project_links_backup;
+      INSERT INTO journal_task_links SELECT * FROM journal_task_links_backup;
+      DROP TABLE journal_goal_links_backup;
+      DROP TABLE journal_project_links_backup;
+      DROP TABLE journal_task_links_backup;
+      CREATE INDEX IF NOT EXISTS idx_journal_entries_date ON journal_entries(entry_date DESC);
+      CREATE INDEX IF NOT EXISTS idx_journal_goal_goal ON journal_goal_links(goal_id);
+      CREATE INDEX IF NOT EXISTS idx_journal_project_project ON journal_project_links(project_id);
+      CREATE INDEX IF NOT EXISTS idx_journal_task_task ON journal_task_links(task_id);
+    `);
+    db.prepare('INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES (?, ?)').run(7, now());
+    db.pragma('user_version = 7');
+  });
+  if (db.pragma('user_version', { simple: true }) < 7) migration7();
+
+
 
 
   db.exec('CREATE INDEX IF NOT EXISTS idx_project_goal_goal ON project_goal_links(goal_id); CREATE INDEX IF NOT EXISTS idx_task_goal_goal ON task_goal_links(goal_id); CREATE INDEX IF NOT EXISTS idx_task_tags_tag ON task_tags(tag_id); CREATE INDEX IF NOT EXISTS idx_tasks_parent ON tasks(parent_task_id);');
