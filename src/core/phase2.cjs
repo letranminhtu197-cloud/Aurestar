@@ -87,12 +87,12 @@ function attachPhase2(db) {
     const mood=clean(input.mood,40)||null,energy=input.energy==null?null:Math.max(1,Math.min(5,Math.round(Number(input.energy)||1)));
     const transaction=db.transaction(()=>{
       db.prepare(`INSERT INTO journal_entries(id,entry_date,title,content,mood,energy,entry_type,wins,challenges,lessons,tomorrow_focus,notes,created_at,updated_at)
-        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(entry_date) DO UPDATE SET title=excluded.title,content=excluded.content,
+        VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET entry_date=excluded.entry_date,title=excluded.title,content=excluded.content,
         mood=excluded.mood,energy=excluded.energy,entry_type=excluded.entry_type,wins=excluded.wins,challenges=excluded.challenges,
         lessons=excluded.lessons,tomorrow_focus=excluded.tomorrow_focus,notes=excluded.notes,updated_at=excluded.updated_at`)
         .run(id,entryDate,clean(input.title,180),clean(input.content,20000),mood,energy,entryType,clean(input.wins,5000),clean(input.challenges,5000),
           clean(input.lessons,5000),clean(input.tomorrowFocus,5000),clean(input.notes,10000),stamp,stamp);
-      const saved=db.prepare('SELECT * FROM journal_entries WHERE entry_date=?').get(entryDate);
+      const saved=db.prepare('SELECT * FROM journal_entries WHERE id=?').get(id);
       for(const [kind,table,field,ids] of [['goal','journal_goal_links','goal_id',input.goalIds],['project','journal_project_links','project_id',input.projectIds],['task','journal_task_links','task_id',input.taskIds]]){
         db.prepare('DELETE FROM '+table+' WHERE journal_id=?').run(saved.id);
         const add=db.prepare('INSERT INTO '+table+'(journal_id,'+field+') VALUES(?,?)');
@@ -167,7 +167,7 @@ function attachPhase2(db) {
     return value;
   }
   const exportTables=['goals','milestones','projects','project_goal_links','tasks','task_goal_links','tags','task_tags','settings','habits','habit_logs','focus_sessions','journal_entries','journal_goal_links','journal_project_links','journal_task_links','weekly_reviews'];
-  const importKeys={project_goal_links:['project_id','goal_id'],task_goal_links:['task_id','goal_id'],task_tags:['task_id','tag_id'],habit_logs:['habit_id','log_date'],journal_entries:['entry_date'],weekly_reviews:['week_start'],settings:['key'],journal_goal_links:['journal_id','goal_id'],journal_project_links:['journal_id','project_id'],journal_task_links:['journal_id','task_id']};
+  const importKeys={project_goal_links:['project_id','goal_id'],task_goal_links:['task_id','goal_id'],task_tags:['task_id','tag_id'],habit_logs:['habit_id','log_date'],journal_entries:['id'],weekly_reviews:['week_start'],settings:['key'],journal_goal_links:['journal_id','goal_id'],journal_project_links:['journal_id','project_id'],journal_task_links:['journal_id','task_id']};
   function exportData() {
     const data={format:'aurestar-sqlite-export',version:2,schemaVersion:db.pragma('user_version',{simple:true}),exportedAt:now(),app:'Aurestar',tables:{}};
     for(const table of exportTables) data.tables[table]=db.prepare('SELECT * FROM '+table).all();
