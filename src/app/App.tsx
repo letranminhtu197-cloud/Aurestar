@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { useWorkspace } from './store';
 import type { Goal, Milestone, Project, Task, Priority } from './types';
-import { Phase2Page } from './Phase2Pages';
+import { Phase2Page, DataTools } from './Phase2Pages';
 
 type Page = 'home' | 'goals' | 'projects' | 'tasks' | 'habits' | 'focus' | 'journal' | 'review' | 'insights';
 type Modal = null | { kind: 'goal'; item?: Goal } | { kind: 'project'; item?: Project } | { kind: 'task'; item?: Task } | { kind: 'milestone'; goalId: string; item?: Milestone };
@@ -215,7 +215,7 @@ function SettingsModal({initialTheme,initialDensity,initialDefaultPage,onClose,o
     <label className="field"><span>Appearance</span><select value={theme} onChange={e=>setTheme(e.target.value)}><option value="dark">Dark</option><option value="light">Light</option><option value="system">System</option></select></label>
     <label className="field"><span>Interface density</span><select value={density} onChange={e=>setDensity(e.target.value)}><option value="comfortable">Comfortable</option><option value="compact">Compact</option></select></label>
     <label className="field"><span>Default page on launch</span><select value={defaultPage} onChange={e=>setDefaultPage(e.target.value)}><option value="home">Overview</option><option value="goals">Goals</option><option value="projects">Projects</option><option value="tasks">Tasks</option></select></label>
-    <div className="settings-note">Preferences are stored locally in the Aurestar SQLite database.</div>
+    <div className="settings-note">Preferences are stored locally in the Aurestar SQLite database.</div><DataTools/>
     <div className="modal-actions"><button type="button" className="secondary-button" onClick={onClose}>Cancel</button><button className="primary-button" disabled={saving}>{saving?'Saving…':'Save settings'}</button></div>
   </form></div>;
 }
