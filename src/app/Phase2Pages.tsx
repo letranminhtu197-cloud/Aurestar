@@ -5,7 +5,89 @@ const today=()=>new Date().toISOString().slice(0,10);
 const field:React.CSSProperties={width:'100%',padding:'10px 12px',borderRadius:9,border:'1px solid var(--line)',background:'var(--surface-2)',color:'var(--text)',marginTop:6};
 const button:React.CSSProperties={padding:'9px 13px',borderRadius:8,border:'1px solid var(--line)',background:'var(--surface-2)',color:'var(--text)',cursor:'pointer'};
 const panel:React.CSSProperties={padding:20,border:'1px solid var(--line)',borderRadius:14,background:'var(--surface)',marginBottom:14};
-export function Phase2Page({page}:{page:Page}) {
+function errorText(error:unknown):string {
+ const message=error instanceof Error?error.message:String(error??'');
+ const exact:Record<string,string>={
+ 'Invalid calendar date.':'Ngày không hợp lệ.',
+ 'Habit name is required.':'Vui lòng nhập tên thói quen.',
+ 'Habit end date must be on or after start date.':'Ngày kết thúc thói quen phải bằng hoặc sau ngày bắt đầu.',
+ 'Habit not found.':'Không tìm thấy thói quen.',
+ 'Linked task does not exist.':'Công việc được liên kết không tồn tại.',
+ 'A different journal entry already exists for this date.':'Đã có một mục nhật ký khác cho ngày này.',
+ 'Week start is required.':'Vui lòng chọn ngày bắt đầu tuần.',
+ 'Week end must be on or after week start.':'Ngày kết thúc tuần phải bằng hoặc sau ngày bắt đầu.',
+ 'Insights end date must be on or after start date.':'Ngày kết thúc phân tích phải bằng hoặc sau ngày bắt đầu.',
+ 'Setting key is required.':'Thiếu khóa cài đặt.',
+ 'Unsupported Aurestar export format.':'Định dạng dữ liệu Aurestar không được hỗ trợ.',
+ 'Backup schema version is not supported by this application.':'Phiên bản cấu trúc bản sao lưu không được ứng dụng này hỗ trợ.',
+ 'Unsupported import mode.':'Chế độ nhập dữ liệu không được hỗ trợ.',
+ 'Import failed integrity validation: foreign key violations were detected.':'Không thể nhập dữ liệu vì phát hiện quan hệ tham chiếu không hợp lệ.',
+ 'Import failed SQLite integrity verification.':'Không thể nhập dữ liệu vì kiểm tra toàn vẹn SQLite thất bại.',
+ 'Date must use a valid YYYY-MM-DD calendar date.':'Ngày phải đúng định dạng YYYY-MM-DD và là ngày hợp lệ.',
+ 'Goal title is required.':'Vui lòng nhập tên mục tiêu.',
+ 'Select an existing goal.':'Hãy chọn một mục tiêu đang tồn tại.',
+ 'Milestone title is required.':'Vui lòng nhập tên cột mốc.',
+ 'Project name is required.':'Vui lòng nhập tên dự án.',
+ 'A linked goal no longer exists.':'Mục tiêu được liên kết không còn tồn tại.',
+ 'Task title is required.':'Vui lòng nhập tên công việc.',
+ 'A task cannot be its own parent.':'Một công việc không thể là công việc cha của chính nó.',
+ 'Parent task does not exist.':'Công việc cha không tồn tại.',
+ 'A task hierarchy cannot contain a cycle.':'Cấu trúc công việc không được chứa vòng lặp.',
+ 'Due time must use HH:MM format.':'Giờ đến hạn phải theo định dạng HH:MM.',
+ 'Invalid task status.':'Trạng thái công việc không hợp lệ.',
+ 'Task not found.':'Không tìm thấy công việc.',
+ 'Unsupported record type.':'Loại bản ghi không được hỗ trợ.',
+ 'Unsupported archive type.':'Loại dữ liệu lưu trữ không được hỗ trợ.',
+ 'Record not found.':'Không tìm thấy bản ghi.',
+ 'Goal not found.':'Không tìm thấy mục tiêu.',
+ 'Project not found.':'Không tìm thấy dự án.',
+ 'Invalid theme setting.':'Cài đặt giao diện không hợp lệ.',
+ 'Invalid density setting.':'Cài đặt mật độ giao diện không hợp lệ.',
+ 'Invalid sidebar setting.':'Cài đặt thanh bên không hợp lệ.',
+ 'Invalid default page.':'Trang mặc định không hợp lệ.',
+ 'Invalid first day of week.':'Ngày đầu tuần không hợp lệ.',
+ 'Invalid task priority.':'Mức ưu tiên công việc không hợp lệ.',
+ 'Invalid task view.':'Chế độ xem công việc không hợp lệ.',
+ 'Invalid task sorting.':'Cách sắp xếp công việc không hợp lệ.',
+ 'Invalid language.':'Ngôn ngữ không hợp lệ.',
+ 'Invalid date format.':'Định dạng ngày không hợp lệ.',
+ 'Invalid time format.':'Định dạng giờ không hợp lệ.',
+ 'Invalid journal type.':'Loại nhật ký không hợp lệ.',
+ 'Invalid accent color.':'Màu nhấn không hợp lệ.',
+ 'Invalid focus timer state.':'Trạng thái đồng hồ tập trung không hợp lệ.',
+ 'JSON file is too large or not a regular file':'Tệp JSON quá lớn hoặc không phải tệp hợp lệ.',
+ 'JSON root must be an object':'Dữ liệu JSON phải có đối tượng gốc.',
+ 'Aurestar data could not be read. The original file was preserved; no empty data file was written.':'Không thể đọc dữ liệu Aurestar. Tệp gốc đã được giữ nguyên và không tạo tệp dữ liệu rỗng.',
+ 'Unsafe ZIP entry path.':'Đường dẫn tệp bên trong ZIP không an toàn.',
+ 'Invalid ZIP backup: end record not found.':'Bản sao lưu ZIP không hợp lệ: thiếu bản ghi kết thúc.',
+ 'Invalid ZIP central directory.':'Danh mục trung tâm của ZIP không hợp lệ.',
+ 'ZIP backup exceeds the supported size limit.':'Bản sao lưu ZIP vượt quá giới hạn dung lượng được hỗ trợ.',
+ 'Invalid ZIP local header.':'Tiêu đề tệp ZIP không hợp lệ.',
+ 'ZIP local and central entry names do not match.':'Tên tệp trong phần đầu và danh mục ZIP không khớp.',
+ 'Unsupported ZIP compression method.':'Phương thức nén ZIP không được hỗ trợ.',
+ 'ZIP backup integrity check failed.':'Kiểm tra toàn vẹn bản sao lưu ZIP thất bại.',
+ 'Duplicate ZIP manifest.':'Bản sao lưu ZIP có nhiều tệp kê khai trùng lặp.',
+ 'Duplicate ZIP export.':'Bản sao lưu ZIP có nhiều tệp dữ liệu xuất trùng lặp.',
+ 'ZIP backup manifest is missing required database or metadata files.':'Tệp kê khai ZIP thiếu cơ sở dữ liệu hoặc thông tin phiên bản bắt buộc.',
+ 'ZIP backup does not contain a valid Aurestar export.':'Bản sao lưu ZIP không chứa dữ liệu Aurestar hợp lệ.'
+ };
+ if(exact[message])return exact[message];
+ const prefixes:Array<[string,string]>= [
+  ['Unsupported table in import: ','Bảng dữ liệu không được hỗ trợ khi nhập: '],
+  ['Invalid table data: ','Dữ liệu bảng không hợp lệ: '],
+  ['Invalid row in ','Bản ghi không hợp lệ trong bảng '],
+  ['Unknown column in ','Cột dữ liệu không được hỗ trợ trong bảng '],
+  ['Missing primary key in ','Thiếu khóa chính trong bảng '],
+  ['Invalid numeric preference: ','Giá trị số không hợp lệ cho tùy chọn '],
+  ['Invalid boolean preference: ','Giá trị bật/tắt không hợp lệ cho tùy chọn ']
+ ];
+ for(const [prefix,translation] of prefixes)if(message.startsWith(prefix))return translation+message.slice(prefix.length);
+ if(message.startsWith('Linked '))return 'Dữ liệu được liên kết không còn tồn tại hoặc không hợp lệ.';
+ if(/JSON|Unexpected token/i.test(message))return 'Tệp JSON không hợp lệ hoặc không thể đọc.';
+ console.error('Aurestar operation failed:',error);
+ return 'Đã xảy ra lỗi khi xử lý dữ liệu. Vui lòng kiểm tra thông tin và thử lại.';
+}
+\nexport function Phase2Page({page}:{page:Page}) {
  const [rows,setRows]=useState<any[]>([]),[habitLogs,setHabitLogs]=useState<any[]>([]),[historyDays,setHistoryDays]=useState(7),[notice,setNotice]=useState(''),[name,setName]=useState(''),[busy,setBusy]=useState(false),[habitFrequency,setHabitFrequency]=useState('daily'),[habitTarget,setHabitTarget]=useState(1),[habitUnit,setHabitUnit]=useState('times'),[habitWeekdays,setHabitWeekdays]=useState('1,2,3,4,5'),[habitDescription,setHabitDescription]=useState(''),[habitStartDate,setHabitStartDate]=useState(''),[habitEndDate,setHabitEndDate]=useState(''),[habitColor,setHabitColor]=useState('#B94A62'),[habitIcon,setHabitIcon]=useState('check-circle'),[editingHabitId,setEditingHabitId]=useState(''),[loggingHabitId,setLoggingHabitId]=useState(''),[habitLogDate,setHabitLogDate]=useState(today()),[habitLogCount,setHabitLogCount]=useState(1),[habitLogNote,setHabitLogNote]=useState(''),[habitLogCompleted,setHabitLogCompleted]=useState(true),[historyMonth,setHistoryMonth]=useState(today().slice(0,7));
  const api=window.aurestarV2;
  const load=async()=>{setBusy(true);try{
@@ -14,9 +96,9 @@ export function Phase2Page({page}:{page:Page}) {
   if(page==='journal')setRows(await api.listJournalEntries(100));
   if(page==='review')setRows(await api.listWeeklyReviews(52));
   if(page==='insights')setRows([await api.getInsights()]);
- }catch(e){setNotice(e instanceof Error?e.message:'Không thể tải dữ liệu.');}finally{setBusy(false);}};
+ }catch(e){setNotice(errorText(e));}finally{setBusy(false);}};
  useEffect(()=>{void load();},[page]);
- const run=async(fn:()=>Promise<any>)=>{try{await fn();setNotice('Đã lưu vào cơ sở dữ liệu SQLite trên thiết bị.');await load();}catch(e){setNotice(e instanceof Error?e.message:'Thao tác thất bại.');}};
+ const run=async(fn:()=>Promise<any>)=>{try{await fn();setNotice('Đã lưu vào cơ sở dữ liệu SQLite trên thiết bị.');await load();}catch(e){setNotice(errorText(e));}};
  const title=({habits:'Thói quen',focus:'Tập trung',journal:'Nhật ký',review:'Tổng kết tuần',insights:'Phân tích'} as const)[page];
  return <div className="page-content"><div className="section-intro"><div><div className="eyebrow">NĂNG SUẤT CÁ NHÂN</div><h2>{title}</h2><p>Được lưu cục bộ trong cơ sở dữ liệu SQLite của Aurestar.</p></div><span className="count-pill">{rows.length} bản ghi</span></div>
  {notice&&<div className="error-banner" role="status">{notice}<button onClick={()=>setNotice('')}>Đóng</button></div>}
@@ -95,7 +177,7 @@ function JournalEditor({rows,run}:{rows:any[],run:(fn:()=>Promise<any>)=>void}) 
  const filteredEntries=rows.filter(entry=>[entry.title,entry.content,entry.wins,entry.challenges,entry.lessons,entry.notes].some(value=>String(value||'').toLowerCase().includes(journalQuery.trim().toLowerCase())));
  const update=(key:string,value:any)=>{setDraft((old:any)=>({...old,[key]:value}));setDirty(true);setSaveState('Thay đổi chưa lưu');};
  useEffect(()=>{void window.aurestarV2.loadWorkspace().then(data=>{setWorkspace(data);setAutosave(data.settings.journalAutosave!==false);setMarkdownPreviewEnabled(data.settings.journalMarkdownPreview!==false);setDraft((old:any)=>({...old,entryType:data.settings.journalDefaultType||'reflection'}));}).catch(()=>{});},[]);
- const save=async()=>{setSaveState('Đang lưu…');try{const saved=await window.aurestarV2.saveJournalEntry(draft);setDraft((old:any)=>({...old,id:saved.id}));setDirty(false);setSaveState('Đã lưu');}catch(e){setSaveState(e instanceof Error?e.message:'Lưu thất bại');throw e;}};
+ const save=async()=>{setSaveState('Đang lưu…');try{const saved=await window.aurestarV2.saveJournalEntry(draft);setDraft((old:any)=>({...old,id:saved.id}));setDirty(false);setSaveState('Đã lưu');}catch(e){setSaveState(errorText(e));throw e;}};
  useEffect(()=>{if(!dirty||!autosave)return;const timer=window.setTimeout(()=>{void save().catch(()=>{});},1200);return()=>window.clearTimeout(timer);},[draft,dirty,autosave]);
  const load=(entry:any)=>{setDraft({...entry,entryType:entry.entry_type||'reflection',tomorrowFocus:entry.tomorrow_focus||'',energy:entry.energy||'',goalIds:entry.goalIds||[],projectIds:entry.projectIds||[],taskIds:entry.taskIds||[]});setDirty(false);setSaveState('Đã lưu');};
  const insert=(value:string)=>update('content',draft.content+(draft.content?'\n':'')+value);
@@ -137,10 +219,10 @@ export function DataTools(){
  const download=(name:string,data:string,type:string)=>{const url=URL.createObjectURL(new Blob([data],{type}));const a=document.createElement('a');a.href=url;a.download=name;a.click();URL.revokeObjectURL(url);};
  const exportJson=async()=>{const data=await window.aurestarV2.exportData();download('aurestar-export.json',JSON.stringify(data,null,2),'application/json');};
  const exportCsv=async()=>{const data=await window.aurestarV2.exportData();const rows=data.tables[csvTable]||[];const columns:string[]=[...new Set<string>(rows.flatMap((row:any)=>Object.keys(row)))];const csvCell=(value:unknown)=>{let text=String(value??'');if(/^[=+\-@\t\r]/.test(text))text="'"+text;return '"'+text.replace(/"/g,'""')+'"';};const csv=[columns.map(csvCell).join(','),...rows.map((row:any)=>columns.map(key=>csvCell(row[key])).join(','))].join('\r\n');download('aurestar-'+csvTable+'.csv','\uFEFF'+csv,'text/csv;charset=utf-8');};
- const choose=async(file?:File)=>{if(!file)return;try{const parsed=JSON.parse(await file.text());const p=await window.aurestarV2.previewImport(parsed);setPayload(parsed);setPreview(p);setStatus('Đã sẵn sàng xem trước. Chưa có dữ liệu nào trong cơ sở dữ liệu bị thay đổi.');}catch(e){setStatus(e instanceof Error?e.message:'Không thể đọc tệp nhập.');setPreview(null);}};
- const clearAll=async()=>{try{const snapshot=await window.aurestarV2.exportData();const empty={...snapshot,exportedAt:new Date().toISOString(),tables:Object.fromEntries(Object.keys(snapshot.tables).map(key=>[key,[]]))};const validation=await window.aurestarV2.previewImport(empty);if(!validation.valid)throw new Error('Không thể xác thực dữ liệu trống trước khi xóa.');if(!window.confirm('Aurestar sẽ tạo bản sao lưu ZIP tự động trước khi xóa toàn bộ dữ liệu. Bạn có muốn tiếp tục?'))return;if(!window.confirm('Xác nhận lần cuối: xóa toàn bộ mục tiêu, dự án, công việc, thói quen, phiên tập trung, nhật ký và cài đặt?'))return;await window.aurestarV2.applyImport(empty,'replace');setStatus('Đã xóa toàn bộ dữ liệu. Bản sao lưu an toàn đã được tạo. Ứng dụng sẽ tải lại để áp dụng trạng thái mặc định.');window.setTimeout(()=>window.location.reload(),900);}catch(e){setStatus(e instanceof Error?e.message:'Không thể xóa dữ liệu.');}};
- const apply=async(mode:'merge'|'update'|'replace')=>{if(!payload)return;try{const result=await window.aurestarV2.applyImport(payload,mode);setStatus('Nhập dữ liệu '+({merge:'gộp',update:'cập nhật',replace:'thay thế'} as Record<string,string>)[mode]+' hoàn tất. Đã thêm '+result.report.inserted+', cập nhật '+result.report.updated+', bỏ qua '+result.report.skipped+' bản ghi; kiểm tra toàn vẹn: '+(result.integrity==='ok'?'đạt':'cần kiểm tra')+'. Tải lại ứng dụng để cập nhật dữ liệu.');setPreview(null);setPayload(null);}catch(e){setStatus(e instanceof Error?e.message:'Nhập dữ liệu thất bại.');}};
- return <section style={panel}><h3>Quản lý dữ liệu</h3><p style={{color:'var(--muted)',fontSize:12}}>Xuất dữ liệu SQLite hoặc xem trước tệp JSON trước khi áp dụng thay đổi.</p><div style={{display:'flex',gap:8,flexWrap:'wrap',marginTop:12}}><button type="button" style={button} onClick={()=>void exportJson()}>Xuất JSON</button><select style={{...field,width:150,margin:0}} value={csvTable} onChange={e=>setCsvTable(e.target.value)}><option value="tasks">Công việc CSV</option><option value="goals">Mục tiêu CSV</option><option value="milestones">Cột mốc CSV</option><option value="projects">Dự án CSV</option><option value="project_goal_links">Liên kết dự án–mục tiêu CSV</option><option value="task_goal_links">Liên kết công việc–mục tiêu CSV</option><option value="tags">Thẻ CSV</option><option value="task_tags">Liên kết công việc–thẻ CSV</option><option value="habits">Thói quen CSV</option><option value="habit_logs">Lịch sử thói quen CSV</option><option value="focus_sessions">Lịch sử tập trung CSV</option><option value="journal_entries">Mục nhật ký CSV</option><option value="journal_goal_links">Liên kết nhật ký–mục tiêu CSV</option><option value="journal_project_links">Liên kết nhật ký–dự án CSV</option><option value="journal_task_links">Liên kết nhật ký–công việc CSV</option><option value="weekly_reviews">Tổng kết tuần CSV</option><option value="settings">Cài đặt CSV</option></select><button type="button" style={button} onClick={()=>void exportCsv()}>Xuất CSV</button><button type="button" style={button} onClick={()=>void clearAll()}>Xóa toàn bộ dữ liệu</button><button type="button" style={button} onClick={()=>void window.aurestarV2.createZipBackup().then(r=>setStatus(r.canceled?'Đã hủy sao lưu':'Đã tạo bản sao lưu ZIP.')).catch(e=>setStatus(e.message))}>Tạo bản sao lưu ZIP</button><button type="button" style={button} onClick={()=>void window.aurestarV2.previewZipBackup().then(r=>{if(!r.canceled){setPayload(r.payload);setPreview(r.preview);setStatus('Đã sẵn sàng xem trước bản sao lưu ZIP.');}}).catch(e=>setStatus(e.message))}>Xem trước khôi phục ZIP</button><label style={button}>Xem trước nhập JSON<input type="file" accept=".json,application/json" hidden onChange={e=>void choose(e.target.files?.[0])}/></label></div>
+ const choose=async(file?:File)=>{if(!file)return;try{const parsed=JSON.parse(await file.text());const p=await window.aurestarV2.previewImport(parsed);setPayload(parsed);setPreview(p);setStatus('Đã sẵn sàng xem trước. Chưa có dữ liệu nào trong cơ sở dữ liệu bị thay đổi.');}catch(e){setStatus(errorText(e));setPreview(null);}};
+ const clearAll=async()=>{try{const snapshot=await window.aurestarV2.exportData();const empty={...snapshot,exportedAt:new Date().toISOString(),tables:Object.fromEntries(Object.keys(snapshot.tables).map(key=>[key,[]]))};const validation=await window.aurestarV2.previewImport(empty);if(!validation.valid)throw new Error('Không thể xác thực dữ liệu trống trước khi xóa.');if(!window.confirm('Aurestar sẽ tạo bản sao lưu ZIP tự động trước khi xóa toàn bộ dữ liệu. Bạn có muốn tiếp tục?'))return;if(!window.confirm('Xác nhận lần cuối: xóa toàn bộ mục tiêu, dự án, công việc, thói quen, phiên tập trung, nhật ký và cài đặt?'))return;await window.aurestarV2.applyImport(empty,'replace');setStatus('Đã xóa toàn bộ dữ liệu. Bản sao lưu an toàn đã được tạo. Ứng dụng sẽ tải lại để áp dụng trạng thái mặc định.');window.setTimeout(()=>window.location.reload(),900);}catch(e){setStatus(errorText(e));}};
+ const apply=async(mode:'merge'|'update'|'replace')=>{if(!payload)return;try{const result=await window.aurestarV2.applyImport(payload,mode);setStatus('Nhập dữ liệu '+({merge:'gộp',update:'cập nhật',replace:'thay thế'} as Record<string,string>)[mode]+' hoàn tất. Đã thêm '+result.report.inserted+', cập nhật '+result.report.updated+', bỏ qua '+result.report.skipped+' bản ghi; kiểm tra toàn vẹn: '+(result.integrity==='ok'?'đạt':'cần kiểm tra')+'. Tải lại ứng dụng để cập nhật dữ liệu.');setPreview(null);setPayload(null);}catch(e){setStatus(errorText(e));}};
+ return <section style={panel}><h3>Quản lý dữ liệu</h3><p style={{color:'var(--muted)',fontSize:12}}>Xuất dữ liệu SQLite hoặc xem trước tệp JSON trước khi áp dụng thay đổi.</p><div style={{display:'flex',gap:8,flexWrap:'wrap',marginTop:12}}><button type="button" style={button} onClick={()=>void exportJson()}>Xuất JSON</button><select style={{...field,width:150,margin:0}} value={csvTable} onChange={e=>setCsvTable(e.target.value)}><option value="tasks">Công việc CSV</option><option value="goals">Mục tiêu CSV</option><option value="milestones">Cột mốc CSV</option><option value="projects">Dự án CSV</option><option value="project_goal_links">Liên kết dự án–mục tiêu CSV</option><option value="task_goal_links">Liên kết công việc–mục tiêu CSV</option><option value="tags">Thẻ CSV</option><option value="task_tags">Liên kết công việc–thẻ CSV</option><option value="habits">Thói quen CSV</option><option value="habit_logs">Lịch sử thói quen CSV</option><option value="focus_sessions">Lịch sử tập trung CSV</option><option value="journal_entries">Mục nhật ký CSV</option><option value="journal_goal_links">Liên kết nhật ký–mục tiêu CSV</option><option value="journal_project_links">Liên kết nhật ký–dự án CSV</option><option value="journal_task_links">Liên kết nhật ký–công việc CSV</option><option value="weekly_reviews">Tổng kết tuần CSV</option><option value="settings">Cài đặt CSV</option></select><button type="button" style={button} onClick={()=>void exportCsv()}>Xuất CSV</button><button type="button" style={button} onClick={()=>void clearAll()}>Xóa toàn bộ dữ liệu</button><button type="button" style={button} onClick={()=>void window.aurestarV2.createZipBackup().then(r=>setStatus(r.canceled?'Đã hủy sao lưu':'Đã tạo bản sao lưu ZIP.')).catch(e=>setStatus(errorText(e)))}>Tạo bản sao lưu ZIP</button><button type="button" style={button} onClick={()=>void window.aurestarV2.previewZipBackup().then(r=>{if(!r.canceled){setPayload(r.payload);setPreview(r.preview);setStatus('Đã sẵn sàng xem trước bản sao lưu ZIP.');}}).catch(e=>setStatus(e.message))}>Xem trước khôi phục ZIP</button><label style={button}>Xem trước nhập JSON<input type="file" accept=".json,application/json" hidden onChange={e=>void choose(e.target.files?.[0])}/></label></div>
  {preview&&<div style={{marginTop:14,padding:12,border:'1px solid var(--line)',borderRadius:9}}><b>Xem trước dữ liệu nhập</b>{Object.entries(preview.summary).map(([key,value]:any)=><div key={key} style={{display:'flex',justifyContent:'space-between',padding:'4px 0',fontSize:12}}><span>{importTableLabel(key)}</span><span>{value.incoming} mục nhập · {value.duplicates} trùng khớp · {value.newRecords} mới · {value.existing} đã có</span></div>)}<div style={{display:'flex',gap:8,flexWrap:'wrap',marginTop:10}}><button type="button" style={button} onClick={()=>void apply('merge')}>Gộp bản ghi mới</button><button style={button} onClick={()=>void apply('update')}>Cập nhật bản ghi trùng khớp</button><button style={button} onClick={()=>{if(window.confirm('Thay thế toàn bộ dữ liệu hiện tại bằng dữ liệu nhập này?'))void apply('replace');}}>Thay thế toàn bộ dữ liệu</button></div></div>}
  {status&&<p role="status" style={{fontSize:12,color:'var(--muted)'}}>{status}</p>}</section>;
 }
