@@ -161,7 +161,7 @@ function attachPhase2(db) {
     ];
     const rows=[];
     for(const [type,table,field,columns] of searchable){
-      const clause=columns.map(column=>'`'+column+'` LIKE ? ESCAPE '\\'').join(' OR ');
+      const clause=columns.map(column=>'`'+column+'` LIKE ? ESCAPE char(92)').join(' OR ');
       const result=db.prepare(`SELECT id,${field} AS title,updated_at FROM ${table} WHERE (${clause}) ORDER BY updated_at DESC LIMIT ?`)
         .all(...columns.map(()=>like),Math.max(1,Math.min(200,Number(limit)||50)));
       rows.push(...result.map(row=>({...row,type})));
