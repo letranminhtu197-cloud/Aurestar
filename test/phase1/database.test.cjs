@@ -81,8 +81,8 @@ test('schema migrations and settings survive database reopen', t => {
   assert.equal(second.getSettings().density, 'compact');
   second.close();
   const raw = require('better-sqlite3')(file);
-  assert.equal(raw.pragma('user_version', { simple: true }), 3);
-  assert.equal(raw.prepare('SELECT COUNT(*) AS n FROM schema_migrations').get().n, 3);
+  assert.equal(raw.pragma('user_version', { simple: true }), 7);
+  assert.equal(raw.prepare('SELECT COUNT(*) AS n FROM schema_migrations').get().n, 7);
   assert.ok(raw.prepare("PRAGMA index_list('tasks')").all().some(index => index.name === 'idx_tasks_parent'));
   assert.ok(raw.prepare("PRAGMA index_list('task_goal_links')").all().some(index => index.name === 'idx_task_goal_goal'));
   raw.close();
