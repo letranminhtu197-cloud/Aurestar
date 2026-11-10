@@ -4,6 +4,8 @@ const path = require('node:path');
 const { fileURLToPath } = require('node:url');
 const { migrateJsonStores, normalizeStateCollections, readJsonFile, writeJsonAtomic } = require('./core/persistence.cjs');
 const { createAlarmScheduler } = require('./core/alarm-scheduler.cjs');
+const { createDatabase } = require('./core/sqlite.cjs');
+let database = null;
 
 const hasSingleInstanceLock = app.requestSingleInstanceLock();
 if (!hasSingleInstanceLock) app.quit();
@@ -55,6 +57,7 @@ ipcMain.on=(channel,listener)=>rawOn(channel,(event,...args)=>{
   if(!isTrustedSender(event)){console.warn(`Rejected IPC from an untrusted page (${channel})`);return;}
   listener(event,...args);
 });
+function assertWorkspaceSender(event){if(!win||win.isDestroyed()||event.sender!==win.webContents)throw new Error('Untrusted renderer attempted to access workspace IPC.');}
 function secureWindow(browserWindow){
   browserWindow.webContents.setWindowOpenHandler(()=>({action:'deny'}));
   browserWindow.webContents.on('will-navigate',(event,url)=>{
@@ -312,13 +315,13 @@ function createPomodoroWidget(){
 }
 function closePomodoroWidget(){if(pomodoroWidget&&!pomodoroWidget.isDestroyed())pomodoroWidget.close();}
 
-function createWindow(initialView='dashboard'){
-  const allowedViews=['dashboard','today','tasks','focus','gym','calendar','analytics','settings'];
-  const route=allowedViews.includes(String(initialView))?String(initialView):'dashboard';
-  win=new BrowserWindow({width:1440,height:920,minWidth:1024,minHeight:700,show:false,backgroundColor:'#211217',title:APP_NAME,autoHideMenuBar:true,webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true}});
+function createWindow(initialView='home'){
+  const allowedViews=['home','goals','projects','tasks'];
+  const route=allowedViews.includes(String(initialView))?String(initialView):'home';
+  win=new BrowserWindow({width:1440,height:920,minWidth:1024,minHeight:700,show:false,backgroundColor:'#211217',title:APP_NAME,autoHideMenuBar:true,webPreferences:{preload:path.join(__dirname,'preload-v2.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true}});
   secureWindow(win);
   bindAltToggle(win);
-  win.loadFile(path.join(__dirname,'index.html'),{hash:route.replace(/^#/,'')});
+  win.loadFile(path.join(__dirname,'app','dist','index.html'),{hash:route.replace(/^#/,'')});
   win.once('ready-to-show',()=>win.show());
   win.webContents.on('render-process-gone',(_event,details)=>{
     if(app.isQuitting||!win||win.isDestroyed())return;
@@ -340,25 +343,32 @@ function createWindow(initialView='dashboard'){
   win.on('close',(e)=>{if(state?.settings?.minimizeToTray && tray && !app.isQuitting){e.preventDefault();win.hide();}});
   win.on('closed',()=>{win=null;});
 }
+function openQuickAddTask(){
+  if(!win||win.isDestroyed())createWindow('tasks');
+  else { win.show(); win.focus(); }
+  const send=()=>{if(win&&!win.isDestroyed())win.webContents.send('aurestar:quick-add');};
+  if(win?.webContents.isLoadingMainFrame())win.webContents.once('did-finish-load',send);else send();
+}
 function createTray(){
   const iconPath=path.join(__dirname,'icons','icon16.png');
   let icon=fs.existsSync(iconPath)?nativeImage.createFromPath(iconPath):nativeImage.createEmpty();
   if(process.platform==='win32' && !icon.isEmpty()) icon=icon.resize({width:16,height:16});
   tray=new Tray(icon);tray.setToolTip(APP_NAME);
   tray.setContextMenu(Menu.buildFromTemplate([
-    {label:'Open Aurestar',click:()=>{if(!win)createWindow();else win.show();}},
+    {label:'Open Aurestar',click:()=>showMainWindow('home')},
     {label:'Show Pomodoro widget',click:()=>createPomodoroWidget()},
-    {label:'Show Itsuki (Ctrl+Alt)',click:()=>createItsuki()},
-    {label:'Hide Itsuki (Alt)',click:()=>hideItsuki()},
+    {label:'Show Itsuki (Ctrl+F6)',click:()=>createItsuki()},
+    {label:'Hide Itsuki (F6)',click:()=>hideItsuki()},
     {label:'Start / pause focus',click:()=>toggleFocus()},
-    {label:'Quick add task',click:()=>{if(!win)createWindow();win?.show();win?.webContents.send('aurestar:quick-add');}},
+    {label:'Quick add task',click:openQuickAddTask},
     {type:'separator'},{label:'Quit',click:()=>{app.isQuitting=true;app.quit();}}
   ]));
-  tray.on('double-click',()=>{if(!win)createWindow();else win.show();});
+  tray.on('double-click',()=>showMainWindow('home'));
 }
-function showMainWindow(view='dashboard'){
-  const target=String(view||'dashboard');
-  if(!['dashboard','today','tasks','focus','gym','calendar','analytics','settings'].includes(target))return;
+function showMainWindow(view='home'){
+  const requested=String(view||'home');
+  const target=requested==='dashboard'?'home':requested;
+  if(!['home','goals','projects','tasks'].includes(target))return;
   if(!win||win.isDestroyed())createWindow(target);
   else{
     win.show();win.focus();
@@ -370,20 +380,19 @@ function createApplicationMenu(){
   const view=(name)=>()=>showMainWindow(name);
   Menu.setApplicationMenu(Menu.buildFromTemplate([
     {label:'File',submenu:[
-      {label:'Open Aurestar',click:view('dashboard')},
-      {label:'Quick add task',click:()=>{showMainWindow('today');win?.webContents.send('aurestar:quick-add');}},
-      {label:'Back up data now',click:()=>{fs.mkdirSync(backupDir(),{recursive:true});const target=path.join(backupDir(),`aurestar-${today()}-${Date.now()}.json`);fs.copyFileSync(dataFile(),target);notify(APP_NAME,'Backup saved in Aurestar backups.');}},
+      {label:'Open Aurestar',click:view('home')},
+      {label:'Quick add task',accelerator:'CommandOrControl+N',click:openQuickAddTask},
       {type:'separator'},{label:'Quit Aurestar',accelerator:'Alt+F4',click:()=>{app.isQuitting=true;app.quit();}}
     ]},
     {label:'View',submenu:[
-      {label:'Overview',click:view('dashboard')},{label:'Tasks',click:view('tasks')},{label:'Focus',click:view('focus')},
-      {label:'Training',click:view('gym')},{label:'Calendar',click:view('calendar')},{label:'Progress',click:view('analytics')},{label:'Settings',click:view('settings')}
+      {label:'Overview',click:view('home')},{label:'Goals',click:view('goals')},
+      {label:'Projects',click:view('projects')},{label:'Tasks',click:view('tasks')}
     ]},
     {label:'Tools',submenu:[
       {label:'Start / pause focus',click:toggleFocus},
       {label:'Show Pomodoro widget',click:createPomodoroWidget},{label:'Show Itsuki',click:createItsuki},{label:'Hide Itsuki',click:hideItsuki}
     ]},
-    {label:'Help',submenu:[{label:`About ${APP_NAME}`,click:()=>showMainWindow('settings')} ]}
+    {label:'Help',submenu:[{label:`About ${APP_NAME}`,click:()=>dialog.showMessageBox({title:`About ${APP_NAME}`,message:`${APP_NAME} ${app.getVersion()}`,detail:'Offline-first personal productivity workspace.'})}]}
   ]));
 }
 async function toggleFocus(){
@@ -433,6 +442,24 @@ ipcMain.handle('chrome:notification',(_event,payload)=>{
   return String(payload?.id||'');
 });
 ipcMain.handle('state:get',()=>state);
+ipcMain.handle('v2:workspace:load',event=>{assertWorkspaceSender(event);return database.loadWorkspace();});
+ipcMain.handle('v2:goal:save',(event,input)=>{assertWorkspaceSender(event);return database.saveGoal(input);});
+ipcMain.handle('v2:goal:delete',(event,id)=>{assertWorkspaceSender(event);return database.deleteGoal(id);});
+ipcMain.handle('v2:milestone:save',(event,input)=>{assertWorkspaceSender(event);return database.saveMilestone(input);});
+ipcMain.handle('v2:milestone:delete',(event,id)=>{assertWorkspaceSender(event);return database.deleteMilestone(id);});
+ipcMain.handle('v2:project:save',(event,input)=>{assertWorkspaceSender(event);return database.saveProject(input);});
+ipcMain.handle('v2:project:delete',(event,id)=>{assertWorkspaceSender(event);return database.deleteProject(id);});
+ipcMain.handle('v2:task:save',(event,input)=>{assertWorkspaceSender(event);return database.saveTask(input);});
+ipcMain.handle('v2:task:toggle',(event,id)=>{assertWorkspaceSender(event);return database.toggleTask(id);});
+ipcMain.handle('v2:task:status',(event,id,status)=>{assertWorkspaceSender(event);return database.setTaskStatus(id,status);});
+ipcMain.handle('v2:goal:archive',(event,id,archived)=>{assertWorkspaceSender(event);return database.setArchived('goal',id,archived);});
+ipcMain.handle('v2:project:archive',(event,id,archived)=>{assertWorkspaceSender(event);return database.setArchived('project',id,archived);});
+ipcMain.handle('v2:task:archive',(event,id,archived)=>{assertWorkspaceSender(event);return database.setArchived('task',id,archived);});
+ipcMain.handle('v2:goal:duplicate',(event,id)=>{assertWorkspaceSender(event);return database.duplicateGoal(id);});
+ipcMain.handle('v2:project:duplicate',(event,id)=>{assertWorkspaceSender(event);return database.duplicateProject(id);});
+ipcMain.handle('v2:task:duplicate',(event,id)=>{assertWorkspaceSender(event);return database.duplicateTask(id);});
+ipcMain.handle('v2:settings:save',(event,input)=>{assertWorkspaceSender(event);return database.saveSettings(input);});
+ipcMain.handle('v2:task:delete',(event,id)=>{assertWorkspaceSender(event);return database.deleteTask(id);});
 ipcMain.handle('pomodoro:widget-close',()=>{closePomodoroWidget();return {ok:true};});
 ipcMain.handle('pomodoro:widget-open',()=>{createPomodoroWidget();return {ok:true};});
 ipcMain.handle('itsuki:hide',()=>{hideItsuki();return {ok:true};});
@@ -493,15 +520,15 @@ app.whenReady().then(()=>{
   screen.on('display-metrics-changed',repositionWidgetsForDisplayChange);
   screen.on('display-added',repositionWidgetsForDisplayChange);
   screen.on('display-removed',repositionWidgetsForDisplayChange);
-  initializeNativeServices();state=readState();saveState();createBackgroundWindow();createWindow();createTray();createApplicationMenu();if(state.settings?.focusWidgetEnabled!==false)createPomodoroWidget();if(state.settings?.itsukiCompanionEnabled!==false&&state.settings?.privacyMode!==true)createItsuki({startup:true});
+  initializeNativeServices();state=readState();saveState();database=createDatabase(path.join(dataDir(),'aurestar.sqlite'));createBackgroundWindow();createWindow();createTray();createApplicationMenu();if(state.settings?.focusWidgetEnabled!==false)createPomodoroWidget();if(state.settings?.itsukiCompanionEnabled!==false&&state.settings?.privacyMode!==true)createItsuki({startup:true});
   globalShortcut.register('CommandOrControl+Shift+L',toggleFocus);
-  globalShortcut.register('CommandOrControl+Shift+K',()=>{if(!win)createWindow();win?.show();win?.webContents.send('aurestar:quick-add');});
+  globalShortcut.register('CommandOrControl+Shift+K',openQuickAddTask);
   // A bare Alt key is handled by before-input-event while an Aurestar window is focused.
   installItsukiHotkeys();
   if(process.platform==='win32' && state.settings.startWithWindows){app.setLoginItemSettings({openAtLogin:true});}
   app.on('activate',()=>{if(!win)createWindow();else win.show();const prefs=chromeStorageGet('settings').settings||{};if(!pomodoroWidget&&prefs.focusWidgetEnabled!==false)createPomodoroWidget();});
 });
-app.on('before-quit',()=>{app.isQuitting=true;if(rendererRecoveryTimer)clearTimeout(rendererRecoveryTimer);if(reminderTimer)clearTimeout(reminderTimer);if(idlePollTimer)clearInterval(idlePollTimer);nativeAlarms?.close();persistWidgetPositionNow('pomodoro',pomodoroWidget);persistWidgetPositionNow('itsuki',itsukiWindow);globalShortcut.unregisterAll();if(state&&chromeStorageCache)saveState();});
+app.on('before-quit',()=>{app.isQuitting=true;database?.close();database=null;if(rendererRecoveryTimer)clearTimeout(rendererRecoveryTimer);if(reminderTimer)clearTimeout(reminderTimer);if(idlePollTimer)clearInterval(idlePollTimer);nativeAlarms?.close();persistWidgetPositionNow('pomodoro',pomodoroWidget);persistWidgetPositionNow('itsuki',itsukiWindow);globalShortcut.unregisterAll();if(state&&chromeStorageCache)saveState();});
 app.on('window-all-closed',()=>{if(process.platform!=='darwin' && !state?.settings?.minimizeToTray)app.quit();});
 app.whenReady().catch(error=>{
   console.error('Aurestar startup failed safely:',error);
