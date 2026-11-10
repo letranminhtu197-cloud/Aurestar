@@ -146,7 +146,7 @@ async function main() {
       'const focus = (await api.listFocusSessions(100)).find(item => item.id === "aurestar-ci-focus-session");',
       'const journal = (await api.listJournalEntries(100)).find(item => item.title === "AURESTAR CI journal marker");',
       'const review = (await api.listWeeklyReviews(100)).find(item => item.wins === "CI weekly wins");',
-      'if (!habit || !focus || !journal || !review) throw new Error("Phase 2 records did not persist across the packaged app restart.");',
+      'if (!habit || !focus || !journal || !review) throw new Error("Phase 2 records did not persist across the packaged app restart: "+JSON.stringify({habit:!!habit,focus:!!focus,journal:!!journal,review:!!review,habitCount:(await api.listHabits()).length,focusCount:(await api.listFocusSessions(100)).length,journalCount:(await api.listJournalEntries(100)).length,reviewCount:(await api.listWeeklyReviews(100)).length}));',
       'if (!(await api.searchAll("AURESTAR CI journal marker", 10)).some(item => item.id === journal.id)) throw new Error("Phase 2 search did not survive restart.");',
       'if (!(await api.previewImport(await api.exportData())).valid) throw new Error("Phase 2 export/preview validation failed after restart.");',
 
