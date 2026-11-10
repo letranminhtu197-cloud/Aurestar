@@ -147,7 +147,7 @@ async function main() {
       await send('Input.insertText', { text: 'AURESTAR CI restart marker' });
       await new Promise(resolve => setTimeout(resolve, 400));
       const searchResult = await send('Runtime.evaluate', { expression: 'document.querySelector(".search-results")?.innerText.includes("AURESTAR CI restart marker") === true', returnByValue: true });
-      if (searchResult.result?.value !== true) { const diagnostic = await send('Runtime.evaluate', { expression: 'JSON.stringify({active: document.activeElement?.tagName, value: document.querySelector(".top-search input")?.value, results: document.querySelector(".search-results")?.innerText, root: document.querySelector("#root")?.innerText.slice(0, 500)})', returnByValue: true }); throw new Error('Global search did not return the persisted Goal after reload: ' + diagnostic.result?.value); }
+      if (searchResult.result?.value !== true) throw new Error('Global search did not return the persisted Goal after reload.');
       await send('Runtime.evaluate', { expression: 'document.querySelector(".top-search input")?.blur()', returnByValue: true });
       const navResult = await send('Runtime.evaluate', { expression: uiAfterSearch, awaitPromise: true, returnByValue: true });
       if (navResult.exceptionDetails || !navResult.result?.value?.ok) throw new Error(navResult.exceptionDetails?.text || navResult.result?.value?.error || 'Navigation/Quick Add smoke test failed.');
