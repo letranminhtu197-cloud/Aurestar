@@ -10,7 +10,8 @@
     "check": "node scripts/check-source.cjs",
     "icon": "node scripts/make-icon.cjs",
     "electron:setup": "node node_modules/electron/install.js",
-    "dist:win": "npm run electron:setup && npm run icon && npm run check && electron-builder --win nsis portable --publish never"
+    "dist:win": "npm run electron:setup && npm run icon && npm run check && electron-builder --win nsis portable --publish never",
+    "dev": "npm run build && electron ."
   },
   "devDependencies": {
     "electron": "45.2.1",
@@ -44,8 +45,18 @@
     "win": {
       "icon": "src/icons/icon.ico",
       "target": [
-        { "target": "nsis", "arch": ["x64"] },
-        { "target": "portable", "arch": ["x64"] }
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
       ],
       "signAndEditExecutable": true,
       "signExecutable": false

@@ -4,6 +4,8 @@ const path = require('node:path');
 const { fileURLToPath } = require('node:url');
 const { migrateJsonStores, normalizeStateCollections, readJsonFile, writeJsonAtomic } = require('./core/persistence.cjs');
 const { createAlarmScheduler } = require('./core/alarm-scheduler.cjs');
+const { createDatabase } = require('./core/sqlite.cjs');
+let database = null;
 
 const hasSingleInstanceLock = app.requestSingleInstanceLock();
 if (!hasSingleInstanceLock) app.quit();
@@ -315,10 +317,10 @@ function closePomodoroWidget(){if(pomodoroWidget&&!pomodoroWidget.isDestroyed())
 function createWindow(initialView='dashboard'){
   const allowedViews=['dashboard','today','tasks','focus','gym','calendar','analytics','settings'];
   const route=allowedViews.includes(String(initialView))?String(initialView):'dashboard';
-  win=new BrowserWindow({width:1440,height:920,minWidth:1024,minHeight:700,show:false,backgroundColor:'#211217',title:APP_NAME,autoHideMenuBar:true,webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true}});
+  win=new BrowserWindow({width:1440,height:920,minWidth:1024,minHeight:700,show:false,backgroundColor:'#211217',title:APP_NAME,autoHideMenuBar:true,webPreferences:{preload:path.join(__dirname,'preload-v2.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true}});
   secureWindow(win);
   bindAltToggle(win);
-  win.loadFile(path.join(__dirname,'index.html'),{hash:route.replace(/^#/,'')});
+  win.loadFile(path.join(__dirname,'app','dist','index.html'),{hash:route.replace(/^#/,'')});
   win.once('ready-to-show',()=>win.show());
   win.webContents.on('render-process-gone',(_event,details)=>{
     if(app.isQuitting||!win||win.isDestroyed())return;
@@ -433,6 +435,16 @@ ipcMain.handle('chrome:notification',(_event,payload)=>{
   return String(payload?.id||'');
 });
 ipcMain.handle('state:get',()=>state);
+ipcMain.handle('v2:workspace:load',()=>database.loadWorkspace());
+ipcMain.handle('v2:goal:save',(_e,input)=>database.saveGoal(input));
+ipcMain.handle('v2:goal:delete',(_e,id)=>database.deleteGoal(id));
+ipcMain.handle('v2:milestone:save',(_e,input)=>database.saveMilestone(input));
+ipcMain.handle('v2:milestone:delete',(_e,id)=>database.deleteMilestone(id));
+ipcMain.handle('v2:project:save',(_e,input)=>database.saveProject(input));
+ipcMain.handle('v2:project:delete',(_e,id)=>database.deleteProject(id));
+ipcMain.handle('v2:task:save',(_e,input)=>database.saveTask(input));
+ipcMain.handle('v2:task:toggle',(_e,id)=>database.toggleTask(id));
+ipcMain.handle('v2:task:delete',(_e,id)=>database.deleteTask(id));
 ipcMain.handle('pomodoro:widget-close',()=>{closePomodoroWidget();return {ok:true};});
 ipcMain.handle('pomodoro:widget-open',()=>{createPomodoroWidget();return {ok:true};});
 ipcMain.handle('itsuki:hide',()=>{hideItsuki();return {ok:true};});
@@ -493,7 +505,7 @@ app.whenReady().then(()=>{
   screen.on('display-metrics-changed',repositionWidgetsForDisplayChange);
   screen.on('display-added',repositionWidgetsForDisplayChange);
   screen.on('display-removed',repositionWidgetsForDisplayChange);
-  initializeNativeServices();state=readState();saveState();createBackgroundWindow();createWindow();createTray();createApplicationMenu();if(state.settings?.focusWidgetEnabled!==false)createPomodoroWidget();if(state.settings?.itsukiCompanionEnabled!==false&&state.settings?.privacyMode!==true)createItsuki({startup:true});
+  initializeNativeServices();state=readState();saveState();database=createDatabase(path.join(dataDir(),'aurestar.sqlite'));createBackgroundWindow();createWindow();createTray();createApplicationMenu();if(state.settings?.focusWidgetEnabled!==false)createPomodoroWidget();if(state.settings?.itsukiCompanionEnabled!==false&&state.settings?.privacyMode!==true)createItsuki({startup:true});
   globalShortcut.register('CommandOrControl+Shift+L',toggleFocus);
   globalShortcut.register('CommandOrControl+Shift+K',()=>{if(!win)createWindow();win?.show();win?.webContents.send('aurestar:quick-add');});
   // A bare Alt key is handled by before-input-event while an Aurestar window is focused.
@@ -501,7 +513,7 @@ app.whenReady().then(()=>{
   if(process.platform==='win32' && state.settings.startWithWindows){app.setLoginItemSettings({openAtLogin:true});}
   app.on('activate',()=>{if(!win)createWindow();else win.show();const prefs=chromeStorageGet('settings').settings||{};if(!pomodoroWidget&&prefs.focusWidgetEnabled!==false)createPomodoroWidget();});
 });
-app.on('before-quit',()=>{app.isQuitting=true;if(rendererRecoveryTimer)clearTimeout(rendererRecoveryTimer);if(reminderTimer)clearTimeout(reminderTimer);if(idlePollTimer)clearInterval(idlePollTimer);nativeAlarms?.close();persistWidgetPositionNow('pomodoro',pomodoroWidget);persistWidgetPositionNow('itsuki',itsukiWindow);globalShortcut.unregisterAll();if(state&&chromeStorageCache)saveState();});
+app.on('before-quit',()=>{app.isQuitting=true;database?.close();database=null;if(rendererRecoveryTimer)clearTimeout(rendererRecoveryTimer);if(reminderTimer)clearTimeout(reminderTimer);if(idlePollTimer)clearInterval(idlePollTimer);nativeAlarms?.close();persistWidgetPositionNow('pomodoro',pomodoroWidget);persistWidgetPositionNow('itsuki',itsukiWindow);globalShortcut.unregisterAll();if(state&&chromeStorageCache)saveState();});
 app.on('window-all-closed',()=>{if(process.platform!=='darwin' && !state?.settings?.minimizeToTray)app.quit();});
 app.whenReady().catch(error=>{
   console.error('Aurestar startup failed safely:',error);
