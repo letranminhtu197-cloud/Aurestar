@@ -18,14 +18,16 @@ function readZipBackup(filePath){
  const count=zip.readUInt16LE(eocd+10),offset=zip.readUInt32LE(eocd+16);let cursor=offset,manifest=null;
  for(let i=0;i<count;i++){
   if(zip.readUInt32LE(cursor)!==0x02014b50)throw new Error('Invalid ZIP central directory.');
-  const method=zip.readUInt16LE(cursor+10),compressedSize=zip.readUInt32LE(cursor+20),nameLen=zip.readUInt16LE(cursor+28),extraLen=zip.readUInt16LE(cursor+30),commentLen=zip.readUInt16LE(cursor+32),localOffset=zip.readUInt32LE(cursor+42);
+  const method=zip.readUInt16LE(cursor+10),crcExpected=zip.readUInt32LE(cursor+16),compressedSize=zip.readUInt32LE(cursor+20),uncompressedSize=zip.readUInt32LE(cursor+24),nameLen=zip.readUInt16LE(cursor+28),extraLen=zip.readUInt16LE(cursor+30),commentLen=zip.readUInt16LE(cursor+32),localOffset=zip.readUInt32LE(cursor+42);
   const name=zip.subarray(cursor+46,cursor+46+nameLen).toString('utf8');
   if(name==='manifest.json'){
    if(zip.readUInt32LE(localOffset)!==0x04034b50)throw new Error('Invalid ZIP local header.');
    const localName=zip.readUInt16LE(localOffset+26),localExtra=zip.readUInt16LE(localOffset+28),start=localOffset+30+localName+localExtra;
+   if(uncompressedSize>256*1024*1024||compressedSize>256*1024*1024)throw new Error('ZIP backup exceeds the supported size limit.');
    const packed=zip.subarray(start,start+compressedSize);
-   manifest=method===0?packed:method===8?zlib.inflateRawSync(packed):null;
+   manifest=method===0?packed:method===8?zlib.inflateRawSync(packed,{maxOutputLength:256*1024*1024}):null;
    if(!manifest)throw new Error('Unsupported ZIP compression method.');
+   if(manifest.length!==uncompressedSize||crc32(manifest)!==crcExpected)throw new Error('ZIP backup integrity check failed.');
   }
   cursor+=46+nameLen+extraLen+commentLen;
  }
