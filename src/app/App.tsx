@@ -19,6 +19,7 @@ function App() {
   const [page, setPage] = useState<Page>(() => (['home','goals','projects','tasks','habits','focus','journal','review','insights'].includes(location.hash.slice(1)) ? location.hash.slice(1) as Page : 'home'));
   const [modal, setModal] = useState<Modal>(null);
   const [query, setQuery] = useState('');
+  const [phase2Results,setPhase2Results] = useState<any[]>([]);
   const [taskFilter, setTaskFilter] = useState<'all'|'today'|'upcoming'|'overdue'|'completed'|'inbox'|'archived'>('all');
   const [taskSort,setTaskSort]=useState<'due'|'priority'|'title'|'created'>('due');
   const [showArchived,setShowArchived]=useState(false);
@@ -28,6 +29,7 @@ function App() {
   const [dark, setDark] = useState(() => localStorage.getItem('aurestar.theme') !== 'light');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem('aurestar.sidebar.collapsed') === 'true');
   useEffect(() => { void data.load(); }, []);
+  useEffect(() => { const value=query.trim(); if(value.length<2){setPhase2Results([]);return;} const timer=window.setTimeout(()=>{void window.aurestarV2.searchAll(value,10).then(setPhase2Results).catch(()=>setPhase2Results([]));},180); return ()=>window.clearTimeout(timer); }, [query]);
   useEffect(() => { document.documentElement.dataset.theme = dark ? 'dark' : 'light'; localStorage.setItem('aurestar.theme', dark ? 'dark' : 'light'); }, [dark]);
   useEffect(() => { if(!data.loading){ const saved=data.settings||{}; if(saved.theme==='dark'||saved.theme==='light')setDark(saved.theme==='dark'); else if(saved.theme==='system')setDark(window.matchMedia('(prefers-color-scheme: dark)').matches); if(typeof saved.sidebarCollapsed==='boolean')setSidebarCollapsed(saved.sidebarCollapsed); if(saved.density==='compact'||saved.density==='comfortable')document.documentElement.dataset.density=String(saved.density); if(['home','goals','projects','tasks','habits','focus','journal','review','insights'].includes(String(saved.defaultLandingPage)))setPage(saved.defaultLandingPage as Page); } }, [data.loading]);
   useEffect(() => { localStorage.setItem('aurestar.sidebar.collapsed', String(sidebarCollapsed)); }, [sidebarCollapsed]);
@@ -53,7 +55,7 @@ function App() {
     ...data.goals.filter(g=>!g.archived_at&&g.title.toLowerCase().includes(query.toLowerCase())).map(item=>({type:'goal',id:item.id,title:item.title,item})),
     ...data.projects.filter(p=>!p.archived_at&&p.name.toLowerCase().includes(query.toLowerCase())).map(item=>({type:'project',id:item.id,title:item.name,item})),
     ...data.tasks.filter(t=>!t.archived_at&&t.title.toLowerCase().includes(query.toLowerCase())).map(item=>({type:'task',id:item.id,title:item.title,item}))
-  ].slice(0,10);
+  ,...phase2Results.filter(item=>['habit','journal'].includes(item.type)).map(item=>({type:item.type,id:item.id,title:item.title,item}))].slice(0,10);
   const open = (kind: Exclude<Modal,null>['kind'], item?: Goal|Project|Task|Milestone, goalId?: string) => {
     if (kind === 'milestone') setModal({ kind, goalId: goalId || '', item: item as Milestone|undefined });
     else if (kind === 'goal') setModal({ kind, item: item as Goal|undefined });
@@ -86,7 +88,7 @@ function App() {
       <header className="topbar">
         <button className="icon-button sidebar-toggle" title={sidebarCollapsed?'Expand sidebar':'Collapse sidebar'} onClick={()=>setSidebarCollapsed(v=>{const next=!v;persistSettings({sidebarCollapsed:next});return next;})}><PanelLeftClose size={17}/></button>
         <div><div className="breadcrumb">AURESTAR <span>/</span> WORKSPACE</div><h1>{pageTitle}</h1></div>
-        <div className="top-search-wrap"><div className="top-search"><Search size={17}/><input value={query} onChange={e=>setQuery(e.target.value)} onFocus={()=>setSearchOpen(true)} onBlur={()=>window.setTimeout(()=>setSearchOpen(false),140)} placeholder="Search goals, projects, tasks…" /><kbd><Command size={11}/> K</kbd></div>{searchOpen&&query.trim().length>=2&&<div className="search-results">{globalResults.length?globalResults.map(result=><button key={result.type+result.id} onMouseDown={e=>e.preventDefault()} onClick={()=>{setPage(result.type==='goal'?'goals':result.type==='project'?'projects':'tasks');if(result.type==='goal')open('goal',result.item as Goal);if(result.type==='project')open('project',result.item as Project);if(result.type==='task')open('task',result.item as Task);setSearchOpen(false);}}><b>{result.title}</b><small>{result.type}</small></button>):<p>No matching records</p>}</div>}</div>
+        <div className="top-search-wrap"><div className="top-search"><Search size={17}/><input value={query} onChange={e=>setQuery(e.target.value)} onFocus={()=>setSearchOpen(true)} onBlur={()=>window.setTimeout(()=>setSearchOpen(false),140)} placeholder="Search goals, projects, tasks…" /><kbd><Command size={11}/> K</kbd></div>{searchOpen&&query.trim().length>=2&&<div className="search-results">{globalResults.length?globalResults.map(result=><button key={result.type+result.id} onMouseDown={e=>e.preventDefault()} onClick={()=>{setPage(result.type==='goal'?'goals':result.type==='project'?'projects':result.type==='task'?'tasks':result.type==='habit'?'habits':'journal');if(result.type==='goal')open('goal',result.item as Goal);if(result.type==='project')open('project',result.item as Project);if(result.type==='task')open('task',result.item as Task);setSearchOpen(false);}}><b>{result.title}</b><small>{result.type}</small></button>):<p>No matching records</p>}</div>}</div>
         <div className="top-actions"><button className="icon-button" title="Open settings" onClick={()=>setSettingsOpen(true)}><Settings size={17}/></button><button className="icon-button" title="Toggle theme" onClick={()=>{setDark(v=>{const next=!v;persistSettings({theme:next?'dark':'light'});return next;});}}><Sparkles size={17}/></button><button className="icon-button" title="Show Itsuki widget" onClick={()=>void window.aurestarDesktop?.showItsuki?.()}><Activity size={17}/></button><button className="primary-button compact" onClick={addButton[1]}><Plus size={16}/>{addButton[0]}</button></div>
       </header>
       {data.error && <div className="error-banner"><AlertCircle size={16}/>{data.error}<button onClick={()=>void data.load()}>Retry</button></div>}
