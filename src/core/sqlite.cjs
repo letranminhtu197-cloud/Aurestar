@@ -5,7 +5,7 @@ const Database = require('better-sqlite3');
 
 const now = () => new Date().toISOString();
 const text = (value, max = 5000) => String(value ?? '').trim().slice(0, max);
-const date = value => { if (!value) return null; const v = String(value).trim(); const parsed = new Date(v + 'T00:00:00Z'); if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(v) || Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0,10) !== v) throw new Error('Date must use a valid YYYY-MM-DD calendar date.'); return v; };
+const date = value => { if (!value) return null; const v = String(value).trim(); const parsed = new Date(v + 'T00:00:00Z'); if (!/^\d{4}-\d{2}-\d{2}$/.test(v) || Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0,10) !== v) throw new Error('Date must use a valid YYYY-MM-DD calendar date.'); return v; };
 const allowed = (value, values, fallback) => values.includes(value) ? value : fallback;
 
 function createDatabase(filePath) {
