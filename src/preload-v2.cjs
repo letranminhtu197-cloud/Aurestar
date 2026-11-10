@@ -24,7 +24,7 @@ const api = {
   logHabit: input => invoke('v2:phase2:habits:log',input), listHabitLogs: (from,to) => invoke('v2:phase2:habits:logs',from,to),
   saveFocusSession: input => invoke('v2:phase2:focus:save',input), listFocusSessions: limit => invoke('v2:phase2:focus:list',limit),
   saveJournalEntry: input => invoke('v2:phase2:journal:save',input), deleteJournalEntry: id => invoke('v2:phase2:journal:delete',id), listJournalEntries: limit => invoke('v2:phase2:journal:list',limit),
-  saveWeeklyReview: input => invoke('v2:phase2:review:save',input), listWeeklyReviews: limit => invoke('v2:phase2:review:list',limit),
+  saveWeeklyReview: input => invoke('v2:phase2:review:save',input), getWeeklyReviewSummary: (from,to) => invoke('v2:phase2:review:summary',from,to), listWeeklyReviews: limit => invoke('v2:phase2:review:list',limit),
   searchAll: (query,limit) => invoke('v2:phase2:search',query,limit), getInsights: (from,to) => invoke('v2:phase2:insights',from,to),
   exportData: () => invoke('v2:phase2:export'), previewImport: payload => invoke('v2:phase2:import:preview',payload),
   applyImport: (payload,mode) => invoke('v2:phase2:import:apply',payload,mode),
