@@ -27,6 +27,7 @@ declare global {
       saveWeeklyReview(input:any):Promise<any>; listWeeklyReviews(limit?:number):Promise<any[]>;
       searchAll(query:string,limit?:number):Promise<any[]>; getInsights(from?:string,to?:string):Promise<any>;
       exportData():Promise<any>; previewImport(payload:any):Promise<any>; applyImport(payload:any,mode:'merge'|'update'|'replace'):Promise<any>;
+      createZipBackup():Promise<any>; previewZipBackup():Promise<any>; restoreZipBackup(payload:any,mode:'merge'|'update'|'replace'):Promise<any>;
     };
     aurestarDesktop?: {
       showItsuki?: () => Promise<unknown>;
