@@ -20,7 +20,7 @@ const api = {
   duplicateTask: id => invoke('v2:task:duplicate',id),
   saveSettings: input => invoke('v2:settings:save',input),
   deleteTask: id => invoke('v2:task:delete', id),
-  listHabits: () => invoke('v2:phase2:habits:list'), saveHabit: input => invoke('v2:phase2:habits:save',input),
+  listHabits: () => invoke('v2:phase2:habits:list'), saveHabit: input => invoke('v2:phase2:habits:save',input), deleteHabit: id => invoke('v2:phase2:habits:delete',id), archiveHabit: (id,archived) => invoke('v2:phase2:habits:archive',id,archived),
   logHabit: input => invoke('v2:phase2:habits:log',input), listHabitLogs: (from,to) => invoke('v2:phase2:habits:logs',from,to),
   saveFocusSession: input => invoke('v2:phase2:focus:save',input), listFocusSessions: limit => invoke('v2:phase2:focus:list',limit),
   saveJournalEntry: input => invoke('v2:phase2:journal:save',input), listJournalEntries: limit => invoke('v2:phase2:journal:list',limit),
