@@ -117,6 +117,44 @@ function createDatabase(filePath) {
   });
   if (db.pragma('user_version', { simple: true }) < 4) migration4();
 
+  const migration5 = db.transaction(() => {
+    const addColumn = (table, name, definition) => {
+      const columns = db.pragma('table_info(' + table + ')');
+      if (!columns.some(column => column.name === name)) db.exec('ALTER TABLE ' + table + ' ADD COLUMN ' + name + ' ' + definition);
+    };
+    addColumn('habits','selected_weekdays',"TEXT NOT NULL DEFAULT '[]'");
+    addColumn('habits','start_date','TEXT');
+    addColumn('habits','end_date','TEXT');
+    addColumn('habits','unit',"TEXT NOT NULL DEFAULT 'times'");
+    addColumn('habits','icon',"TEXT NOT NULL DEFAULT 'check-circle'");
+    addColumn('habit_logs','completed','INTEGER NOT NULL DEFAULT 1');
+    addColumn('habit_logs','value','REAL NOT NULL DEFAULT 1');
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS journal_goal_links (
+        journal_id TEXT NOT NULL REFERENCES journal_entries(id) ON DELETE CASCADE,
+        goal_id TEXT NOT NULL REFERENCES goals(id) ON DELETE CASCADE,
+        PRIMARY KEY(journal_id,goal_id)
+      );
+      CREATE TABLE IF NOT EXISTS journal_project_links (
+        journal_id TEXT NOT NULL REFERENCES journal_entries(id) ON DELETE CASCADE,
+        project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+        PRIMARY KEY(journal_id,project_id)
+      );
+      CREATE TABLE IF NOT EXISTS journal_task_links (
+        journal_id TEXT NOT NULL REFERENCES journal_entries(id) ON DELETE CASCADE,
+        task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+        PRIMARY KEY(journal_id,task_id)
+      );
+      CREATE INDEX IF NOT EXISTS idx_journal_goal_goal ON journal_goal_links(goal_id);
+      CREATE INDEX IF NOT EXISTS idx_journal_project_project ON journal_project_links(project_id);
+      CREATE INDEX IF NOT EXISTS idx_journal_task_task ON journal_task_links(task_id);
+    `);
+    db.prepare('INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES (?, ?)').run(5, now());
+    db.pragma('user_version = 5');
+  });
+  if (db.pragma('user_version', { simple: true }) < 5) migration5();
+
+
   db.exec('CREATE INDEX IF NOT EXISTS idx_project_goal_goal ON project_goal_links(goal_id); CREATE INDEX IF NOT EXISTS idx_task_goal_goal ON task_goal_links(goal_id); CREATE INDEX IF NOT EXISTS idx_task_tags_tag ON task_tags(tag_id); CREATE INDEX IF NOT EXISTS idx_tasks_parent ON tasks(parent_task_id);');
 
   const getGoalLinks = db.prepare('SELECT goal_id FROM project_goal_links WHERE project_id = ?');
