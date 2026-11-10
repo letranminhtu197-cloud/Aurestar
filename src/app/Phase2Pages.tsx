@@ -28,7 +28,7 @@ export function Phase2Page({page}:{page:Page}) {
  {busy&&<p style={{color:'var(--muted)'}}>Loading…</p>}
  </div>;
 }
-function Metric({label,value}:{label:string,value:number}){return <div className="metric-card"><div className="metric-top">{label}</div><strong>{value}</strong></div>}
+function Metric({label,value}:{label:string,value:number|string}){return <div className="metric-card"><div className="metric-top">{label}</div><strong>{value}</strong></div>}
 type FocusState={id:string;status:'running'|'paused';sessionType:'focus'|'short_break'|'long_break';taskId:string|null;note:string;plannedSeconds:number;startedAt:string;endTimestamp:number|null;remainingSeconds:number};
 
 
