@@ -24,7 +24,7 @@ export function Phase2Page({page}:{page:Page}) {
  {page==='focus'&&<FocusPanel rows={rows} run={run}/>}
  {page==='journal'&&<JournalEditor rows={rows} run={run}/> }
  {page==='review'&&<WeeklyReviewPanel rows={rows} run={run}/> }
- {page==='insights'&&<><DataTools/><InsightsPanel/></>}
+ {page==='insights'&&<InsightsPanel/>}
  {busy&&<p style={{color:'var(--muted)'}}>Đang tải…</p>}
  </div>;
 }
