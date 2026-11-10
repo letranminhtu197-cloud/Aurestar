@@ -87,7 +87,8 @@ function errorText(error:unknown):string {
  console.error('Aurestar operation failed:',error);
  return 'Đã xảy ra lỗi khi xử lý dữ liệu. Vui lòng kiểm tra thông tin và thử lại.';
 }
-\nexport function Phase2Page({page}:{page:Page}) {
+
+export function Phase2Page({page}:{page:Page}) {
  const [rows,setRows]=useState<any[]>([]),[habitLogs,setHabitLogs]=useState<any[]>([]),[historyDays,setHistoryDays]=useState(7),[notice,setNotice]=useState(''),[name,setName]=useState(''),[busy,setBusy]=useState(false),[habitFrequency,setHabitFrequency]=useState('daily'),[habitTarget,setHabitTarget]=useState(1),[habitUnit,setHabitUnit]=useState('times'),[habitWeekdays,setHabitWeekdays]=useState('1,2,3,4,5'),[habitDescription,setHabitDescription]=useState(''),[habitStartDate,setHabitStartDate]=useState(''),[habitEndDate,setHabitEndDate]=useState(''),[habitColor,setHabitColor]=useState('#B94A62'),[habitIcon,setHabitIcon]=useState('check-circle'),[editingHabitId,setEditingHabitId]=useState(''),[loggingHabitId,setLoggingHabitId]=useState(''),[habitLogDate,setHabitLogDate]=useState(today()),[habitLogCount,setHabitLogCount]=useState(1),[habitLogNote,setHabitLogNote]=useState(''),[habitLogCompleted,setHabitLogCompleted]=useState(true),[historyMonth,setHistoryMonth]=useState(today().slice(0,7));
  const api=window.aurestarV2;
  const load=async()=>{setBusy(true);try{
