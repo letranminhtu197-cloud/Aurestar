@@ -11,7 +11,7 @@
     "build:ui": "vite build",
     "build": "npm run typecheck && npm run build:ui",
     "test": "node --test",
-    "check": "npm run typecheck",
+    "check": "node --check scripts/smoke-electron.cjs && node scripts/check-source.cjs && npm run typecheck",
     "dist:win": "npm run build && electron-builder --win nsis portable --publish never"
   },
   "dependencies": {

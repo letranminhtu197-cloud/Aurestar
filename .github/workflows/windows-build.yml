@@ -29,21 +29,29 @@ jobs:
           electron_config_cache: ${{ runner.temp }}/electron-cache
           ELECTRON_BUILDER_CACHE: ${{ runner.temp }}/electron-builder-cache
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
-      - name: Smoke launch packaged Windows app and initialize SQLite
+      - name: Smoke test packaged app, UI, IPC and persistence across restart
         shell: pwsh
         run: |
           $portable = Get-ChildItem -Path dist -Filter '*Portable*x64.exe' | Select-Object -First 1
           if (-not $portable) { throw 'Portable Windows build was not produced.' }
-          $process = Start-Process -FilePath $portable.FullName -ArgumentList @('--disable-gpu', '--remote-debugging-port=9222', '--remote-allow-origins=*') -PassThru
           $database = Join-Path (Split-Path $portable.FullName) 'AurestarData/aurestar.sqlite'
+          $process = Start-Process -FilePath $portable.FullName -ArgumentList @('--disable-gpu', '--remote-debugging-port=9222', '--remote-allow-origins=*') -PassThru
           $deadline = (Get-Date).AddSeconds(30)
           while ((Get-Date) -lt $deadline -and -not (Test-Path $database)) {
-            if ($process.HasExited) { throw "Aurestar exited during startup (exit code $($process.ExitCode))." }
+            if ($process.HasExited) { throw "Aurestar exited during first startup (exit code $($process.ExitCode))." }
             Start-Sleep -Seconds 1
           }
           if (-not (Test-Path $database)) { throw 'Aurestar did not initialize its SQLite database within 30 seconds.' }
+          $env:AURESTAR_SMOKE_MODE = 'write'
           node scripts/smoke-electron.cjs
-          if ($LASTEXITCODE -ne 0) { throw 'Packaged Electron renderer/IPC smoke test failed.' }
+          if ($LASTEXITCODE -ne 0) { throw 'First-run renderer/IPC smoke test failed.' }
+          taskkill /T /F /PID $process.Id | Out-Null
+          Start-Sleep -Seconds 2
+          $process = Start-Process -FilePath $portable.FullName -ArgumentList @('--disable-gpu', '--remote-debugging-port=9222', '--remote-allow-origins=*') -PassThru
+          Start-Sleep -Seconds 5
+          $env:AURESTAR_SMOKE_MODE = 'verify'
+          node scripts/smoke-electron.cjs
+          if ($LASTEXITCODE -ne 0) { throw 'Restart persistence smoke test failed.' }
           taskkill /T /F /PID $process.Id | Out-Null
       - uses: actions/upload-artifact@v4
         with:
