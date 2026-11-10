@@ -476,6 +476,15 @@ function createDatabase(filePath) {
     deleteGoal: id => remove('goals', id), deleteMilestone: id => remove('milestones', id),
     deleteProject: id => remove('projects', id), deleteTask: id => remove('tasks', id),
     backupTo: destination => db.backup(destination),
+    exportBackupData: backupPath => {
+      const snapshot=new Database(backupPath,{readonly:true,fileMustExist:true});
+      try {
+        const tables=['goals','milestones','projects','project_goal_links','tasks','task_goal_links','tags','task_tags','settings','habits','habit_logs','focus_sessions','journal_entries','journal_goal_links','journal_project_links','journal_task_links','weekly_reviews'];
+        const payload={format:'aurestar-sqlite-export',version:2,schemaVersion:snapshot.pragma('user_version',{simple:true}),exportedAt:new Date().toISOString(),app:'Aurestar',tables:{}};
+        for(const table of tables)payload.tables[table]=snapshot.prepare('SELECT * FROM '+table).all();
+        return payload;
+      } finally { snapshot.close(); }
+    },
     close: () => db.close(), filePath
   };
 }
