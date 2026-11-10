@@ -143,7 +143,7 @@ function EditorModal({modal,goals,projects,tasks,onClose,onSave,onError}:{modal:
   const [tags,setTags]=useState(((item as Task|undefined)?.tags||[]).join(', '));
   const [goalIds,setGoalIds]=useState<string[]>(isProject?(item as Project|undefined)?.goalIds||[]:isTask?(item as Task|undefined)?.goalIds||[]:[]);
   const [color,setColor]=useState(isProject?(item as Project|undefined)?.color||'#B94A62':'#B94A62');
-  const [milestoneStatus,setMilestoneStatus]=useState((item as Milestone|undefined)?.status||'pending');
+  const [milestoneStatus,setMilestoneStatus]=useState<string>((item as Milestone|undefined)?.status||'pending');
   const [saving,setSaving]=useState(false);
   const titleLabel=isMilestone?(item?'Edit milestone':'New milestone'):isGoal?'Goal':isProject?'Project':'Task';
   const submit=async(e:React.FormEvent)=>{e.preventDefault();setSaving(true);try{
