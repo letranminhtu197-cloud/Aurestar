@@ -58,13 +58,13 @@ ipcMain.on=(channel,listener)=>rawOn(channel,(event,...args)=>{
   if(!isTrustedSender(event)){console.warn(`Rejected IPC from an untrusted page (${channel})`);return;}
   listener(event,...args);
 });
-function assertWorkspaceSender(event){if(!win||win.isDestroyed()||event.sender!==win.webContents)throw new Error('Untrusted renderer attempted to access workspace IPC.');}
+function assertWorkspaceSender(event){if(!win||win.isDestroyed()||event.sender!==win.webContents)throw new Error('Giao diện không đáng tin cậy đã cố truy cập IPC của không gian làm việc.');}
 function secureWindow(browserWindow){
   browserWindow.webContents.setWindowOpenHandler(()=>({action:'deny'}));
   browserWindow.webContents.on('will-navigate',(event,url)=>{
     if(isTrustedLocalUrl(url))return;
     event.preventDefault();
-    if(/^https?:\/\//i.test(url))shell.openExternal(url).catch(error=>console.warn('Could not open external URL',error));
+    if(/^https?:\/\//i.test(url))shell.openExternal(url).catch(error=>console.warn('Không thể mở liên kết bên ngoài.',error));
   });
   browserWindow.webContents.on('will-attach-webview',event=>event.preventDefault());
 }
@@ -133,14 +133,14 @@ function chromeStorageClear(){
 function waitForChromeBackground(){
   if(chromeBackgroundReady&&backgroundWin&&!backgroundWin.isDestroyed())return Promise.resolve();
   return new Promise((resolve,reject)=>{
-    const timer=setTimeout(()=>reject(new Error('Desktop background service did not start')),15000);
+    const timer=setTimeout(()=>reject(new Error('Dịch vụ nền của ứng dụng không khởi động được.')),15000);
     chromeBackgroundWaiters.push(()=>{clearTimeout(timer);resolve();});
   });
 }
 function sendChromeMessage(message){
   return waitForChromeBackground().then(()=>new Promise((resolve,reject)=>{
     const id=crypto.randomUUID(),timer=setTimeout(()=>{
-      pendingChromeMessages.delete(id);reject(new Error('Chrome background message timed out'));
+      pendingChromeMessages.delete(id);reject(new Error('Đã hết thời gian chờ phản hồi từ dịch vụ nền.'));
     },20000);
     pendingChromeMessages.set(id,{resolve,reject,timer});
     backgroundWin.webContents.send('chrome:dispatch-message',{id,message,sender:{id:'aurestar-desktop',url:'aurestar://desktop'}});
@@ -195,7 +195,7 @@ function notify(title,body){
   new Notification({title,body,silent:false}).show();
 }
 function showReminderLine(text){
-  const message=String(text||'Aurestar reminder').replace(/[\r\n\t]+/g,' ').trim().slice(0,220)||'Aurestar reminder';
+  const message=String(text||'Nhắc nhở từ Aurestar').replace(/[\r\n\t]+/g,' ').trim().slice(0,220)||'Nhắc nhở từ Aurestar';
   if(reminderWindow&&!reminderWindow.isDestroyed()){
     reminderWindow.webContents.send('reminder:show',message);
     reminderWindow.showInactive();
@@ -220,16 +220,16 @@ function checkSchedule(){
   if(!state) return;
   const now=new Date(), hm=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
   const stamp=`${today()}:${hm}`;
-  if(hm==='05:30') sendReminder('wake-0530','Every morning is a new beginning.');
-  if(hm==='06:00') sendReminder('wake-0600','The secret of getting ahead is getting started.');
-  if(hm==='20:45') sendReminder('wind-down','Rest is part of the work. Begin winding down.');
-  if(hm==='21:00') sendReminder('sleep','A well-spent day brings happy sleep.');
-  if(hm===state.settings.dailyReminder) sendReminder('daily','Your study plan is ready. Choose one clear task and take the first step.');
+  if(hm==='05:30') sendReminder('wake-0530','Mỗi buổi sáng là một khởi đầu mới.');
+  if(hm==='06:00') sendReminder('wake-0600','Muốn tiến về phía trước, hãy bắt đầu từ một việc nhỏ.');
+  if(hm==='20:45') sendReminder('wind-down','Nghỉ ngơi cũng là một phần của hành trình. Hãy bắt đầu thư giãn.');
+  if(hm==='21:00') sendReminder('sleep','Một ngày ý nghĩa sẽ mang đến giấc ngủ an lành.');
+  if(hm===state.settings.dailyReminder) sendReminder('daily','Kế hoạch học tập đã sẵn sàng. Hãy chọn một việc cụ thể và bắt đầu từ bước đầu tiên.');
   if(state.settings.taskReminders){
     for(const t of state.tasks||[]) if(!t.archived && t.dueDate===today() && t.dueTime===hm && !(t.completedDates||[]).includes(today())) sendReminder('task-'+t.id,`Task reminder: ${t.title}`);
   }
   if(state.settings.autoBackup && hm===state.settings.backupTime && !state.remindersSent[today()+':backup']){
-    try{fs.mkdirSync(backupDir(),{recursive:true});fs.copyFileSync(dataFile(),path.join(backupDir(),`aurestar-${today()}.json`));state.remindersSent[today()+':backup']=Date.now();saveState();}catch(e){console.error('Auto backup failed',e);}
+    try{fs.mkdirSync(backupDir(),{recursive:true});fs.copyFileSync(dataFile(),path.join(backupDir(),`aurestar-${today()}.json`));state.remindersSent[today()+':backup']=Date.now();saveState();}catch(e){console.error('Sao lưu tự động thất bại',e);}
   }
 }
 function clampWidgetPosition(bounds){
@@ -327,9 +327,9 @@ function createWindow(initialView='home'){
     const now=Date.now();
     rendererCrashTimes=rendererCrashTimes.filter(at=>now-at<60_000);
     rendererCrashTimes.push(now);
-    console.error('Aurestar renderer process exited:',details);
+    console.error('Tiến trình giao diện Aurestar đã thoát:',details);
     if(rendererCrashTimes.length>2){
-      dialog.showErrorBox('Aurestar renderer stopped', 'The interface stopped repeatedly. Aurestar will close safely. Your saved data remains on disk.');
+      dialog.showErrorBox('Giao diện Aurestar đã dừng', 'Giao diện đã dừng nhiều lần. Aurestar sẽ đóng an toàn. Dữ liệu đã lưu vẫn được giữ nguyên.');
       app.quit();
       return;
     }
@@ -354,11 +354,11 @@ function createTray(){
   if(process.platform==='win32' && !icon.isEmpty()) icon=icon.resize({width:16,height:16});
   tray=new Tray(icon);tray.setToolTip(APP_NAME);
   tray.setContextMenu(Menu.buildFromTemplate([
-    {label:'Open Aurestar',click:()=>showMainWindow('home')},
-    {label:'Show Itsuki (Ctrl+F6)',click:()=>createItsuki()},
-    {label:'Hide Itsuki (F6)',click:()=>hideItsuki()},
-    {label:'Start / pause focus',click:()=>toggleFocus()},
-    {label:'Quick add task',click:openQuickAddTask},
+    {label:'Mở Aurestar',click:()=>showMainWindow('home')},
+    {label:'Hiện Itsuki (Ctrl+F6)',click:()=>createItsuki()},
+    {label:'Ẩn Itsuki (F6)',click:()=>hideItsuki()},
+    {label:'Bắt đầu / tạm dừng tập trung',click:()=>toggleFocus()},
+    {label:'Thêm công việc nhanh',click:openQuickAddTask},
     {type:'separator'},{label:'Quit',click:()=>{app.isQuitting=true;app.quit();}}
   ]));
   tray.on('double-click',()=>showMainWindow('home'));
@@ -378,18 +378,18 @@ function createApplicationMenu(){
   const view=(name)=>()=>showMainWindow(name);
   Menu.setApplicationMenu(Menu.buildFromTemplate([
     {label:'File',submenu:[
-      {label:'Open Aurestar',click:view('home')},
-      {label:'Quick add task',accelerator:'CommandOrControl+N',click:openQuickAddTask},
-      {type:'separator'},{label:'Quit Aurestar',accelerator:'Alt+F4',click:()=>{app.isQuitting=true;app.quit();}}
+      {label:'Mở Aurestar',click:view('home')},
+      {label:'Thêm công việc nhanh',accelerator:'CommandOrControl+N',click:openQuickAddTask},
+      {type:'separator'},{label:'Thoát Aurestar',accelerator:'Alt+F4',click:()=>{app.isQuitting=true;app.quit();}}
     ]},
     {label:'View',submenu:[
       {label:'Overview',click:view('home')},{label:'Goals',click:view('goals')},
       {label:'Projects',click:view('projects')},{label:'Tasks',click:view('tasks')}
     ]},
     {label:'Tools',submenu:[
-      {label:'Show Itsuki',click:createItsuki},{label:'Hide Itsuki',click:hideItsuki}
+      {label:'Hiện Itsuki',click:createItsuki},{label:'Ẩn Itsuki',click:hideItsuki}
     ]},
-    {label:'Help',submenu:[{label:`About ${APP_NAME}`,click:()=>dialog.showMessageBox({title:`About ${APP_NAME}`,message:`${APP_NAME} ${app.getVersion()}`,detail:'Offline-first personal productivity workspace.'})}]}
+    {label:'Help',submenu:[{label:`About ${APP_NAME}`,click:()=>dialog.showMessageBox({title:`About ${APP_NAME}`,message:`${APP_NAME} ${app.getVersion()}`,detail:'Không gian quản lý năng suất cá nhân, ưu tiên ngoại tuyến.'})}]}
   ]));
 }
 async function toggleFocus(){
@@ -397,7 +397,7 @@ async function toggleFocus(){
     const current=await sendChromeMessage({type:'getFocusState'});
     const active=Boolean(current?.result?.focus?.active);
     return await sendChromeMessage({type:active?'focusPause':'focusStart'});
-  }catch(error){console.error('Focus shortcut failed',error);}
+  }catch(error){console.error('Phím tắt tập trung không hoạt động',error);}
 }
 ipcMain.on('chrome:background-ready',()=>{
   chromeBackgroundReady=true;
@@ -426,7 +426,7 @@ ipcMain.on('system:idle-detection-set',(_event,seconds)=>{
   idleDetectionSeconds=Math.min(86400,Math.max(15,Number(seconds)||60));
 });
 ipcMain.handle('app:reminder',(_event,payload)=>{
-  const messages={wake:'Good morning. Get ready and start with one small task.',study:'Choose one task and begin now.', 'wind-down':'It is time to wind down and prepare for sleep.',sleep:'Put your devices away and get ready for bed.'};
+  const messages={wake:'Chào buổi sáng. Hãy chuẩn bị và bắt đầu với một việc nhỏ.',study:'Hãy chọn một công việc và bắt đầu ngay.', 'wind-down':'Đã đến lúc thư giãn và chuẩn bị đi ngủ.',sleep:'Hãy cất thiết bị và chuẩn bị nghỉ ngơi.'};
   showReminderLine(payload?.text||messages[String(payload?.type||'').toLowerCase()]||'Your Aurestar reminder is ready.');return {ok:true};
 });
 ipcMain.handle('chrome:background-script-url',()=>{
@@ -489,8 +489,8 @@ function createPhase2ZipBackup(destination) {
     finally{fs.rmSync(temp,{force:true});}
   }).catch(error=>{fs.rmSync(temp,{force:true});throw error;});
 }
-ipcMain.handle('v2:phase2:zip:export',event=>{assertWorkspaceSender(event);return dialog.showSaveDialog(win,{title:'Create Aurestar ZIP backup',defaultPath:'Aurestar-backup.zip',filters:[{name:'ZIP backup',extensions:['zip']}] }).then(result=>{if(result.canceled||!result.filePath)return {canceled:true};return createPhase2ZipBackup(result.filePath).then(backup=>({ok:true,...backup}));});});
-ipcMain.handle('v2:phase2:zip:preview',event=>{assertWorkspaceSender(event);return dialog.showOpenDialog(win,{title:'Preview Aurestar ZIP backup',properties:['openFile'],filters:[{name:'ZIP backup',extensions:['zip']}] }).then(result=>{if(result.canceled||!result.filePaths[0])return {canceled:true};const payload=readZipBackup(result.filePaths[0]);return {payload,preview:database.phase2.previewImport(payload)};});});
+ipcMain.handle('v2:phase2:zip:export',event=>{assertWorkspaceSender(event);return dialog.showSaveDialog(win,{title:'Tạo bản sao lưu ZIP của Aurestar',defaultPath:'Aurestar-backup.zip',filters:[{name:'Bản sao lưu ZIP',extensions:['zip']}] }).then(result=>{if(result.canceled||!result.filePath)return {canceled:true};return createPhase2ZipBackup(result.filePath).then(backup=>({ok:true,...backup}));});});
+ipcMain.handle('v2:phase2:zip:preview',event=>{assertWorkspaceSender(event);return dialog.showOpenDialog(win,{title:'Xem trước bản sao lưu ZIP của Aurestar',properties:['openFile'],filters:[{name:'Bản sao lưu ZIP',extensions:['zip']}] }).then(result=>{if(result.canceled||!result.filePaths[0])return {canceled:true};const payload=readZipBackup(result.filePaths[0]);return {payload,preview:database.phase2.previewImport(payload)};});});
 ipcMain.handle('v2:phase2:zip:restore',(event,payload,mode)=>{assertWorkspaceSender(event);const apply=()=>database.phase2.importData(payload,mode);const dir=path.join(app.getPath('userData'),'backups');fs.mkdirSync(dir,{recursive:true});return createPhase2ZipBackup(path.join(dir,'aurestar-pre-restore-'+Date.now()+'.zip')).then(apply);});
 ipcMain.handle('pomodoro:widget-close',()=>{closePomodoroWidget();return {ok:true};});
 ipcMain.handle('pomodoro:widget-open',()=>({ok:false,disabled:true}));
@@ -498,7 +498,7 @@ ipcMain.handle('itsuki:hide',()=>{hideItsuki();return {ok:true};});
 ipcMain.handle('itsuki:show',()=>{createItsuki();return {ok:true};});
 ipcMain.handle('app:show',(_event,view='dashboard')=>{showMainWindow(view);return {ok:true};});
 ipcMain.handle('itsuki:art-url',(_e,index=0)=>{const n=Math.max(1,Math.min(30,Number(index)||1));const file=path.join(app.isPackaged?process.resourcesPath:path.join(__dirname,'..','resources'),'itsuki','expressions',`${n}.jpg`);return require('node:url').pathToFileURL(file).href;});
-ipcMain.handle('state:save',(_e,next)=>{if(!next||typeof next!=='object')throw new Error('Invalid state');const previousStart=Boolean(state?.settings?.startWithWindows);state={...state,...next};saveState();if(process.platform==='win32'&&Boolean(state.settings?.startWithWindows)!==previousStart)app.setLoginItemSettings({openAtLogin:Boolean(state.settings.startWithWindows)});return state;});
+ipcMain.handle('state:save',(_e,next)=>{if(!next||typeof next!=='object')throw new Error('Trạng thái không hợp lệ');const previousStart=Boolean(state?.settings?.startWithWindows);state={...state,...next};saveState();if(process.platform==='win32'&&Boolean(state.settings?.startWithWindows)!==previousStart)app.setLoginItemSettings({openAtLogin:Boolean(state.settings.startWithWindows)});return state;});
 ipcMain.handle('task:complete',(_e,{id,date=today()})=>{
   const t=state.tasks.find(x=>String(x.id)===String(id));if(!t)return {ok:false};
   t.completedDates=Array.isArray(t.completedDates)?t.completedDates:[];
@@ -506,12 +506,12 @@ ipcMain.handle('task:complete',(_e,{id,date=today()})=>{
   if(done)t.completedDates=t.completedDates.filter(d=>d!==date);else{t.completedDates.push(date);state.completions.push({id:String(id),kind:'task',date,at:Date.now()});state.profile.xp=(state.profile.xp||0)+10;}
   saveState();return {ok:true,done:!done,state};
 });
-ipcMain.handle('data:export',async()=>{const r=await dialog.showSaveDialog(win,{title:'Export Aurestar backup',defaultPath:`Aurestar-${today()}.json`,filters:[{name:'JSON backup',extensions:['json']}]});if(r.canceled||!r.filePath)return {canceled:true};writeJsonAtomic(r.filePath,state);return {ok:true,filePath:r.filePath};});
+ipcMain.handle('data:export',async()=>{const r=await dialog.showSaveDialog(win,{title:'Xuất bản sao lưu Aurestar',defaultPath:`Aurestar-${today()}.json`,filters:[{name:'Bản sao lưu JSON',extensions:['json']}]});if(r.canceled||!r.filePath)return {canceled:true};writeJsonAtomic(r.filePath,state);return {ok:true,filePath:r.filePath};});
 ipcMain.handle('data:import',async()=>{
-  const r=await dialog.showOpenDialog(win,{title:'Restore Aurestar backup',properties:['openFile'],filters:[{name:'JSON backup',extensions:['json']}]});
+  const r=await dialog.showOpenDialog(win,{title:'Khôi phục bản sao lưu Aurestar',properties:['openFile'],filters:[{name:'Bản sao lưu JSON',extensions:['json']}]});
   if(r.canceled||!r.filePaths[0])return {canceled:true};
   const imported=readJsonFile(r.filePaths[0]);
-  if(!imported.valid||!Array.isArray(imported.value?.tasks))throw new Error('This file is not a valid Aurestar data backup. The current data was not changed.');
+  if(!imported.valid||!Array.isArray(imported.value?.tasks))throw new Error('Tệp này không phải bản sao lưu dữ liệu Aurestar hợp lệ. Dữ liệu hiện tại chưa bị thay đổi.');
   if(fs.existsSync(dataFile())){
     fs.mkdirSync(backupDir(),{recursive:true});
     fs.copyFileSync(dataFile(),path.join(backupDir(),`aurestar-pre-import-${Date.now()}.json`));
@@ -523,7 +523,7 @@ ipcMain.handle('data:import',async()=>{
   return {ok:true,state};
 });
 ipcMain.handle('backup:now',()=>{fs.mkdirSync(backupDir(),{recursive:true});const p=path.join(backupDir(),`aurestar-${today()}-${Date.now()}.json`);fs.copyFileSync(dataFile(),p);return {ok:true,path:p};});
-ipcMain.handle('notification:test',()=>{notify(APP_NAME,'Notifications are working.');return {ok:true};});
+ipcMain.handle('notification:test',()=>{notify(APP_NAME,'Thông báo đang hoạt động bình thường.');return {ok:true};});
 ipcMain.handle('app:open-external',async(_e,value)=>{let url;try{url=new URL(String(value||''));}catch{return false;}if(!['http:','https:'].includes(url.protocol))return false;await shell.openExternal(url.href);return true;});
 ipcMain.handle('app:version',()=>app.getVersion());
 function broadcastIdleState(next){
@@ -563,7 +563,7 @@ app.whenReady().then(()=>{
 app.on('before-quit',()=>{app.isQuitting=true;database?.close();database=null;if(rendererRecoveryTimer)clearTimeout(rendererRecoveryTimer);if(reminderTimer)clearTimeout(reminderTimer);if(idlePollTimer)clearInterval(idlePollTimer);nativeAlarms?.close();persistWidgetPositionNow('pomodoro',pomodoroWidget);persistWidgetPositionNow('itsuki',itsukiWindow);globalShortcut.unregisterAll();if(state&&chromeStorageCache)saveState();});
 app.on('window-all-closed',()=>{if(process.platform!=='darwin' && !state?.settings?.minimizeToTray)app.quit();});
 app.whenReady().catch(error=>{
-  console.error('Aurestar startup failed safely:',error);
-  dialog.showErrorBox('Aurestar could not open its data',`${String(error?.message||error)}\n\nThe original data files were preserved. Restore a backup or inspect the backups folder before trying again.`);
+  console.error('Aurestar gặp lỗi khi khởi động:',error);
+  dialog.showErrorBox('Aurestar không thể mở dữ liệu của ứng dụng',`${String(error?.message||error)}\n\nThe original data files were preserved. Restore a backup or inspect the backups folder before trying again.`);
   app.quit();
 });
