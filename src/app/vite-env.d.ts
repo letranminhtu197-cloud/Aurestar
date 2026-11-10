@@ -16,7 +16,7 @@ declare global {
       duplicateGoal(id:string):Promise<unknown>;
       duplicateProject(id:string):Promise<unknown>;
       duplicateTask(id:string):Promise<unknown>;
-      saveSettings(input:Record<string,unknown>):Promise<Record<string,unknown>>;
+      saveSettings(input:Record<string,unknown>):Promise<Record<string,unknown>>; getAppInfo():Promise<{name:string;version:string;electron:string;node:string;platform:string;arch:string}>;
       deleteGoal(id: string): Promise<boolean>;
       deleteMilestone(id: string): Promise<boolean>;
       deleteProject(id: string): Promise<boolean>;
