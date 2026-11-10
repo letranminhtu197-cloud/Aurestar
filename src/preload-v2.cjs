@@ -27,7 +27,8 @@ const api = {
   saveWeeklyReview: input => invoke('v2:phase2:review:save',input), listWeeklyReviews: limit => invoke('v2:phase2:review:list',limit),
   searchAll: (query,limit) => invoke('v2:phase2:search',query,limit), getInsights: (from,to) => invoke('v2:phase2:insights',from,to),
   exportData: () => invoke('v2:phase2:export'), previewImport: payload => invoke('v2:phase2:import:preview',payload),
-  applyImport: (payload,mode) => invoke('v2:phase2:import:apply',payload,mode)
+  applyImport: (payload,mode) => invoke('v2:phase2:import:apply',payload,mode),
+  createZipBackup: () => invoke('v2:phase2:zip:export'), previewZipBackup: () => invoke('v2:phase2:zip:preview'), restoreZipBackup: (payload,mode) => invoke('v2:phase2:zip:restore',payload,mode)
 };
 const desktop = {
   showItsuki: () => invoke('itsuki:show'),
