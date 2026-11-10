@@ -19,21 +19,26 @@ function attachPhase2(db) {
     if(!name) throw new Error('Habit name is required.');
     const stamp=now(), frequency=enumValue(input.frequency,['daily','weekdays','weekly','custom'],'daily');
     const target=Math.max(1,Math.min(100,Math.round(Number(input.targetCount)||1)));
-    db.prepare(`INSERT INTO habits(id,name,description,frequency,target_count,color,created_at,updated_at)
-      VALUES(@id,@name,@description,@frequency,@target_count,@color,@created_at,@updated_at)
+    const weekdays=[...new Set((Array.isArray(input.selectedWeekdays)?input.selectedWeekdays:[]).map(Number).filter(n=>Number.isInteger(n)&&n>=0&&n<=6))];
+    const startDate=date(input.startDate),endDate=date(input.endDate);if(startDate&&endDate&&endDate<startDate)throw new Error('Habit end date must be on or after start date.');
+    db.prepare(`INSERT INTO habits(id,name,description,frequency,target_count,color,selected_weekdays,start_date,end_date,unit,icon,archived_at,created_at,updated_at)
+      VALUES(@id,@name,@description,@frequency,@target_count,@color,@selected_weekdays,@start_date,@end_date,@unit,@icon,@archived_at,@created_at,@updated_at)
       ON CONFLICT(id) DO UPDATE SET name=excluded.name,description=excluded.description,frequency=excluded.frequency,
-      target_count=excluded.target_count,color=excluded.color,updated_at=excluded.updated_at`)
+      target_count=excluded.target_count,color=excluded.color,selected_weekdays=excluded.selected_weekdays,start_date=excluded.start_date,
+      end_date=excluded.end_date,unit=excluded.unit,icon=excluded.icon,archived_at=excluded.archived_at,updated_at=excluded.updated_at`)
       .run({id,name,description:clean(input.description),frequency,target_count:target,
-        color:/^#[0-9a-f]{6}$/i.test(input.color||'')?input.color:'#B94A62',created_at:stamp,updated_at:stamp});
+        color:/^#[0-9a-f]{6}$/i.test(input.color||'')?input.color:'#B94A62',selected_weekdays:JSON.stringify(weekdays),start_date:startDate,end_date:endDate,
+        unit:clean(input.unit,30)||'times',icon:clean(input.icon,50)||'check-circle',archived_at:input.active===false?stamp:null,created_at:stamp,updated_at:stamp});
     return db.prepare('SELECT * FROM habits WHERE id=?').get(id);
   }
   function logHabit(input={}) {
     const habitId=clean(input.habitId,80), logDate=date(input.date)||new Date().toISOString().slice(0,10);
     if(!db.prepare('SELECT id FROM habits WHERE id=? AND archived_at IS NULL').get(habitId)) throw new Error('Habit not found.');
     const count=Math.max(0,Math.min(100,Math.round(Number(input.completedCount)||0))), stamp=now();
-    db.prepare(`INSERT INTO habit_logs(id,habit_id,log_date,completed_count,note,created_at,updated_at)
-      VALUES(?,?,?,?,?,?,?) ON CONFLICT(habit_id,log_date) DO UPDATE SET completed_count=excluded.completed_count,note=excluded.note,updated_at=excluded.updated_at`)
-      .run(randomUUID(),habitId,logDate,count,clean(input.note,1000),stamp,stamp);
+    const completed=input.completed===undefined?count>0:Boolean(input.completed), value=Math.max(0,Math.min(100000,Number(input.value??count)||0));
+    db.prepare(`INSERT INTO habit_logs(id,habit_id,log_date,completed_count,note,completed,value,created_at,updated_at)
+      VALUES(?,?,?,?,?,?,?,?,?) ON CONFLICT(habit_id,log_date) DO UPDATE SET completed_count=excluded.completed_count,note=excluded.note,completed=excluded.completed,value=excluded.value,updated_at=excluded.updated_at`)
+      .run(randomUUID(),habitId,logDate,count,clean(input.note,1000),completed?1:0,value,stamp,stamp);
     return db.prepare('SELECT * FROM habit_logs WHERE habit_id=? AND log_date=?').get(habitId,logDate);
   }
   function listHabitLogs(from,to) {
@@ -66,7 +71,15 @@ function attachPhase2(db) {
       mood=excluded.mood,energy=excluded.energy,updated_at=excluded.updated_at`)
       .run(id,entryDate,clean(input.title,180),clean(input.content,20000),clean(input.mood,40)||null,
         input.energy==null?null:Math.max(1,Math.min(5,Math.round(Number(input.energy)||1))),stamp,stamp);
-    return db.prepare('SELECT * FROM journal_entries WHERE entry_date=?').get(entryDate);
+    const saved=db.prepare('SELECT * FROM journal_entries WHERE entry_date=?').get(entryDate);
+    db.transaction(()=>{
+      for(const [kind,table,field,ids] of [['goal','journal_goal_links','goal_id',input.goalIds],['project','journal_project_links','project_id',input.projectIds],['task','journal_task_links','task_id',input.taskIds]]){
+        db.prepare('DELETE FROM '+table+' WHERE journal_id=?').run(saved.id);
+        const add=db.prepare('INSERT INTO '+table+'(journal_id,'+field+') VALUES(?,?)');
+        for(const linked of [...new Set(Array.isArray(ids)?ids.map(x=>clean(x,80)).filter(Boolean):[])]){if(!db.prepare('SELECT id FROM '+(kind==='goal'?'goals':kind==='project'?'projects':'tasks')+' WHERE id=?').get(linked))throw new Error('Linked '+kind+' does not exist.');add.run(saved.id,linked);}
+      }
+    })();
+    return {...saved,goalIds:db.prepare('SELECT goal_id FROM journal_goal_links WHERE journal_id=?').all(saved.id).map(x=>x.goal_id),projectIds:db.prepare('SELECT project_id FROM journal_project_links WHERE journal_id=?').all(saved.id).map(x=>x.project_id),taskIds:db.prepare('SELECT task_id FROM journal_task_links WHERE journal_id=?').all(saved.id).map(x=>x.task_id)};
   }
   function listJournalEntries(limit=365) {
     return db.prepare('SELECT * FROM journal_entries ORDER BY entry_date DESC LIMIT ?').all(Math.max(1,Math.min(5000,Number(limit)||365)));
@@ -111,14 +124,14 @@ function attachPhase2(db) {
     return value;
   }
   function exportData() {
-    const tables=['goals','milestones','projects','project_goal_links','tasks','task_goal_links','tags','task_tags','settings','habits','habit_logs','focus_sessions','journal_entries','weekly_reviews'];
+    const tables=['goals','milestones','projects','project_goal_links','tasks','task_goal_links','tags','task_tags','settings','habits','habit_logs','focus_sessions','journal_entries','journal_goal_links','journal_project_links','journal_task_links','weekly_reviews'];
     const data={format:'aurestar-sqlite-export',version:1,exportedAt:now(),tables:{}};
     for(const table of tables) data.tables[table]=db.prepare('SELECT * FROM '+table).all();
     return data;
   }
   function previewImport(payload) {
     if(!payload||payload.format!=='aurestar-sqlite-export'||!payload.tables||typeof payload.tables!=='object') throw new Error('Unsupported Aurestar export format.');
-    const allowedTables=['goals','milestones','projects','project_goal_links','tasks','task_goal_links','tags','task_tags','settings','habits','habit_logs','focus_sessions','journal_entries','weekly_reviews'];
+    const allowedTables=['goals','milestones','projects','project_goal_links','tasks','task_goal_links','tags','task_tags','settings','habits','habit_logs','focus_sessions','journal_entries','journal_goal_links','journal_project_links','journal_task_links','weekly_reviews'];
     const summary={};
     for(const table of allowedTables) {
       const rows=payload.tables[table]??[];
@@ -131,8 +144,8 @@ function attachPhase2(db) {
   function importData(payload,mode='merge') {
     const preview=previewImport(payload);
     if(!['merge','update','replace'].includes(mode)) throw new Error('Unsupported import mode.');
-    const tables=['goals','projects','tasks','tags','milestones','project_goal_links','task_goal_links','task_tags','habits','habit_logs','focus_sessions','journal_entries','weekly_reviews','settings'];
-    const primary={project_goal_links:['project_id','goal_id'],task_goal_links:['task_id','goal_id'],task_tags:['task_id','tag_id'],habit_logs:['habit_id','log_date'],journal_entries:['entry_date'],weekly_reviews:['week_start'],settings:['key']};
+    const tables=['goals','projects','tasks','tags','milestones','project_goal_links','task_goal_links','task_tags','habits','habit_logs','focus_sessions','journal_entries','weekly_reviews','settings','journal_goal_links','journal_project_links','journal_task_links'];
+    const primary={project_goal_links:['project_id','goal_id'],task_goal_links:['task_id','goal_id'],task_tags:['task_id','tag_id'],habit_logs:['habit_id','log_date'],journal_entries:['entry_date'],weekly_reviews:['week_start'],settings:['key'],journal_goal_links:['journal_id','goal_id'],journal_project_links:['journal_id','project_id'],journal_task_links:['journal_id','task_id']};
     const transaction=db.transaction(()=>{
       if(mode==='replace') for(const table of ['habit_logs','focus_sessions','journal_entries','weekly_reviews','task_tags','task_goal_links','project_goal_links','milestones','tasks','projects','goals','tags','habits','settings']) db.prepare('DELETE FROM '+table).run();
       for(const table of tables) {
