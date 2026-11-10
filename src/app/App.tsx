@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   Activity, ArrowUpRight, Check, CheckCircle2, ChevronDown, Circle, CircleDot,
   Command, FolderKanban, Goal as GoalIcon, LayoutDashboard, ListTodo, Plus, Search, Settings2,
-  Sparkles, Target, Trash2, X, Pencil, Milestone as MilestoneIcon, AlertCircle
+  Sparkles, Target, Trash2, X, Pencil, Milestone as MilestoneIcon, AlertCircle, PanelLeftClose
 } from 'lucide-react';
 import { useWorkspace } from './store';
 import type { Goal, Project, Task, Priority } from './types';
@@ -20,9 +20,12 @@ function App() {
   const [query, setQuery] = useState('');
   const [taskFilter, setTaskFilter] = useState<'all'|'open'|'completed'|'overdue'>('all');
   const [notice, setNotice] = useState('');
-  const [dark, setDark] = useState(true);
+  const [dark, setDark] = useState(() => localStorage.getItem('aurestar.theme') !== 'light');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem('aurestar.sidebar.collapsed') === 'true');
   useEffect(() => { void data.load(); }, []);
-  useEffect(() => { document.documentElement.dataset.theme = dark ? 'dark' : 'light'; }, [dark]);
+  useEffect(() => { document.documentElement.dataset.theme = dark ? 'dark' : 'light'; localStorage.setItem('aurestar.theme', dark ? 'dark' : 'light'); }, [dark]);
+  useEffect(() => { localStorage.setItem('aurestar.sidebar.collapsed', String(sidebarCollapsed)); }, [sidebarCollapsed]);
+  useEffect(() => { const onKey = (e: KeyboardEvent) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); document.querySelector<HTMLInputElement>('.top-search input')?.focus(); } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'n') { e.preventDefault(); setPage('tasks'); setModal({ kind: 'task' }); } else if (e.key === 'Escape') setModal(null); }; window.addEventListener('keydown', onKey); return () => window.removeEventListener('keydown', onKey); }, []);
   useEffect(() => {
     const stop = window.aurestarDesktop?.onQuickAdd?.(() => { setPage('tasks'); setModal({ kind: 'task' }); });
     return () => stop?.();
@@ -44,7 +47,7 @@ function App() {
   const addButton = page === 'goals' ? ['New goal',()=>open('goal')] as const : page === 'projects' ? ['New project',()=>open('project')] as const : ['New task',()=>open('task')] as const;
   const pageTitle = ({home:'Overview',goals:'Goals',projects:'Projects',tasks:'Tasks'} as const)[page];
   const handleError = (e: unknown) => setNotice(e instanceof Error ? e.message : 'Something went wrong.');
-  return <div className="app-shell">
+  return <div className={'app-shell '+(sidebarCollapsed?'is-collapsed':'')}>
     <aside className="sidebar">
       <div className="brand"><div className="brand-mark"><span>✦</span></div><div><b>AURESTAR</b><small>PERSONAL WORKSPACE</small></div></div>
       <div className="workspace-pill"><div className="avatar">A</div><div><b>My Workspace</b><small>Local · Private</small></div><ChevronDown size={15}/></div>
@@ -59,6 +62,7 @@ function App() {
     </aside>
     <main className="main-area">
       <header className="topbar">
+        <button className="icon-button sidebar-toggle" title={sidebarCollapsed?'Expand sidebar':'Collapse sidebar'} onClick={()=>setSidebarCollapsed(v=>!v)}><PanelLeftClose size={17}/></button>
         <div><div className="breadcrumb">AURESTAR <span>/</span> WORKSPACE</div><h1>{pageTitle}</h1></div>
         <div className="top-search"><Search size={17}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search this workspace…" /><kbd><Command size={11}/> K</kbd></div>
         <div className="top-actions"><button className="icon-button" title="Toggle theme" onClick={()=>setDark(v=>!v)}><Sparkles size={17}/></button><button className="icon-button" title="Show Itsuki widget" onClick={()=>void window.aurestarDesktop?.showItsuki?.()}><Activity size={17}/></button><button className="primary-button compact" onClick={addButton[1]}><Plus size={16}/>{addButton[0]}</button></div>
@@ -77,14 +81,14 @@ function App() {
 }
 
 function NavItem({active,icon,label,onClick}:{active:boolean;icon:React.ReactNode;label:string;onClick:()=>void}) {
-  return <button className={'nav-item '+(active?'active':'')} onClick={onClick}>{icon}<span>{label}</span>{active&&<i/>}</button>;
+  return <button title={label} className={'nav-item '+(active?'active':'')} onClick={onClick}>{icon}<span>{label}</span>{active&&<i/>}</button>;
 }
 
 function Dashboard({data,onPage,onOpen,onTaskToggle}:{data:ReturnType<typeof useWorkspace.getState>;onPage:(p:Page)=>void;onOpen:(k:'goal'|'project'|'task'|'milestone',item?:Goal|Project|Task,goalId?:string)=>void;onTaskToggle:(id:string)=>void}) {
   const tasks=data.tasks.filter(t=>!['completed','cancelled'].includes(t.status)).slice(0,6);
   const dueToday=data.tasks.filter(t=>t.due_date===new Date().toISOString().slice(0,10)&&t.status!=='completed').length;
   return <div className="page-content">
-    <div className="welcome-row"><div><div className="eyebrow">TUESDAY, {new Date().toLocaleDateString(undefined,{month:'long',day:'numeric',year:'numeric'}).toUpperCase()}</div><h2>A clearer space for meaningful progress.</h2><p>Your goals, projects and next actions — together in one calm workspace.</p></div><button className="secondary-button" onClick={()=>onPage('tasks')}>Open task list <ArrowUpRight size={15}/></button></div>
+    <div className="welcome-row"><div><div className="eyebrow">{new Date().toLocaleDateString(undefined,{weekday:'long'}).toUpperCase()}, {new Date().toLocaleDateString(undefined,{month:'long',day:'numeric',year:'numeric'}).toUpperCase()}</div><h2>A clearer space for meaningful progress.</h2><p>Your goals, projects and next actions — together in one calm workspace.</p></div><button className="secondary-button" onClick={()=>onPage('tasks')}>Open task list <ArrowUpRight size={15}/></button></div>
     <section className="metric-grid">
       <Metric icon={<ListTodo/>} label="Open tasks" value={data.summary.openTasks} foot={`${dueToday} due today`}/>
       <Metric icon={<Target/>} label="Active goals" value={data.summary.activeGoals} foot="Keep your direction clear"/>

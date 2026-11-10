@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit",
     "build:ui": "vite build",
     "build": "npm run typecheck && npm run build:ui",
-    "test": "node --test test/*.test.cjs test/phase1/*.test.cjs",
+    "test": "node --test",
     "check": "npm run typecheck",
     "dist:win": "npm run build && electron-builder --win nsis portable --publish never"
   },
