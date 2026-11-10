@@ -59,11 +59,11 @@ function WeeklyReviewPanel({rows,run}:{rows:any[],run:(fn:()=>Promise<any>)=>voi
 }
 function JournalEditor({rows,run}:{rows:any[],run:(fn:()=>Promise<any>)=>void}) {
  const [draft,setDraft]=useState<any>({date:today(),entryType:'reflection',title:'',content:'',mood:'',energy:'',wins:'',challenges:'',lessons:'',tomorrowFocus:'',notes:'',goalIds:[],projectIds:[],taskIds:[]});
- const [workspace,setWorkspace]=useState<any>({goals:[],projects:[],tasks:[]}),[dirty,setDirty]=useState(false),[saveState,setSaveState]=useState('Saved');
+ const [workspace,setWorkspace]=useState<any>({goals:[],projects:[],tasks:[]}),[dirty,setDirty]=useState(false),[saveState,setSaveState]=useState('Saved'),[autosave,setAutosave]=useState(true);
  const update=(key:string,value:any)=>{setDraft((old:any)=>({...old,[key]:value}));setDirty(true);setSaveState('Unsaved changes');};
- useEffect(()=>{void window.aurestarV2.loadWorkspace().then(setWorkspace).catch(()=>{});},[]);
+ useEffect(()=>{void window.aurestarV2.loadWorkspace().then(data=>{setWorkspace(data);setAutosave(data.settings.journalAutosave!==false);}).catch(()=>{});},[]);
  const save=async()=>{setSaveState('Saving…');try{const saved=await window.aurestarV2.saveJournalEntry(draft);setDraft((old:any)=>({...old,id:saved.id}));setDirty(false);setSaveState('Saved');}catch(e){setSaveState(e instanceof Error?e.message:'Save failed');throw e;}};
- useEffect(()=>{if(!dirty)return;const timer=window.setTimeout(()=>{void save().catch(()=>{});},1200);return()=>window.clearTimeout(timer);},[draft,dirty]);
+ useEffect(()=>{if(!dirty||!autosave)return;const timer=window.setTimeout(()=>{void save().catch(()=>{});},1200);return()=>window.clearTimeout(timer);},[draft,dirty,autosave]);
  const load=(entry:any)=>{setDraft({...entry,entryType:entry.entry_type||'reflection',tomorrowFocus:entry.tomorrow_focus||'',energy:entry.energy||'',goalIds:entry.goalIds||[],projectIds:entry.projectIds||[],taskIds:entry.taskIds||[]});setDirty(false);setSaveState('Saved');};
  const insert=(value:string)=>update('content',draft.content+(draft.content?'\n':'')+value);
  const remove=()=>{if(!draft.id||!window.confirm('Delete this journal entry permanently?'))return;void run(()=>window.aurestarV2.deleteJournalEntry(draft.id));setDraft({date:today(),entryType:'reflection',title:'',content:'',mood:'',energy:'',wins:'',challenges:'',lessons:'',tomorrowFocus:'',notes:'',goalIds:[],projectIds:[],taskIds:[]});};
