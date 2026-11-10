@@ -419,6 +419,7 @@ function createDatabase(filePath) {
     setArchived, duplicateGoal, duplicateProject, duplicateTask, getSettings, saveSettings,
     deleteGoal: id => remove('goals', id), deleteMilestone: id => remove('milestones', id),
     deleteProject: id => remove('projects', id), deleteTask: id => remove('tasks', id),
+    backupTo: destination => db.backup(destination),
     close: () => db.close(), filePath
   };
 }
