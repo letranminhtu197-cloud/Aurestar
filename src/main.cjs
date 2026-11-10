@@ -107,8 +107,6 @@ function chromeStorageSet(items){
   const settingsChange=changes.settings;
   if(settingsChange){
     const previous=settingsChange.oldValue||{},settings=store.settings||{};
-    const wasWidgetEnabled=previous.focusWidgetEnabled!==false,nextWidgetEnabled=settings.focusWidgetEnabled!==false;
-    if(wasWidgetEnabled!==nextWidgetEnabled){if(nextWidgetEnabled)createPomodoroWidget();else closePomodoroWidget();}
     const wasCompanionEnabled=previous.privacyMode!==true&&previous.itsukiCompanionEnabled!==false;
     const nextCompanionEnabled=settings.privacyMode!==true&&settings.itsukiCompanionEnabled!==false;
     if(wasCompanionEnabled!==nextCompanionEnabled){if(nextCompanionEnabled)createItsuki();else hideItsuki({persist:false});}
@@ -357,7 +355,6 @@ function createTray(){
   tray=new Tray(icon);tray.setToolTip(APP_NAME);
   tray.setContextMenu(Menu.buildFromTemplate([
     {label:'Open Aurestar',click:()=>showMainWindow('home')},
-    {label:'Show Pomodoro widget',click:()=>createPomodoroWidget()},
     {label:'Show Itsuki (Ctrl+F6)',click:()=>createItsuki()},
     {label:'Hide Itsuki (F6)',click:()=>hideItsuki()},
     {label:'Start / pause focus',click:()=>toggleFocus()},
@@ -390,8 +387,7 @@ function createApplicationMenu(){
       {label:'Projects',click:view('projects')},{label:'Tasks',click:view('tasks')}
     ]},
     {label:'Tools',submenu:[
-      {label:'Start / pause focus',click:toggleFocus},
-      {label:'Show Pomodoro widget',click:createPomodoroWidget},{label:'Show Itsuki',click:createItsuki},{label:'Hide Itsuki',click:hideItsuki}
+      {label:'Show Itsuki',click:createItsuki},{label:'Hide Itsuki',click:hideItsuki}
     ]},
     {label:'Help',submenu:[{label:`About ${APP_NAME}`,click:()=>dialog.showMessageBox({title:`About ${APP_NAME}`,message:`${APP_NAME} ${app.getVersion()}`,detail:'Offline-first personal productivity workspace.'})}]}
   ]));
