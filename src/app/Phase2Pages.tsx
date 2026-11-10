@@ -1,0 +1,36 @@
+import React,{useEffect,useState} from 'react';
+
+type Page='habits'|'focus'|'journal'|'review'|'insights';
+const today=()=>new Date().toISOString().slice(0,10);
+const field:React.CSSProperties={width:'100%',padding:'10px 12px',borderRadius:9,border:'1px solid var(--line)',background:'var(--surface-2)',color:'var(--text)',marginTop:6};
+const button:React.CSSProperties={padding:'9px 13px',borderRadius:8,border:'1px solid var(--line)',background:'var(--surface-2)',color:'var(--text)',cursor:'pointer'};
+const panel:React.CSSProperties={padding:20,border:'1px solid var(--line)',borderRadius:14,background:'var(--surface)',marginBottom:14};
+export function Phase2Page({page}:{page:Page}) {
+ const [rows,setRows]=useState<any[]>([]),[notice,setNotice]=useState(''),[name,setName]=useState(''),[text,setText]=useState(''),[date,setDate]=useState(today()),[busy,setBusy]=useState(false);
+ const api=window.aurestarV2;
+ const load=async()=>{setBusy(true);try{
+  if(page==='habits')setRows(await api.listHabits());
+  if(page==='focus')setRows(await api.listFocusSessions(100));
+  if(page==='journal')setRows(await api.listJournalEntries(100));
+  if(page==='review')setRows(await api.listWeeklyReviews(52));
+  if(page==='insights')setRows([await api.getInsights()]);
+ }catch(e){setNotice(e instanceof Error?e.message:'Could not load data.');}finally{setBusy(false);}};
+ useEffect(()=>{void load();},[page]);
+ const run=async(fn:()=>Promise<any>)=>{try{await fn();setNotice('Saved to your local SQLite database.');await load();}catch(e){setNotice(e instanceof Error?e.message:'Operation failed.');}};
+ const title=({habits:'Habits',focus:'Focus',journal:'Journal',review:'Weekly Review',insights:'Insights'} as const)[page];
+ return <div className="page-content"><div className="section-intro"><div><div className="eyebrow">PERSONAL PRODUCTIVITY</div><h2>{title}</h2><p>Stored locally in your Aurestar SQLite workspace.</p></div><span className="count-pill">{rows.length} records</span></div>
+ {notice&&<div className="error-banner" role="status">{notice}<button onClick={()=>setNotice('')}>Dismiss</button></div>}
+ {page==='habits'&&<><section style={panel}><h3>Create a habit</h3><input style={field} value={name} onChange={e=>setName(e.target.value)} placeholder="Habit name"/><div style={{display:'flex',gap:8,marginTop:10}}><button style={button} onClick={()=>void run(async()=>{if(!name.trim())throw Error('Enter a habit name.');await api.saveHabit({name,frequency:'daily',targetCount:1});setName('');})}>Add habit</button></div></section>{rows.map(h=><section key={h.id} style={{...panel,display:'flex',alignItems:'center',gap:12}}><div style={{flex:1}}><b>{h.name}</b><div style={{color:'var(--muted)',fontSize:12,marginTop:4}}>{h.total_completions||0} total completions · target {h.target_count}/day</div></div><button style={button} onClick={()=>void run(()=>api.logHabit({habitId:h.id,date:today(),completedCount:(h.today_count||0)+1}))}>＋ Complete today</button></section>)}</>}
+ {page==='focus'&&<FocusPanel rows={rows} run={run}/>}
+ {page==='journal'&&<><section style={panel}><h3>Daily journal</h3><input style={field} type="date" value={date} onChange={e=>setDate(e.target.value)}/><input style={field} value={name} onChange={e=>setName(e.target.value)} placeholder="Entry title"/><textarea style={{...field,minHeight:150,resize:'vertical'}} value={text} onChange={e=>setText(e.target.value)} placeholder="Write your reflection..."/><button style={{...button,marginTop:10}} onClick={()=>void run(async()=>{await api.saveJournalEntry({date,title:name,content:text});setName('');setText('');})}>Save entry</button></section>{rows.map(r=><section key={r.id} style={panel}><small style={{color:'var(--muted)'}}>{r.entry_date}</small><h3>{r.title||'Untitled entry'}</h3><p style={{whiteSpace:'pre-wrap'}}>{r.content}</p></section>)}</>}
+ {page==='review'&&<><section style={panel}><h3>Weekly reflection</h3><label>Week starting<input style={field} type="date" value={date} onChange={e=>setDate(e.target.value)}/></label><textarea id="review-wins" style={field} placeholder="Wins this week"/><textarea id="review-challenges" style={field} placeholder="Challenges"/><textarea id="review-lessons" style={field} placeholder="Lessons learned"/><textarea id="review-next" style={field} placeholder="Priorities for next week"/><button style={{...button,marginTop:10}} onClick={()=>void run(async()=>{const start=new Date(date+'T12:00:00');const end=new Date(start);end.setDate(end.getDate()+6);const val=(id:string)=>(document.getElementById(id) as HTMLTextAreaElement).value;await api.saveWeeklyReview({weekStart:date,weekEnd:end.toISOString().slice(0,10),wins:val('review-wins'),challenges:val('review-challenges'),lessons:val('review-lessons'),nextWeek:val('review-next')});})}>Save weekly review</button></section>{rows.map(r=><section key={r.id} style={panel}><b>{r.week_start} — {r.week_end}</b><p>{r.wins}</p><small style={{color:'var(--muted)'}}>Next: {r.next_week}</small></section>)}</>}
+ {page==='insights'&&rows[0]&&<section style={panel}><h3>Last 30 days</h3><div className="metric-grid"><Metric label="Tasks completed" value={rows[0].tasks.completed||0}/><Metric label="Focus sessions" value={rows[0].focus.sessions||0}/><Metric label="Focus minutes" value={Math.round((rows[0].focus.seconds||0)/60)}/><Metric label="Habit completions" value={rows[0].habits.completions||0}/></div><h4>Daily focus activity</h4>{rows[0].daily.map((d:any)=><div key={d.day} style={{display:'flex',justifyContent:'space-between',padding:'8px 0',borderTop:'1px solid var(--line)'}}><span>{d.day}</span><b>{Math.round(d.seconds/60)} min · {d.sessions} sessions</b></div>)}</section>}
+ {busy&&<p style={{color:'var(--muted)'}}>Loading…</p>}
+ </div>;
+}
+function Metric({label,value}:{label:string,value:number}){return <div className="metric-card"><div className="metric-top">{label}</div><strong>{value}</strong></div>}
+function FocusPanel({rows,run}:{rows:any[],run:(fn:()=>Promise<any>)=>void}) {
+ const [task,setTask]=useState(''),[minutes,setMinutes]=useState(25);
+ const [started,setStarted]=useState<number|null>(null);
+ return <><section style={panel}><h3>Focus session</h3><input style={field} value={task} onChange={e=>setTask(e.target.value)} placeholder="What are you focusing on?"/><input style={field} type="number" min="1" max="180" value={minutes} onChange={e=>setMinutes(Number(e.target.value))}/><div style={{display:'flex',gap:8,marginTop:10}}>{started===null?<button style={button} onClick={()=>setStarted(Date.now())}>Start focus</button>:<><b style={{alignSelf:'center'}}>{Math.floor((Date.now()-started)/60000)} min elapsed</b><button style={button} onClick={()=>{const end=Date.now(),seconds=Math.max(0,Math.round((end-started)/1000));void run(()=>window.aurestarV2.saveFocusSession({startedAt:new Date(started).toISOString(),endedAt:new Date(end).toISOString(),plannedSeconds:minutes*60,actualSeconds:seconds,status:'completed',note:task}));setStarted(null);}}>Finish & save</button></>}</div></section>{rows.map(r=><section key={r.id} style={panel}><b>{r.task_title||r.note||'Focus session'}</b><p style={{color:'var(--muted)'}}>{new Date(r.started_at).toLocaleString()} · {Math.round(r.actual_seconds/60)} min</p></section>)}</>;
+}
