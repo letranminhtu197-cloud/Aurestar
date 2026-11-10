@@ -13,7 +13,7 @@ type Modal = null | { kind: 'goal'; item?: Mục tiêu } | { kind: 'project'; it
 const dateLabel = (value?: string | null) => { if(!value)return 'Chưa có ngày';const d=new Date(value+'T12:00:00'),locale=document.documentElement.dataset.locale||undefined,format=document.documentElement.dataset.dateFormat;if(format==='dd/MM/yyyy')return d.toLocaleDateString(locale,{day:'2-digit',month:'2-digit',year:'numeric'});if(format==='MM/dd/yyyy')return d.toLocaleDateString(locale,{month:'2-digit',day:'2-digit',year:'numeric'});return d.toLocaleDateString(locale,{month:'short',day:'numeric',year:'numeric'}); };
 const priorityLabel: Record<Priority, string> = { low: 'Thấp', medium: 'Trung bình', high: 'Cao', urgent: 'Khẩn cấp' };
 const safeDate = (value?: string | null) => value || '';
-const statusLabel = (value:string) => ({active:'Đang thực hiện',on_hold:'Tạm hoãn',completed:'Đã hoàn thành',pending:'Đang chờ',todo:'Cần làm',in_progress:'Đang thực hiện',cancelled:'Đã hủy',inbox:'Hộp thư đến'} as Record<string,string>)[value] || value.replace('_',' ');
+const statusLabel = (value:string) => ({not_started:'Chưa bắt đầu',active:'Đang thực hiện',on_hold:'Tạm hoãn',completed:'Đã hoàn thành',pending:'Đang chờ',todo:'Cần làm',in_progress:'Đang thực hiện',cancelled:'Đã hủy',inbox:'Hộp thư đến'} as Record<string,string>)[value] || value.replace('_',' ');
 
 function App() {
   const data = useWorkspace();
