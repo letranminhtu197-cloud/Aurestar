@@ -180,4 +180,6 @@ test('calendar dates reject normalized but impossible dates', t => {
   assert.throws(() => db.saveTask({ title: 'Trailing date data', dueDate: '2026-11-10garbage' }), /valid YYYY-MM-DD/i);
   assert.equal(db.loadWorkspace().tasks.length, 0);
   assert.equal(db.loadWorkspace().goals.length, 0);
+  db.saveTask({ title: 'Valid calendar date', dueDate: '2026-11-10' });
+  assert.equal(db.loadWorkspace().tasks[0].due_date, '2026-11-10');
 });
