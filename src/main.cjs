@@ -495,7 +495,7 @@ ipcMain.handle('v2:phase2:zip:export',event=>{assertWorkspaceSender(event);retur
 ipcMain.handle('v2:phase2:zip:preview',event=>{assertWorkspaceSender(event);return dialog.showOpenDialog(win,{title:'Preview Aurestar ZIP backup',properties:['openFile'],filters:[{name:'ZIP backup',extensions:['zip']}] }).then(result=>{if(result.canceled||!result.filePaths[0])return {canceled:true};const payload=readZipBackup(result.filePaths[0]);return {payload,preview:database.phase2.previewImport(payload)};});});
 ipcMain.handle('v2:phase2:zip:restore',(event,payload,mode)=>{assertWorkspaceSender(event);const apply=()=>database.phase2.importData(payload,mode);if(mode!=='replace')return apply();const dir=path.join(app.getPath('userData'),'backups');fs.mkdirSync(dir,{recursive:true});return createPhase2ZipBackup(path.join(dir,'aurestar-pre-restore-'+Date.now()+'.zip')).then(apply);});
 ipcMain.handle('pomodoro:widget-close',()=>{closePomodoroWidget();return {ok:true};});
-ipcMain.handle('pomodoro:widget-open',()=>{createPomodoroWidget();return {ok:true};});
+ipcMain.handle('pomodoro:widget-open',()=>({ok:false,disabled:true}));
 ipcMain.handle('itsuki:hide',()=>{hideItsuki();return {ok:true};});
 ipcMain.handle('itsuki:show',()=>{createItsuki();return {ok:true};});
 ipcMain.handle('app:show',(_event,view='dashboard')=>{showMainWindow(view);return {ok:true};});
@@ -554,13 +554,13 @@ app.whenReady().then(()=>{
   screen.on('display-metrics-changed',repositionWidgetsForDisplayChange);
   screen.on('display-added',repositionWidgetsForDisplayChange);
   screen.on('display-removed',repositionWidgetsForDisplayChange);
-  initializeNativeServices();state=readState();saveState();database=createDatabase(path.join(dataDir(),'aurestar.sqlite'));createBackgroundWindow();createWindow();createTray();createApplicationMenu();if(state.settings?.focusWidgetEnabled!==false)createPomodoroWidget();if(state.settings?.itsukiCompanionEnabled!==false&&state.settings?.privacyMode!==true)createItsuki({startup:true});
+  initializeNativeServices();state=readState();saveState();database=createDatabase(path.join(dataDir(),'aurestar.sqlite'));createBackgroundWindow();createWindow();createTray();createApplicationMenu();if(state.settings?.itsukiCompanionEnabled!==false&&state.settings?.privacyMode!==true)createItsuki({startup:true});
   globalShortcut.register('CommandOrControl+Shift+L',toggleFocus);
   globalShortcut.register('CommandOrControl+Shift+K',openQuickAddTask);
   // A bare Alt key is handled by before-input-event while an Aurestar window is focused.
   installItsukiHotkeys();
   if(process.platform==='win32' && state.settings.startWithWindows){app.setLoginItemSettings({openAtLogin:true});}
-  app.on('activate',()=>{if(!win)createWindow();else win.show();const prefs=chromeStorageGet('settings').settings||{};if(!pomodoroWidget&&prefs.focusWidgetEnabled!==false)createPomodoroWidget();});
+  app.on('activate',()=>{if(!win)createWindow();else win.show();const prefs=chromeStorageGet('settings').settings||{};});
 });
 app.on('before-quit',()=>{app.isQuitting=true;database?.close();database=null;if(rendererRecoveryTimer)clearTimeout(rendererRecoveryTimer);if(reminderTimer)clearTimeout(reminderTimer);if(idlePollTimer)clearInterval(idlePollTimer);nativeAlarms?.close();persistWidgetPositionNow('pomodoro',pomodoroWidget);persistWidgetPositionNow('itsuki',itsukiWindow);globalShortcut.unregisterAll();if(state&&chromeStorageCache)saveState();});
 app.on('window-all-closed',()=>{if(process.platform!=='darwin' && !state?.settings?.minimizeToTray)app.quit();});
