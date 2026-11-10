@@ -124,3 +124,18 @@ test('active focus timer state survives database restart',t=>{
  assert.equal(second.loadWorkspace().settings.focusTimerState.id,'session-recovery');
  assert.equal(second.loadWorkspace().settings.focusTimerState.endTimestamp,state.endTimestamp);
 });
+
+test('journal entries and entity links survive schema migration',t=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'aurestar-journal-migration-'));
+ const file=path.join(dir,'db.sqlite');
+ const {createDatabase}=require('../src/core/sqlite.cjs');
+ const first=createDatabase(file),goal=first.saveGoal({title:'Keep journal relation'});
+ const entry=first.phase2.saveJournalEntry({date:'2026-11-10',title:'Preserve me',goalIds:[goal.id]});
+ first.close();
+ const Database=require('better-sqlite3'),raw=new Database(file);raw.pragma('user_version = 6');raw.close();
+ const second=createDatabase(file);
+ t.after(()=>{second.close();fs.rmSync(dir,{recursive:true,force:true});});
+ const restored=second.phase2.listJournalEntries()[0];
+ assert.equal(restored.id,entry.id);assert.deepEqual(restored.goalIds,[goal.id]);
+ assert.equal(second.loadWorkspace().goals[0].id,goal.id);
+});
