@@ -10,8 +10,8 @@ test('ZIP backup round-trips an Aurestar SQLite export and rejects corrupt archi
  t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
  const file=path.join(dir,'backup.zip');
  const payload={format:'aurestar-sqlite-export',version:1,tables:{habits:[{id:'h1',name:'Read'}]}};
- const result=createZipBackup(file,payload);
- assert.ok(result.bytes>0);
+ const result=createZipBackup(file,payload,{'aurestar.sqlite':Buffer.from('sqlite-image'),'assets/itsuki/portrait.jpg':Buffer.from('asset')});
+ assert.ok(result.bytes>0);assert.ok(result.files.includes('aurestar.sqlite'));assert.ok(result.files.includes('assets/itsuki/portrait.jpg'));
  assert.deepEqual(readZipBackup(file),payload);
  const corrupt=fs.readFileSync(file);corrupt[40]^=0xff;fs.writeFileSync(path.join(dir,'corrupt.zip'),corrupt);
  assert.throws(()=>readZipBackup(path.join(dir,'corrupt.zip')));
