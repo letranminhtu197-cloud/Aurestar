@@ -2,6 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { randomUUID } = require('node:crypto');
 const Database = require('better-sqlite3');
+const { attachPhase2 } = require('./phase2.cjs');
 
 const now = () => new Date().toISOString();
 const text = (value, max = 5000) => String(value ?? '').trim().slice(0, max);
@@ -348,7 +349,9 @@ function createDatabase(filePath) {
       }
     };
   }
+  const phase2 = attachPhase2(db);
   return {
+    phase2,
     loadWorkspace, saveGoal, saveMilestone, saveProject, saveTask, toggleTask, setTaskStatus,
     setArchived, duplicateGoal, duplicateProject, duplicateTask, getSettings, saveSettings,
     deleteGoal: id => remove('goals', id), deleteMilestone: id => remove('milestones', id),
