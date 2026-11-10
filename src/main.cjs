@@ -479,7 +479,18 @@ ipcMain.handle('v2:phase2:insights',(event,from,to)=>{assertWorkspaceSender(even
 ipcMain.handle('v2:phase2:export',event=>{assertWorkspaceSender(event);return database.phase2.exportData();});
 ipcMain.handle('v2:phase2:import:preview',(event,payload)=>{assertWorkspaceSender(event);return database.phase2.previewImport(payload);});
 ipcMain.handle('v2:phase2:import:apply',(event,payload,mode)=>{assertWorkspaceSender(event);if(mode==='replace'){const dir=path.join(app.getPath('userData'),'backups');fs.mkdirSync(dir,{recursive:true});createZipBackup(path.join(dir,'aurestar-pre-restore-'+Date.now()+'.zip'),database.phase2.exportData());}return database.phase2.importData(payload,mode);});
-ipcMain.handle('v2:phase2:zip:export',event=>{assertWorkspaceSender(event);return dialog.showSaveDialog(win,{title:'Create Aurestar ZIP backup',defaultPath:'Aurestar-backup.zip',filters:[{name:'ZIP backup',extensions:['zip']}] }).then(result=>{if(result.canceled||!result.filePath)return {canceled:true};return {ok:true,...createZipBackup(result.filePath,database.phase2.exportData())};});});
+function createPhase2ZipBackup(destination) {
+  const temp=path.join(app.getPath('temp'),'aurestar-sqlite-backup-'+Date.now()+'.sqlite');
+  return database.backupTo(temp).then(()=>{
+    const extras={'aurestar.sqlite':fs.readFileSync(temp),'metadata.json':Buffer.from(JSON.stringify({app:'Aurestar',version:app.getVersion(),schemaVersion:6,createdAt:new Date().toISOString()}))};
+    const assetRoot=app.isPackaged?path.join(process.resourcesPath,'itsuki'):path.join(__dirname,'..','resources','itsuki');
+    const addFiles=(directory,prefix)=>{if(!fs.existsSync(directory))return;for(const entry of fs.readdirSync(directory,{withFileTypes:true})){const full=path.join(directory,entry.name),name=prefix+'/'+entry.name;if(entry.isDirectory())addFiles(full,name);else if(entry.isFile())extras[name]=fs.readFileSync(full);}};
+    addFiles(assetRoot,'assets/itsuki');
+    try{return createZipBackup(destination,database.phase2.exportData(),extras);}
+    finally{fs.rmSync(temp,{force:true});}
+  }).catch(error=>{fs.rmSync(temp,{force:true});throw error;});
+}
+ipcMain.handle('v2:phase2:zip:export',event=>{assertWorkspaceSender(event);return dialog.showSaveDialog(win,{title:'Create Aurestar ZIP backup',defaultPath:'Aurestar-backup.zip',filters:[{name:'ZIP backup',extensions:['zip']}] }).then(result=>{if(result.canceled||!result.filePath)return {canceled:true};return createPhase2ZipBackup(result.filePath).then(backup=>({ok:true,...backup}));});});
 ipcMain.handle('v2:phase2:zip:preview',event=>{assertWorkspaceSender(event);return dialog.showOpenDialog(win,{title:'Preview Aurestar ZIP backup',properties:['openFile'],filters:[{name:'ZIP backup',extensions:['zip']}] }).then(result=>{if(result.canceled||!result.filePaths[0])return {canceled:true};const payload=readZipBackup(result.filePaths[0]);return {payload,preview:database.phase2.previewImport(payload)};});});
 ipcMain.handle('v2:phase2:zip:restore',(event,payload,mode)=>{assertWorkspaceSender(event);if(mode==='replace'){const dir=path.join(app.getPath('userData'),'backups');fs.mkdirSync(dir,{recursive:true});createZipBackup(path.join(dir,'aurestar-pre-restore-'+Date.now()+'.zip'),database.phase2.exportData());}return database.phase2.importData(payload,mode);});
 ipcMain.handle('pomodoro:widget-close',()=>{closePomodoroWidget();return {ok:true};});
