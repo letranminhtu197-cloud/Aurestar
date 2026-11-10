@@ -99,10 +99,6 @@ async function main() {
       'const pause = ms => new Promise(resolve => setTimeout(resolve, ms));',
       'for (let i = 0; i < 40; i++) { const root = document.querySelector("#root"); if (root && root.innerText.includes("AURESTAR")) break; await pause(250); }',
       'const root = document.querySelector("#root"); if (!root || !root.innerText.includes("AURESTAR")) throw new Error("Renderer did not recover after page reload.");',
-      'const search = document.querySelector(".top-search input"); const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;',
-      'search.focus(); setter.call(search, "AURESTAR CI restart marker"); search.dispatchEvent(new Event("input", { bubbles: true })); await pause(350);',
-      'if (!document.querySelector(".search-results")?.innerText.includes("AURESTAR CI restart marker")) throw new Error("Global search did not return the persisted Goal after reload.");',
-      'setter.call(search, ""); search.dispatchEvent(new Event("input", { bubbles: true })); search.blur(); await pause(180);',
       'const goalsNav = [...document.querySelectorAll(".nav-item")].find(button => button.innerText.includes("Goals")); goalsNav?.click(); await pause(150);',
       'if (![...document.querySelectorAll("h2")].some(el => el.innerText === "Goals")) throw new Error("Goals navigation failed.");',
       'const projectsNav = [...document.querySelectorAll(".nav-item")].find(button => button.innerText.includes("Projects")); projectsNav?.click(); await pause(150);',
@@ -138,6 +134,12 @@ async function main() {
       await send('Page.reload', { ignoreCache: true });
       await new Promise(resolve => setTimeout(resolve, 1200));
       for (let i = 0; i < 40; i++) { try { const ready = await send('Runtime.evaluate', { expression: 'document.readyState', returnByValue: true }); const shell = await send('Runtime.evaluate', { expression: '!!document.querySelector(\"#root\") && !document.querySelector(\".loading-state\")', returnByValue: true }); if (ready.result?.value === 'complete' && shell.result?.value === true) break; } catch {} await new Promise(resolve => setTimeout(resolve, 250)); }
+      await send('Runtime.evaluate', { expression: 'document.querySelector(".top-search input")?.focus()', returnByValue: true });
+      await send('Input.insertText', { text: 'AURESTAR CI restart marker' });
+      await new Promise(resolve => setTimeout(resolve, 400));
+      const searchResult = await send('Runtime.evaluate', { expression: 'document.querySelector(".search-results")?.innerText.includes("AURESTAR CI restart marker") === true', returnByValue: true });
+      if (searchResult.result?.value !== true) throw new Error('Global search did not return the persisted Goal after reload.');
+      await send('Runtime.evaluate', { expression: 'document.querySelector(".top-search input")?.blur()', returnByValue: true });
       const uiResult = await send('Runtime.evaluate', { expression: uiAfterReload, awaitPromise: true, returnByValue: true });
       if (uiResult.exceptionDetails || !uiResult.result?.value?.ok) throw new Error(uiResult.exceptionDetails?.text || uiResult.result?.value?.error || 'Post-reload UI smoke test failed.');
       process.stdout.write('Renderer UI smoke test passed: ' + JSON.stringify(uiResult.result.value) + '\\n');
