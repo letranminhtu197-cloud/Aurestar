@@ -90,7 +90,8 @@ function errorText(error:unknown):string {
  console.error('Aurestar operation failed:',error);
  return 'Đã xảy ra lỗi khi xử lý dữ liệu. Vui lòng kiểm tra thông tin và thử lại.';
 }
-\ntype Page = 'home' | 'goals' | 'projects' | 'tasks' | 'habits' | 'focus' | 'journal' | 'review' | 'insights' | 'data';
+
+type Page = 'home' | 'goals' | 'projects' | 'tasks' | 'habits' | 'focus' | 'journal' | 'review' | 'insights' | 'data';
 type Modal = null | { kind: 'goal'; item?: Goal } | { kind: 'project'; item?: Project } | { kind: 'task'; item?: Task } | { kind: 'milestone'; goalId: string; item?: Milestone };
 const dateLabel = (value?: string | null) => { if(!value)return 'Chưa có ngày';const d=new Date(value+'T12:00:00'),locale=document.documentElement.dataset.locale||undefined,format=document.documentElement.dataset.dateFormat;if(format==='dd/MM/yyyy')return d.toLocaleDateString(locale,{day:'2-digit',month:'2-digit',year:'numeric'});if(format==='MM/dd/yyyy')return d.toLocaleDateString(locale,{month:'2-digit',day:'2-digit',year:'numeric'});return d.toLocaleDateString(locale,{month:'short',day:'numeric',year:'numeric'}); };
 const priorityLabel: Record<Priority, string> = { low: 'Thấp', medium: 'Trung bình', high: 'Cao', urgent: 'Khẩn cấp' };
