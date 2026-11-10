@@ -67,3 +67,4 @@ test('database can be reopened without losing records', t => {
   second.close();
   fs.rmSync(dir, { recursive: true, force: true });
 });
+test('task tags are normalized, persisted and removed when task is deleted', t => { const db = fixture(t); const task = db.saveTask({ title: 'Tagged task', tags: [' Biology ', 'study', 'biology'] }); assert.deepEqual(db.loadWorkspace().tasks[0].tags, ['Biology', 'study']); db.deleteTask(task.id); assert.equal(db.loadWorkspace().tasks.length, 0); });

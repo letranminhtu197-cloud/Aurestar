@@ -134,7 +134,7 @@ function EditorModal({modal,goals,projects,onClose,onSave,onError}:{modal:Exclud
   const [category,setCategory]=useState(isGoal?(item as Goal|undefined)?.category||'Personal':'Personal');
   const [progress,setProgress]=useState(String(isGoal?(item as Goal|undefined)?.progress_value||0:0));
   const [projectId,setProjectId]=useState((item as Task|undefined)?.project_id||'');
-  const [goalIds,setGoalIds]=useState<string[]>(isProject?(item as Project|undefined)?.goalIds||[]:isTask?(item as Task|undefined)?.goalIds||[]);
+  const [goalIds,setGoalIds]=useState<string[]>(isProject?(item as Project|undefined)?.goalIds||[]:isTask?(item as Task|undefined)?.goalIds||[]:[]);
   const [color,setColor]=useState(isProject?(item as Project|undefined)?.color||'#B94A62':'#B94A62');
   const [milestoneStatus,setMilestoneStatus]=useState('pending');
   const [saving,setSaving]=useState(false);

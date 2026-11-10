@@ -19,7 +19,7 @@ export interface Task {
   id: string; title: string; description: string; status: TaskStatus; priority: Priority;
   due_date: string | null; due_time: string | null; estimated_minutes: number | null;
   project_id: string | null; project_name: string | null; goalIds: string[];
-  parent_task_id: string | null; completed_at: string | null;
+  parent_task_id: string | null; completed_at: string | null; tags: string[];
 }
 export interface WorkspaceData {
   goals: Goal[]; projects: Project[]; tasks: Task[]; milestones: Milestone[];
@@ -28,4 +28,4 @@ export interface WorkspaceData {
 export type GoalInput = Partial<Goal> & { title: string; startDate?: string; targetDate?: string; progressMode?: 'manual'|'automatic'; progressValue?: number };
 export type MilestoneInput = { id?: string; goalId: string; title: string; description?: string; dueDate?: string; status?: string };
 export type ProjectInput = Partial<Project> & { name: string; startDate?: string; dueDate?: string; goalIds?: string[] };
-export type TaskInput = Partial<Task> & { title: string; startDate?: string; dueDate?: string; dueTime?: string; estimatedMinutes?: number; projectId?: string; parentTaskId?: string; goalIds?: string[] };
+export type TaskInput = Partial<Task> & { title: string; startDate?: string; dueDate?: string; dueTime?: string; estimatedMinutes?: number; projectId?: string; parentTaskId?: string; goalIds?: string[]; tags?: string[] };

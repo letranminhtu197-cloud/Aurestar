@@ -5,7 +5,7 @@ const Database = require('better-sqlite3');
 
 const now = () => new Date().toISOString();
 const text = (value, max = 5000) => String(value ?? '').trim().slice(0, max);
-const date = value => value ? text(value, 10) : null;
+const date = value => { if (!value) return null; const v = text(value, 10); if (!/^\d{4}-\d{2}-\d{2}$/.test(v) || Number.isNaN(Date.parse(v + 'T00:00:00Z'))) throw new Error('Date must use YYYY-MM-DD format.'); return v; };
 const allowed = (value, values, fallback) => values.includes(value) ? value : fallback;
 
 function createDatabase(filePath) {
@@ -53,6 +53,12 @@ function createDatabase(filePath) {
       goal_id TEXT NOT NULL REFERENCES goals(id) ON DELETE CASCADE,
       PRIMARY KEY(task_id, goal_id)
     );
+    CREATE TABLE IF NOT EXISTS tags (id TEXT PRIMARY KEY, name TEXT NOT NULL UNIQUE COLLATE NOCASE, created_at TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS task_tags (
+      task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+      tag_id TEXT NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
+      PRIMARY KEY(task_id, tag_id)
+    );
     CREATE INDEX IF NOT EXISTS idx_tasks_due ON tasks(due_date, status);
     CREATE INDEX IF NOT EXISTS idx_tasks_project ON tasks(project_id);
     CREATE INDEX IF NOT EXISTS idx_milestones_goal ON milestones(goal_id, sort_order);
@@ -62,6 +68,7 @@ function createDatabase(filePath) {
 
   const getGoalLinks = db.prepare('SELECT goal_id FROM project_goal_links WHERE project_id = ?');
   const getTaskGoalLinks = db.prepare('SELECT goal_id FROM task_goal_links WHERE task_id = ?');
+  const getTaskTags = db.prepare('SELECT g.name FROM task_tags l JOIN tags g ON g.id=l.tag_id WHERE l.task_id=? ORDER BY g.name');
   const listGoals = () => db.prepare(`SELECT g.*,
       (SELECT COUNT(*) FROM milestones m WHERE m.goal_id=g.id) AS milestone_count,
       (SELECT COUNT(*) FROM milestones m WHERE m.goal_id=g.id AND m.status='completed') AS milestones_done
@@ -79,7 +86,7 @@ function createDatabase(filePath) {
       CASE t.status WHEN 'in_progress' THEN 0 WHEN 'todo' THEN 1 WHEN 'inbox' THEN 2 ELSE 3 END,
       CASE t.priority WHEN 'urgent' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END,
       COALESCE(t.due_date,'9999-12-31'), t.created_at DESC`).all()
-      .map(t => ({ ...t, goalIds: getTaskGoalLinks.all(t.id).map(x => x.goal_id) }));
+      .map(t => ({ ...t, goalIds: getTaskGoalLinks.all(t.id).map(x => x.goal_id), tags: getTaskTags.all(t.id).map(x => x.name) }));
   const listMilestones = () => db.prepare(`SELECT m.*, g.title AS goal_title FROM milestones m
       JOIN goals g ON g.id=m.goal_id ORDER BY m.due_date IS NULL, m.due_date, m.sort_order, m.created_at`).all();
 
@@ -171,6 +178,15 @@ function createDatabase(filePath) {
       const link = db.prepare('INSERT OR IGNORE INTO task_goal_links(task_id,goal_id) VALUES (?,?)');
       for (const goalId of [...new Set(Array.isArray(input.goalIds) ? input.goalIds.map(x => text(x,80)) : [])]) {
         if (db.prepare('SELECT id FROM goals WHERE id=?').get(goalId)) link.run(id, goalId);
+      }
+      db.prepare('DELETE FROM task_tags WHERE task_id=?').run(id);
+      const addTag = db.prepare('INSERT OR IGNORE INTO tags(id,name,created_at) VALUES (?,?,?)');
+      const findTag = db.prepare('SELECT id FROM tags WHERE name=? COLLATE NOCASE');
+      const addTaskTag = db.prepare('INSERT OR IGNORE INTO task_tags(task_id,tag_id) VALUES (?,?)');
+      for (const name of [...new Set(Array.isArray(input.tags) ? input.tags.map(x => text(x,40)).filter(Boolean) : [])].slice(0,20)) {
+        addTag.run(randomUUID(), name, stamp);
+        const tag = findTag.get(name);
+        if (tag) addTaskTag.run(id, tag.id);
       }
     });
     save();

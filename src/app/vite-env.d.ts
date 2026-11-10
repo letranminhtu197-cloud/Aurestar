@@ -1,3 +1,4 @@
+import type { WorkspaceData, GoalInput, MilestoneInput, ProjectInput, TaskInput } from './types';
 /// <reference types="vite/client" />
 declare global {
   interface Window {
