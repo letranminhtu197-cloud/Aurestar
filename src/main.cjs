@@ -455,6 +455,7 @@ ipcMain.handle('v2:task:archive',(event,id,archived)=>{assertWorkspaceSender(eve
 ipcMain.handle('v2:goal:duplicate',(event,id)=>{assertWorkspaceSender(event);return database.duplicateGoal(id);});
 ipcMain.handle('v2:project:duplicate',(event,id)=>{assertWorkspaceSender(event);return database.duplicateProject(id);});
 ipcMain.handle('v2:task:duplicate',(event,id)=>{assertWorkspaceSender(event);return database.duplicateTask(id);});
+ipcMain.handle('v2:notification:show',(event,input)=>{assertWorkspaceSender(event);if(!Notification.isSupported())return {supported:false};const title=String(input?.title||'Aurestar').slice(0,100),body=String(input?.body||'').slice(0,300);new Notification({title,body,silent:input?.silent===true}).show();return {supported:true};});
 ipcMain.handle('v2:app:info',event=>{assertWorkspaceSender(event);return {name:app.getName(),version:app.getVersion(),electron:process.versions.electron,node:process.versions.node,platform:process.platform,arch:process.arch};});
 ipcMain.handle('v2:settings:save',(event,input)=>{assertWorkspaceSender(event);const saved=database.saveSettings(input);if(Object.prototype.hasOwnProperty.call(input||{},'privacyMode')){if(input.privacyMode===true)hideItsuki();else if(state?.settings?.itsukiCompanionEnabled!==false)createItsuki();}return saved;});
 ipcMain.handle('v2:task:delete',(event,id)=>{assertWorkspaceSender(event);return database.deleteTask(id);});
