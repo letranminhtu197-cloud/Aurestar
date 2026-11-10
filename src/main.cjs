@@ -560,7 +560,7 @@ app.whenReady().then(()=>{
   // A bare Alt key is handled by before-input-event while an Aurestar window is focused.
   installItsukiHotkeys();
   if(process.platform==='win32' && state.settings.startWithWindows){app.setLoginItemSettings({openAtLogin:true});}
-  app.on('activate',()=>{if(!win)createWindow();else win.show();const prefs=chromeStorageGet('settings').settings||{};});
+  app.on('activate',()=>{if(!win)createWindow();else win.show();});
 });
 app.on('before-quit',()=>{app.isQuitting=true;database?.close();database=null;if(rendererRecoveryTimer)clearTimeout(rendererRecoveryTimer);if(reminderTimer)clearTimeout(reminderTimer);if(idlePollTimer)clearInterval(idlePollTimer);nativeAlarms?.close();persistWidgetPositionNow('pomodoro',pomodoroWidget);persistWidgetPositionNow('itsuki',itsukiWindow);globalShortcut.unregisterAll();if(state&&chromeStorageCache)saveState();});
 app.on('window-all-closed',()=>{if(process.platform!=='darwin' && !state?.settings?.minimizeToTray)app.quit();});
