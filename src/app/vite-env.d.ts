@@ -26,6 +26,7 @@ declare global {
       showItsuki?: () => Promise<unknown>;
       hideItsuki?: () => Promise<unknown>;
       onQuickAdd?: (fn: () => void) => () => void;
+      onNavigate?: (fn: (view:string) => void) => () => void;
     };
   }
 }

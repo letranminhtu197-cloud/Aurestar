@@ -170,3 +170,11 @@ test('automatic goal progress derives from linked tasks and milestones', t => {
   db.saveMilestone({ id: milestone.id, goalId: goal.id, title: milestone.title, status: 'completed' });
   assert.equal(db.loadWorkspace().goals[0].progress_value, 100);
 });
+
+test('calendar dates reject normalized but impossible dates', t => {
+  const db = fixture(t);
+  assert.throws(() => db.saveTask({ title: 'Invalid calendar date', dueDate: '2026-02-31' }), /valid YYYY-MM-DD/i);
+  assert.throws(() => db.saveGoal({ title: 'Invalid date', targetDate: '2026-13-01' }), /valid YYYY-MM-DD/i);
+  assert.equal(db.loadWorkspace().tasks.length, 0);
+  assert.equal(db.loadWorkspace().goals.length, 0);
+});

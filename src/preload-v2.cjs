@@ -25,6 +25,12 @@ const desktop = {
   showItsuki: () => invoke('itsuki:show'),
   hideItsuki: () => invoke('itsuki:hide'),
   getVersion: () => invoke('app:version'),
+  onNavigate: fn => {
+    if (typeof fn !== 'function') return () => {};
+    const handler = (_event, view) => fn(view);
+    ipcRenderer.on('aurestar:navigate', handler);
+    return () => ipcRenderer.removeListener('aurestar:navigate', handler);
+  },
   onQuickAdd: fn => {
     if (typeof fn !== 'function') return () => {};
     const handler = () => fn();

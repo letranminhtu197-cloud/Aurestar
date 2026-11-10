@@ -35,6 +35,10 @@ function App() {
     const stop = window.aurestarDesktop?.onQuickAdd?.(() => { setPage('tasks'); setModal({ kind: 'task' }); });
     return () => stop?.();
   }, []);
+  useEffect(() => {
+    const stop = window.aurestarDesktop?.onNavigate?.(view => { if(['home','goals','projects','tasks'].includes(view)) setPage(view as Page); });
+    return () => stop?.();
+  }, []);
   useEffect(() => { location.hash = page; }, [page]);
   const today = new Date().toISOString().slice(0,10);
   const filteredTasks = useMemo(() => data.tasks.filter(t => {

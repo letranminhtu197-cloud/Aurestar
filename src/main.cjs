@@ -314,9 +314,9 @@ function createPomodoroWidget(){
 }
 function closePomodoroWidget(){if(pomodoroWidget&&!pomodoroWidget.isDestroyed())pomodoroWidget.close();}
 
-function createWindow(initialView='dashboard'){
-  const allowedViews=['dashboard','today','tasks','focus','gym','calendar','analytics','settings'];
-  const route=allowedViews.includes(String(initialView))?String(initialView):'dashboard';
+function createWindow(initialView='home'){
+  const allowedViews=['home','goals','projects','tasks'];
+  const route=allowedViews.includes(String(initialView))?String(initialView):'home';
   win=new BrowserWindow({width:1440,height:920,minWidth:1024,minHeight:700,show:false,backgroundColor:'#211217',title:APP_NAME,autoHideMenuBar:true,webPreferences:{preload:path.join(__dirname,'preload-v2.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true}});
   secureWindow(win);
   bindAltToggle(win);
@@ -342,25 +342,32 @@ function createWindow(initialView='dashboard'){
   win.on('close',(e)=>{if(state?.settings?.minimizeToTray && tray && !app.isQuitting){e.preventDefault();win.hide();}});
   win.on('closed',()=>{win=null;});
 }
+function openQuickAddTask(){
+  if(!win||win.isDestroyed())createWindow('tasks');
+  else { win.show(); win.focus(); }
+  const send=()=>{if(win&&!win.isDestroyed())win.webContents.send('aurestar:quick-add');};
+  if(win?.webContents.isLoadingMainFrame())win.webContents.once('did-finish-load',send);else send();
+}
 function createTray(){
   const iconPath=path.join(__dirname,'icons','icon16.png');
   let icon=fs.existsSync(iconPath)?nativeImage.createFromPath(iconPath):nativeImage.createEmpty();
   if(process.platform==='win32' && !icon.isEmpty()) icon=icon.resize({width:16,height:16});
   tray=new Tray(icon);tray.setToolTip(APP_NAME);
   tray.setContextMenu(Menu.buildFromTemplate([
-    {label:'Open Aurestar',click:()=>{if(!win)createWindow();else win.show();}},
+    {label:'Open Aurestar',click:()=>showMainWindow('home')},
     {label:'Show Pomodoro widget',click:()=>createPomodoroWidget()},
-    {label:'Show Itsuki (Ctrl+Alt)',click:()=>createItsuki()},
-    {label:'Hide Itsuki (Alt)',click:()=>hideItsuki()},
+    {label:'Show Itsuki (Ctrl+F6)',click:()=>createItsuki()},
+    {label:'Hide Itsuki (F6)',click:()=>hideItsuki()},
     {label:'Start / pause focus',click:()=>toggleFocus()},
-    {label:'Quick add task',click:()=>{if(!win)createWindow();win?.show();win?.webContents.send('aurestar:quick-add');}},
+    {label:'Quick add task',click:openQuickAddTask},
     {type:'separator'},{label:'Quit',click:()=>{app.isQuitting=true;app.quit();}}
   ]));
-  tray.on('double-click',()=>{if(!win)createWindow();else win.show();});
+  tray.on('double-click',()=>showMainWindow('home'));
 }
-function showMainWindow(view='dashboard'){
-  const target=String(view||'dashboard');
-  if(!['dashboard','today','tasks','focus','gym','calendar','analytics','settings'].includes(target))return;
+function showMainWindow(view='home'){
+  const requested=String(view||'home');
+  const target=requested==='dashboard'?'home':requested;
+  if(!['home','goals','projects','tasks'].includes(target))return;
   if(!win||win.isDestroyed())createWindow(target);
   else{
     win.show();win.focus();
@@ -372,20 +379,19 @@ function createApplicationMenu(){
   const view=(name)=>()=>showMainWindow(name);
   Menu.setApplicationMenu(Menu.buildFromTemplate([
     {label:'File',submenu:[
-      {label:'Open Aurestar',click:view('dashboard')},
-      {label:'Quick add task',click:()=>{showMainWindow('today');win?.webContents.send('aurestar:quick-add');}},
-      {label:'Back up data now',click:()=>{fs.mkdirSync(backupDir(),{recursive:true});const target=path.join(backupDir(),`aurestar-${today()}-${Date.now()}.json`);fs.copyFileSync(dataFile(),target);notify(APP_NAME,'Backup saved in Aurestar backups.');}},
+      {label:'Open Aurestar',click:view('home')},
+      {label:'Quick add task',accelerator:'CommandOrControl+N',click:openQuickAddTask},
       {type:'separator'},{label:'Quit Aurestar',accelerator:'Alt+F4',click:()=>{app.isQuitting=true;app.quit();}}
     ]},
     {label:'View',submenu:[
-      {label:'Overview',click:view('dashboard')},{label:'Tasks',click:view('tasks')},{label:'Focus',click:view('focus')},
-      {label:'Training',click:view('gym')},{label:'Calendar',click:view('calendar')},{label:'Progress',click:view('analytics')},{label:'Settings',click:view('settings')}
+      {label:'Overview',click:view('home')},{label:'Goals',click:view('goals')},
+      {label:'Projects',click:view('projects')},{label:'Tasks',click:view('tasks')}
     ]},
     {label:'Tools',submenu:[
       {label:'Start / pause focus',click:toggleFocus},
       {label:'Show Pomodoro widget',click:createPomodoroWidget},{label:'Show Itsuki',click:createItsuki},{label:'Hide Itsuki',click:hideItsuki}
     ]},
-    {label:'Help',submenu:[{label:`About ${APP_NAME}`,click:()=>showMainWindow('settings')} ]}
+    {label:'Help',submenu:[{label:`About ${APP_NAME}`,click:()=>dialog.showMessageBox({title:`About ${APP_NAME}`,message:`${APP_NAME} ${app.getVersion()}`,detail:'Offline-first personal productivity workspace.'})}]}
   ]));
 }
 async function toggleFocus(){
@@ -515,7 +521,7 @@ app.whenReady().then(()=>{
   screen.on('display-removed',repositionWidgetsForDisplayChange);
   initializeNativeServices();state=readState();saveState();database=createDatabase(path.join(dataDir(),'aurestar.sqlite'));createBackgroundWindow();createWindow();createTray();createApplicationMenu();if(state.settings?.focusWidgetEnabled!==false)createPomodoroWidget();if(state.settings?.itsukiCompanionEnabled!==false&&state.settings?.privacyMode!==true)createItsuki({startup:true});
   globalShortcut.register('CommandOrControl+Shift+L',toggleFocus);
-  globalShortcut.register('CommandOrControl+Shift+K',()=>{if(!win)createWindow();win?.show();win?.webContents.send('aurestar:quick-add');});
+  globalShortcut.register('CommandOrControl+Shift+K',openQuickAddTask);
   // A bare Alt key is handled by before-input-event while an Aurestar window is focused.
   installItsukiHotkeys();
   if(process.platform==='win32' && state.settings.startWithWindows){app.setLoginItemSettings({openAtLogin:true});}

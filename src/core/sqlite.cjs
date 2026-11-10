@@ -5,7 +5,7 @@ const Database = require('better-sqlite3');
 
 const now = () => new Date().toISOString();
 const text = (value, max = 5000) => String(value ?? '').trim().slice(0, max);
-const date = value => { if (!value) return null; const v = text(value, 10); if (!/^\d{4}-\d{2}-\d{2}$/.test(v) || Number.isNaN(Date.parse(v + 'T00:00:00Z'))) throw new Error('Date must use YYYY-MM-DD format.'); return v; };
+const date = value => { if (!value) return null; const v = text(value, 10); const parsed = new Date(v + 'T00:00:00Z'); if (!/^\d{4}-\d{2}-\d{2}$/.test(v) || Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0,10) !== v) throw new Error('Date must use a valid YYYY-MM-DD calendar date.'); return v; };
 const allowed = (value, values, fallback) => values.includes(value) ? value : fallback;
 
 function createDatabase(filePath) {
@@ -241,8 +241,6 @@ function createDatabase(filePath) {
       db.prepare('INSERT INTO goals(id,title,description,category,start_date,target_date,status,priority,progress_mode,progress_value,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)').run(nextId, source.title + ' (copy)', source.description, source.category, source.start_date, source.target_date, 'not_started', source.priority, source.progress_mode, 0, stamp, stamp);
       const add = db.prepare('INSERT INTO milestones(id,goal_id,title,description,due_date,status,sort_order,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?)');
       for (const m of db.prepare('SELECT * FROM milestones WHERE goal_id=?').all(source.id)) add.run(randomUUID(), nextId, m.title, m.description, m.due_date, 'pending', m.sort_order, stamp, stamp);
-      for (const row of db.prepare('SELECT project_id FROM project_goal_links WHERE goal_id=?').all(source.id)) db.prepare('INSERT OR IGNORE INTO project_goal_links(project_id,goal_id) VALUES(?,?)').run(row.project_id,nextId);
-      for (const row of db.prepare('SELECT task_id FROM task_goal_links WHERE goal_id=?').all(source.id)) db.prepare('INSERT OR IGNORE INTO task_goal_links(task_id,goal_id) VALUES(?,?)').run(row.task_id,nextId);
     })();
     return db.prepare('SELECT * FROM goals WHERE id=?').get(nextId);
   }
