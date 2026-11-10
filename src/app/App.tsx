@@ -87,7 +87,7 @@ function App() {
         <NavItem active={page==='insights'} icon={<ArrowUpRight/>} label="Phân tích" onClick={()=>setPage('insights')}/>
         <NavItem active={page==='data'} icon={<Archive/>} label="Quản lý dữ liệu" onClick={()=>setPage('data')}/>
       </nav>
-      <div className="sidebar-bottom"><div className="offline-state"><span/> Lưu trữ ưu tiên ngoại tuyến</div><button className="nav-item" onClick={()=>setSettingsOpen(true)}><Settings2 size={18}/> Cài đặt</button><div className="sidebar-foot">AURESTAR 3.0 · GIAI ĐOẠN 1</div></div>
+      <div className="sidebar-bottom"><div className="offline-state"><span/> Lưu trữ ưu tiên ngoại tuyến</div><button className="nav-item" onClick={()=>setSettingsOpen(true)}><Settings2 size={18}/> Cài đặt</button><div className="sidebar-foot">AURESTAR 3.0 · KHÔNG GIAN NĂNG SUẤT CÁ NHÂN</div></div>
     </aside>
     <main className="main-area">
       <header className="topbar">
