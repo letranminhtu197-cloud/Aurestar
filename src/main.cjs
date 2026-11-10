@@ -473,7 +473,7 @@ ipcMain.handle('v2:phase2:review:save',(event,input)=>{assertWorkspaceSender(eve
 ipcMain.handle('v2:phase2:review:list',(event,limit)=>{assertWorkspaceSender(event);return database.phase2.listWeeklyReviews(limit);});
 ipcMain.handle('v2:phase2:search',(event,q,limit)=>{assertWorkspaceSender(event);return database.phase2.searchAll(q,limit);});
 ipcMain.handle('v2:phase2:insights',(event,from,to)=>{assertWorkspaceSender(event);return database.phase2.getInsights(from,to);});
-ipcMain.handle('v2:phase2:export',(event)=>{assertWorkspaceSender(event);return database.phase2.exportData();});
+ipcMain.handle('v2:phase2:export',event=>{assertWorkspaceSender(event);return database.phase2.exportData();});
 ipcMain.handle('v2:phase2:import:preview',(event,payload)=>{assertWorkspaceSender(event);return database.phase2.previewImport(payload);});
 ipcMain.handle('v2:phase2:import:apply',(event,payload,mode)=>{assertWorkspaceSender(event);if(mode==='replace'){const dir=path.join(app.getPath('userData'),'backups');fs.mkdirSync(dir,{recursive:true});createZipBackup(path.join(dir,'aurestar-pre-restore-'+Date.now()+'.zip'),database.phase2.exportData());}return database.phase2.importData(payload,mode);});
 ipcMain.handle('v2:phase2:zip:export',event=>{assertWorkspaceSender(event);return dialog.showSaveDialog(win,{title:'Create Aurestar ZIP backup',defaultPath:'Aurestar-backup.zip',filters:[{name:'ZIP backup',extensions:['zip']}] }).then(result=>{if(result.canceled||!result.filePath)return {canceled:true};return {ok:true,...createZipBackup(result.filePath,database.phase2.exportData())};});});
