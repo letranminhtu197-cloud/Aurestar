@@ -120,7 +120,7 @@ function attachPhase2(db) {
       FROM tasks WHERE archived_at IS NULL AND date(created_at) BETWEEN ? AND ?`).get(start,end,start,end,start,end);
     const focus=db.prepare(`SELECT COUNT(*) sessions,COALESCE(SUM(actual_seconds),0) seconds FROM focus_sessions
       WHERE session_type='focus' AND status='completed' AND date(started_at) BETWEEN ? AND ?`).get(start,end);
-    const goals=db.prepare(`SELECT COUNT(*) active,SUM(status='completed') completed,COALESCE(AVG(progress_value),0) average_progress
+    const goals=db.prepare(`SELECT SUM(status='active') active,SUM(status='completed') completed,COALESCE(AVG(progress_value),0) average_progress
       FROM goals WHERE archived_at IS NULL`).get();
     const habits=db.prepare(`SELECT COUNT(*) logs,COALESCE(SUM(completed_count),0) completions,
       COUNT(DISTINCT habit_id) habits_tracked FROM habit_logs WHERE log_date BETWEEN ? AND ? AND completed=1`).get(start,end);
