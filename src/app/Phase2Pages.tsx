@@ -54,8 +54,9 @@ function InsightsPanel(){
  </>}</section>;
 }
 function WeeklyReviewPanel({rows,run}:{rows:any[],run:(fn:()=>Promise<any>)=>void}) {
- const monday=()=>{const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d.toISOString().slice(0,10);};
- const [start,setStart]=useState(monday()),[summary,setSummary]=useState<any>(null),[wins,setWins]=useState(''),[challenges,setChallenges]=useState(''),[lessons,setLessons]=useState(''),[nextWeek,setNextWeek]=useState(''),[rating,setRating]=useState(3);
+ const monday=()=>{const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-((d.getDay()+7-weekStartDay)%7));return d.toISOString().slice(0,10);};
+ const [weekStartDay,setWeekStartDay]=useState(1),[start,setStart]=useState(monday()),[summary,setSummary]=useState<any>(null),[wins,setWins]=useState(''),[challenges,setChallenges]=useState(''),[lessons,setLessons]=useState(''),[nextWeek,setNextWeek]=useState(''),[rating,setRating]=useState(3);
+ useEffect(()=>{void window.aurestarV2.loadWorkspace().then(data=>{const day=Number(data.settings.weekStartsOn??1);setWeekStartDay(day);const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-((d.getDay()+7-day)%7));setStart(d.toISOString().slice(0,10));}).catch(()=>{});},[]);
  const end=(()=>{const d=new Date(start+'T12:00:00');d.setDate(d.getDate()+6);return d.toISOString().slice(0,10);})();
  useEffect(()=>{void window.aurestarV2.getWeeklyReviewSummary(start,end).then(setSummary).catch(()=>setSummary(null));},[start,end]);
  const save=async()=>{await window.aurestarV2.saveWeeklyReview({weekStart:start,weekEnd:end,wins,challenges,lessons,nextWeek,rating});};
