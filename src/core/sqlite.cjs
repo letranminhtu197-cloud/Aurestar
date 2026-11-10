@@ -357,7 +357,7 @@ function createDatabase(filePath) {
     return result;
   }
   function saveSettings(input = {}) {
-    const keys = new Set(['theme','density','sidebarCollapsed','defaultLandingPage','accentColor','fontSize','language','dateFormat','timeFormat','weekStartsOn','taskDefaultPriority','taskDefaultView','taskSort','focusDurationMinutes','shortBreakMinutes','longBreakMinutes','longBreakInterval','focusSoundEnabled','focusAutoStartBreaks','focusAutoStartSessions','journalDefaultType','journalAutosave','notificationsEnabled','privacyMode','backupReminderEnabled']);
+    const keys = new Set(['theme','density','sidebarCollapsed','defaultLandingPage','accentColor','fontSize','language','dateFormat','timeFormat','weekStartsOn','taskDefaultPriority','taskDefaultView','taskSort','focusDurationMinutes','shortBreakMinutes','longBreakMinutes','longBreakInterval','focusSoundEnabled','focusAutoStartBreaks','focusAutoStartSessions','journalDefaultType','journalAutosave','notificationsEnabled','privacyMode','backupReminderEnabled','focusTimerState']);
     const stamp = now(), upsert = db.prepare('INSERT INTO settings(key,value,updated_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at');
     const normalized = {};
     for (const [key,value] of Object.entries(input)) {
@@ -373,6 +373,7 @@ function createDatabase(filePath) {
       if (key==='taskDefaultView' && !['list','board','calendar'].includes(value)) throw new Error('Invalid task view.');
       if (key==='journalDefaultType' && !['reflection','freewriting'].includes(value)) throw new Error('Invalid journal type.');
       if (key==='accentColor' && !/^#[0-9a-f]{6}$/i.test(String(value))) throw new Error('Invalid accent color.');
+      if (key==='focusTimerState' && value!==null && (typeof value!=='object'||Array.isArray(value))) throw new Error('Invalid focus timer state.');
       normalized[key] = value;
     }
     db.transaction(() => { for (const [key,value] of Object.entries(normalized)) upsert.run(key, JSON.stringify(value), stamp); })();
