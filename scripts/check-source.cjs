@@ -50,6 +50,11 @@ process.stdout.write(`Checked ${jsFiles.length} JavaScript files and desktop sec
 
 const appRenderer = fs.readFileSync(path.join(root, 'src', 'app', 'App.tsx'), 'utf8');
 const v2Preload = fs.readFileSync(path.join(root, 'src', 'preload-v2.cjs'), 'utf8');
+const v2Handlers = [...mainProcess.matchAll(/ipcMain\.handle\('v2:[^']+'/g)];
+const guardedV2Handlers = [...mainProcess.matchAll(/ipcMain\.handle\('v2:[^']+',\s*(?:event|\(event,[^)]*\))=>\{assertWorkspaceSender\(event\);/g)];
+if (!/function assertWorkspaceSender\(event\)/.test(mainProcess) || guardedV2Handlers.length !== v2Handlers.length) {
+  throw new Error('Every workspace IPC handler must verify that its caller is the trusted React window.');
+}
 const mainWindowStart = mainProcess.indexOf('function createWindow');
 const mainWindowEnd = mainProcess.indexOf('\nfunction ', mainWindowStart + 10);
 const mainWindowSource = mainProcess.slice(mainWindowStart, mainWindowEnd > mainWindowStart ? mainWindowEnd : undefined);

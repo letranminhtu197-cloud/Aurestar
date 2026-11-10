@@ -57,6 +57,7 @@ ipcMain.on=(channel,listener)=>rawOn(channel,(event,...args)=>{
   if(!isTrustedSender(event)){console.warn(`Rejected IPC from an untrusted page (${channel})`);return;}
   listener(event,...args);
 });
+function assertWorkspaceSender(event){if(!win||win.isDestroyed()||event.sender!==win.webContents)throw new Error('Untrusted renderer attempted to access workspace IPC.');}
 function secureWindow(browserWindow){
   browserWindow.webContents.setWindowOpenHandler(()=>({action:'deny'}));
   browserWindow.webContents.on('will-navigate',(event,url)=>{
@@ -441,24 +442,24 @@ ipcMain.handle('chrome:notification',(_event,payload)=>{
   return String(payload?.id||'');
 });
 ipcMain.handle('state:get',()=>state);
-ipcMain.handle('v2:workspace:load',()=>database.loadWorkspace());
-ipcMain.handle('v2:goal:save',(_e,input)=>database.saveGoal(input));
-ipcMain.handle('v2:goal:delete',(_e,id)=>database.deleteGoal(id));
-ipcMain.handle('v2:milestone:save',(_e,input)=>database.saveMilestone(input));
-ipcMain.handle('v2:milestone:delete',(_e,id)=>database.deleteMilestone(id));
-ipcMain.handle('v2:project:save',(_e,input)=>database.saveProject(input));
-ipcMain.handle('v2:project:delete',(_e,id)=>database.deleteProject(id));
-ipcMain.handle('v2:task:save',(_e,input)=>database.saveTask(input));
-ipcMain.handle('v2:task:toggle',(_e,id)=>database.toggleTask(id));
-ipcMain.handle('v2:task:status',(_e,id,status)=>database.setTaskStatus(id,status));
-ipcMain.handle('v2:goal:archive',(_e,id,archived)=>database.setArchived('goal',id,archived));
-ipcMain.handle('v2:project:archive',(_e,id,archived)=>database.setArchived('project',id,archived));
-ipcMain.handle('v2:task:archive',(_e,id,archived)=>database.setArchived('task',id,archived));
-ipcMain.handle('v2:goal:duplicate',(_e,id)=>database.duplicateGoal(id));
-ipcMain.handle('v2:project:duplicate',(_e,id)=>database.duplicateProject(id));
-ipcMain.handle('v2:task:duplicate',(_e,id)=>database.duplicateTask(id));
-ipcMain.handle('v2:settings:save',(_e,input)=>database.saveSettings(input));
-ipcMain.handle('v2:task:delete',(_e,id)=>database.deleteTask(id));
+ipcMain.handle('v2:workspace:load',event=>{assertWorkspaceSender(event);return database.loadWorkspace();});
+ipcMain.handle('v2:goal:save',(event,input)=>{assertWorkspaceSender(event);return database.saveGoal(input);});
+ipcMain.handle('v2:goal:delete',(event,id)=>{assertWorkspaceSender(event);return database.deleteGoal(id);});
+ipcMain.handle('v2:milestone:save',(event,input)=>{assertWorkspaceSender(event);return database.saveMilestone(input);});
+ipcMain.handle('v2:milestone:delete',(event,id)=>{assertWorkspaceSender(event);return database.deleteMilestone(id);});
+ipcMain.handle('v2:project:save',(event,input)=>{assertWorkspaceSender(event);return database.saveProject(input);});
+ipcMain.handle('v2:project:delete',(event,id)=>{assertWorkspaceSender(event);return database.deleteProject(id);});
+ipcMain.handle('v2:task:save',(event,input)=>{assertWorkspaceSender(event);return database.saveTask(input);});
+ipcMain.handle('v2:task:toggle',(event,id)=>{assertWorkspaceSender(event);return database.toggleTask(id);});
+ipcMain.handle('v2:task:status',(event,id,status)=>{assertWorkspaceSender(event);return database.setTaskStatus(id,status);});
+ipcMain.handle('v2:goal:archive',(event,id,archived)=>{assertWorkspaceSender(event);return database.setArchived('goal',id,archived);});
+ipcMain.handle('v2:project:archive',(event,id,archived)=>{assertWorkspaceSender(event);return database.setArchived('project',id,archived);});
+ipcMain.handle('v2:task:archive',(event,id,archived)=>{assertWorkspaceSender(event);return database.setArchived('task',id,archived);});
+ipcMain.handle('v2:goal:duplicate',(event,id)=>{assertWorkspaceSender(event);return database.duplicateGoal(id);});
+ipcMain.handle('v2:project:duplicate',(event,id)=>{assertWorkspaceSender(event);return database.duplicateProject(id);});
+ipcMain.handle('v2:task:duplicate',(event,id)=>{assertWorkspaceSender(event);return database.duplicateTask(id);});
+ipcMain.handle('v2:settings:save',(event,input)=>{assertWorkspaceSender(event);return database.saveSettings(input);});
+ipcMain.handle('v2:task:delete',(event,id)=>{assertWorkspaceSender(event);return database.deleteTask(id);});
 ipcMain.handle('pomodoro:widget-close',()=>{closePomodoroWidget();return {ok:true};});
 ipcMain.handle('pomodoro:widget-open',()=>{createPomodoroWidget();return {ok:true};});
 ipcMain.handle('itsuki:hide',()=>{hideItsuki();return {ok:true};});
