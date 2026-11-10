@@ -155,3 +155,23 @@ test('insights aggregate focus, habit and goal data over a selected period',t=>{
  assert.equal(data.habits.completions,1);assert.equal(data.goals.active,1);
  assert.ok(data.habits.average_weekly_consistency>=0);
 });
+
+test('habit consistency analytics respect the selected historical date range',t=>{
+ const p=fixture(t);
+ const habit=p.saveHabit({name:'Historical reading',frequency:'daily',startDate:'2026-11-01'});
+ p.logHabit({habitId:habit.id,date:'2026-11-01',completedCount:1});
+ p.logHabit({habitId:habit.id,date:'2026-11-03',completedCount:1});
+ const insights=p.getInsights('2026-11-01','2026-11-03');
+ assert.equal(insights.habits.average_weekly_consistency,67);
+ assert.equal(insights.habits.average_monthly_consistency,67);
+ const review=p.getWeeklyReviewSummary('2026-11-01','2026-11-03');
+ assert.equal(review.habits.consistency,67);
+});
+
+test('global search includes habit descriptions and journal body content',t=>{
+ const p=fixture(t);
+ p.saveHabit({name:'Morning routine',description:'Read astronomy notes'});
+ p.saveJournalEntry({date:'2026-11-10',title:'Evening notes',content:'Remember the lunar eclipse'});
+ assert.ok(p.searchAll('astronomy').some(x=>x.type==='habit'));
+ assert.ok(p.searchAll('lunar eclipse').some(x=>x.type==='journal'));
+});
