@@ -149,16 +149,24 @@ function attachPhase2(db) {
     return db.prepare('SELECT * FROM weekly_reviews ORDER BY week_start DESC LIMIT ?').all(Math.max(1,Math.min(520,Number(limit)||52)));
   }
   function searchAll(query,limit=50) {
-    const q=clean(query,200); if(q.length<2) return [];
+    const q=clean(query,200);if(q.length<2)return [];
     const like='%'+q.replace(/[\\%_]/g,'\\$&')+'%';
+    const searchable=[
+      ['goal','goals','title',['title','description']],
+      ['project','projects','name',['name','description']],
+      ['task','tasks','title',['title','description']],
+      ['habit','habits','name',['name','description']],
+      ['journal','journal_entries','title',['title','content','wins','challenges','lessons','tomorrow_focus','notes']],
+      ['weekly_review','weekly_reviews','wins',['wins','challenges','lessons','next_week']]
+    ];
     const rows=[];
-    for(const [type,table,field] of [['goal','goals','title'],['project','projects','name'],['task','tasks','title'],['habit','habits','name'],['journal','journal_entries','title'],['weekly_review','weekly_reviews','wins']]) {
-      const extra=type==='journal'?' OR content LIKE ? ESCAPE \'\\\'':type==='weekly_review'?' OR challenges LIKE ? ESCAPE \'\\\' OR lessons LIKE ? ESCAPE \'\\\'':'';
-      const params=extra?extra.includes('lessons')?[like,like,like]:[like,like]:[like];
-      const result=db.prepare(`SELECT id,${field} AS title,updated_at FROM ${table} WHERE ${field} LIKE ? ESCAPE '\\'${extra} ORDER BY updated_at DESC LIMIT ?`).all(...params,Math.max(1,Math.min(200,limit)));
-      rows.push(...result.map(x=>({...x,type})));
+    for(const [type,table,field,columns] of searchable){
+      const clause=columns.map(column=>'`'+column+'` LIKE ? ESCAPE '\\'').join(' OR ');
+      const result=db.prepare(`SELECT id,${field} AS title,updated_at FROM ${table} WHERE (${clause}) ORDER BY updated_at DESC LIMIT ?`)
+        .all(...columns.map(()=>like),Math.max(1,Math.min(200,Number(limit)||50)));
+      rows.push(...result.map(row=>({...row,type})));
     }
-    return rows.sort((a,b)=>String(b.updated_at||'').localeCompare(String(a.updated_at||''))).slice(0,Math.max(1,Math.min(200,limit)));
+    return rows.sort((a,b)=>String(b.updated_at||'').localeCompare(String(a.updated_at||''))).slice(0,Math.max(1,Math.min(200,Number(limit)||50)));
   }
   function getInsights(from,to) {
     const start=date(from)||new Date(Date.now()-29*86400000).toISOString().slice(0,10),end=date(to)||new Date().toISOString().slice(0,10);
