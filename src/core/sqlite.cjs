@@ -154,6 +154,23 @@ function createDatabase(filePath) {
   });
   if (db.pragma('user_version', { simple: true }) < 5) migration5();
 
+  const migration6 = db.transaction(() => {
+    const addColumn = (table, name, definition) => {
+      const columns = db.pragma('table_info(' + table + ')');
+      if (!columns.some(column => column.name === name)) db.exec('ALTER TABLE ' + table + ' ADD COLUMN ' + name + ' ' + definition);
+    };
+    addColumn('journal_entries','entry_type',"TEXT NOT NULL DEFAULT 'reflection'");
+    addColumn('journal_entries','wins',"TEXT NOT NULL DEFAULT ''");
+    addColumn('journal_entries','challenges',"TEXT NOT NULL DEFAULT ''");
+    addColumn('journal_entries','lessons',"TEXT NOT NULL DEFAULT ''");
+    addColumn('journal_entries','tomorrow_focus',"TEXT NOT NULL DEFAULT ''");
+    addColumn('journal_entries','notes',"TEXT NOT NULL DEFAULT ''");
+    db.prepare('INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES (?, ?)').run(6, now());
+    db.pragma('user_version = 6');
+  });
+  if (db.pragma('user_version', { simple: true }) < 6) migration6();
+
+
 
   db.exec('CREATE INDEX IF NOT EXISTS idx_project_goal_goal ON project_goal_links(goal_id); CREATE INDEX IF NOT EXISTS idx_task_goal_goal ON task_goal_links(goal_id); CREATE INDEX IF NOT EXISTS idx_task_tags_tag ON task_tags(tag_id); CREATE INDEX IF NOT EXISTS idx_tasks_parent ON tasks(parent_task_id);');
 
