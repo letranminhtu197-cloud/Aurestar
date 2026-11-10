@@ -112,6 +112,21 @@ function attachPhase2(db) {
       projectIds:db.prepare('SELECT project_id FROM journal_project_links WHERE journal_id=?').all(row.id).map(x=>x.project_id),
       taskIds:db.prepare('SELECT task_id FROM journal_task_links WHERE journal_id=?').all(row.id).map(x=>x.task_id)}));
   }
+  function getWeeklyReviewSummary(from,to) {
+    const start=date(from);if(!start)throw new Error('Week start is required.');
+    const end=date(to);if(!end||end<start)throw new Error('Week end must be on or after week start.');
+    const tasks=db.prepare(`SELECT COUNT(*) created,(SELECT COUNT(*) FROM tasks WHERE archived_at IS NULL AND date(completed_at) BETWEEN ? AND ?) completed,
+      (SELECT COUNT(*) FROM tasks WHERE archived_at IS NULL AND due_date BETWEEN ? AND ? AND status NOT IN ('completed','cancelled')) open_due
+      FROM tasks WHERE archived_at IS NULL AND date(created_at) BETWEEN ? AND ?`).get(start,end,start,end,start,end);
+    const focus=db.prepare(`SELECT COUNT(*) sessions,COALESCE(SUM(actual_seconds),0) seconds FROM focus_sessions
+      WHERE session_type='focus' AND status='completed' AND date(started_at) BETWEEN ? AND ?`).get(start,end);
+    const goals=db.prepare(`SELECT COUNT(*) active,SUM(status='completed') completed,COALESCE(AVG(progress_value),0) average_progress
+      FROM goals WHERE archived_at IS NULL`).get();
+    const habits=db.prepare(`SELECT COUNT(*) logs,COALESCE(SUM(completed_count),0) completions,
+      COUNT(DISTINCT habit_id) habits_tracked FROM habit_logs WHERE log_date BETWEEN ? AND ? AND completed=1`).get(start,end);
+    const milestones=db.prepare(`SELECT COUNT(*) total,SUM(status='completed') completed FROM milestones WHERE date(updated_at) BETWEEN ? AND ?`).get(start,end);
+    return {from:start,to:end,tasks,focus,goals,habits,milestones};
+  }
   function saveWeeklyReview(input={}) {
     const start=date(input.weekStart); if(!start) throw new Error('Week start is required.');
     const end=date(input.weekEnd); if(!end||end<start) throw new Error('Week end must be on or after week start.');
@@ -213,7 +228,7 @@ function attachPhase2(db) {
     return {ok:true,mode,report,preview,integrity:'ok'};
   }
   return {saveHabit,deleteHabit,archiveHabit,logHabit,listHabits:habitList,listHabitLogs,saveFocusSession,listFocusSessions,
-    saveJournalEntry,deleteJournalEntry,listJournalEntries,saveWeeklyReview,listWeeklyReviews,searchAll,getInsights,
+    saveJournalEntry,deleteJournalEntry,listJournalEntries,saveWeeklyReview,listWeeklyReviews,getWeeklyReviewSummary,searchAll,getInsights,
     savePreference,exportData,previewImport,importData};
 }
 module.exports={attachPhase2};
