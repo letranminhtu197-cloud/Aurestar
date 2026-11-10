@@ -469,6 +469,7 @@ ipcMain.handle('v2:phase2:habits:log',(event,input)=>{assertWorkspaceSender(even
 ipcMain.handle('v2:phase2:habits:logs',(event,from,to)=>{assertWorkspaceSender(event);return database.phase2.listHabitLogs(from,to);});
 ipcMain.handle('v2:phase2:focus:save',(event,input)=>{assertWorkspaceSender(event);return database.phase2.saveFocusSession(input);});
 ipcMain.handle('v2:phase2:focus:list',(event,limit)=>{assertWorkspaceSender(event);return database.phase2.listFocusSessions(limit);});
+ipcMain.handle('v2:phase2:journal:delete',(event,id)=>{assertWorkspaceSender(event);return database.phase2.deleteJournalEntry(id);});
 ipcMain.handle('v2:phase2:journal:save',(event,input)=>{assertWorkspaceSender(event);return database.phase2.saveJournalEntry(input);});
 ipcMain.handle('v2:phase2:journal:list',(event,limit)=>{assertWorkspaceSender(event);return database.phase2.listJournalEntries(limit);});
 ipcMain.handle('v2:phase2:review:save',(event,input)=>{assertWorkspaceSender(event);return database.phase2.saveWeeklyReview(input);});
