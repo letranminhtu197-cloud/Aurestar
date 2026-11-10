@@ -18,7 +18,7 @@ const api = {
   duplicateGoal: id => invoke('v2:goal:duplicate',id),
   duplicateProject: id => invoke('v2:project:duplicate',id),
   duplicateTask: id => invoke('v2:task:duplicate',id),
-  saveSettings: input => invoke('v2:settings:save',input),
+  saveSettings: input => invoke('v2:settings:save',input), getAppInfo: () => invoke('v2:app:info'),
   deleteTask: id => invoke('v2:task:delete', id),
   listHabits: () => invoke('v2:phase2:habits:list'), saveHabit: input => invoke('v2:phase2:habits:save',input), deleteHabit: id => invoke('v2:phase2:habits:delete',id), archiveHabit: (id,archived) => invoke('v2:phase2:habits:archive',id,archived),
   logHabit: input => invoke('v2:phase2:habits:log',input), listHabitLogs: (from,to) => invoke('v2:phase2:habits:logs',from,to),
