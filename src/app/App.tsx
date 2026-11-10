@@ -10,7 +10,7 @@ import { Phase2Page, DataTools } from './Phase2Pages';
 
 type Page = 'home' | 'goals' | 'projects' | 'tasks' | 'habits' | 'focus' | 'journal' | 'review' | 'insights' | 'data';
 type Modal = null | { kind: 'goal'; item?: Goal } | { kind: 'project'; item?: Project } | { kind: 'task'; item?: Task } | { kind: 'milestone'; goalId: string; item?: Milestone };
-const dateLabel = (value?: string | null) => value ? new Date(value + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'No date';
+const dateLabel = (value?: string | null) => { if(!value)return 'No date';const d=new Date(value+'T12:00:00'),locale=document.documentElement.dataset.locale||undefined,format=document.documentElement.dataset.dateFormat;if(format==='dd/MM/yyyy')return d.toLocaleDateString(locale,{day:'2-digit',month:'2-digit',year:'numeric'});if(format==='MM/dd/yyyy')return d.toLocaleDateString(locale,{month:'2-digit',day:'2-digit',year:'numeric'});return d.toLocaleDateString(locale,{month:'short',day:'numeric',year:'numeric'}); };
 const priorityLabel: Record<Priority, string> = { low: 'Low', medium: 'Medium', high: 'High', urgent: 'Urgent' };
 const safeDate = (value?: string | null) => value || '';
 
@@ -29,6 +29,8 @@ function App() {
   const [dark, setDark] = useState(() => localStorage.getItem('aurestar.theme') !== 'light');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem('aurestar.sidebar.collapsed') === 'true');
   useEffect(() => { void data.load(); }, []);
+  useEffect(()=>{const root=document.documentElement;const locale=data.settings.language==='vi'?'vi-VN':'en-US';root.lang=locale;root.dataset.locale=locale;root.dataset.dateFormat=String(data.settings.dateFormat||'yyyy-MM-dd');root.dataset.timeFormat=String(data.settings.timeFormat||'24h');if(data.settings.accentColor)root.style.setProperty('--primary',String(data.settings.accentColor));if(data.settings.fontSize)root.style.fontSize=Number(data.settings.fontSize)+'px';},[data.settings.language,data.settings.dateFormat,data.settings.timeFormat,data.settings.accentColor,data.settings.fontSize]);
+
   useEffect(()=>{const value=String(data.settings.taskSort||'due');if(['due','priority','title','created'].includes(value))setTaskSort(value as 'due'|'priority'|'title'|'created');},[data.settings.taskSort]);
   useEffect(() => { const value=query.trim(); if(value.length<2){setPhase2Results([]);return;} const timer=window.setTimeout(()=>{void window.aurestarV2.searchAll(value,10).then(setPhase2Results).catch(()=>setPhase2Results([]));},180); return ()=>window.clearTimeout(timer); }, [query]);
   useEffect(() => { document.documentElement.dataset.theme = dark ? 'dark' : 'light'; localStorage.setItem('aurestar.theme', dark ? 'dark' : 'light'); }, [dark]);
