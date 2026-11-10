@@ -64,8 +64,8 @@ function createDatabase(filePath) {
     CREATE INDEX IF NOT EXISTS idx_tasks_project ON tasks(project_id);
     CREATE INDEX IF NOT EXISTS idx_milestones_goal ON milestones(goal_id, sort_order);
     CREATE INDEX IF NOT EXISTS idx_goals_status ON goals(status, target_date);
-    PRAGMA user_version = 1;
   `);
+  if (db.pragma('user_version', { simple: true }) < 1) db.pragma('user_version = 1');
 
   db.exec('CREATE TABLE IF NOT EXISTS schema_migrations (version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL); CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT NOT NULL);');
   db.prepare('INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES (?, ?)').run(1, now());
