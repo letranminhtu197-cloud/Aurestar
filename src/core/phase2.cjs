@@ -132,7 +132,7 @@ function attachPhase2(db) {
     const preview=previewImport(payload);
     if(!['merge','update','replace'].includes(mode)) throw new Error('Unsupported import mode.');
     const tables=['goals','projects','tasks','tags','milestones','project_goal_links','task_goal_links','task_tags','habits','habit_logs','focus_sessions','journal_entries','weekly_reviews','settings'];
-    const primary={project_goal_links:['project_id','goal_id'],task_goal_links:['task_id','goal_id'],task_tags:['task_id','tag_id']};
+    const primary={project_goal_links:['project_id','goal_id'],task_goal_links:['task_id','goal_id'],task_tags:['task_id','tag_id'],habit_logs:['habit_id','log_date'],journal_entries:['entry_date'],weekly_reviews:['week_start'],settings:['key']};
     const transaction=db.transaction(()=>{
       if(mode==='replace') for(const table of ['habit_logs','focus_sessions','journal_entries','weekly_reviews','task_tags','task_goal_links','project_goal_links','milestones','tasks','projects','goals','tags','habits','settings']) db.prepare('DELETE FROM '+table).run();
       for(const table of tables) {
