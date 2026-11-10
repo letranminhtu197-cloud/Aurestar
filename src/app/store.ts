@@ -11,7 +11,7 @@ type Store = WorkspaceData & {
   deleteTask: (id: string) => Promise<void>; deleteMilestone: (id: string) => Promise<void>;
 };
 const empty: WorkspaceData = { goals: [], projects: [], tasks: [], milestones: [], summary: { activeGoals: 0, activeProjects: 0, openTasks: 0, completedTasks: 0, overdueTasks: 0 } };
-export const useWorkspace = create<Store>((set, get) => {
+export const useWorkspace = create<Store>((set) => {
   const reload = async () => { const data = await workspaceApi.load(); set({ ...data, loading: false, error: null }); };
   const mutate = async (fn: () => Promise<unknown>) => { set({ error: null }); try { await fn(); await reload(); } catch (e) { const message = e instanceof Error ? e.message : 'An unexpected error occurred.'; set({ error: message }); throw e; } };
   return {
