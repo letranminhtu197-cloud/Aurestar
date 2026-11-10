@@ -176,6 +176,11 @@ function attachPhase2(db) {
     const byTask=db.prepare(`SELECT t.id task_id,t.title,COUNT(f.id) sessions,COALESCE(SUM(f.actual_seconds),0) seconds FROM focus_sessions f
       LEFT JOIN tasks t ON t.id=f.task_id WHERE f.session_type='focus' AND f.status='completed' AND date(f.started_at) BETWEEN ? AND ?
       GROUP BY t.id,t.title ORDER BY seconds DESC LIMIT 20`).all(start,end);
+    const byProject=db.prepare(`SELECT p.id project_id,p.name,COUNT(f.id) sessions,COALESCE(SUM(f.actual_seconds),0) seconds FROM focus_sessions f
+      LEFT JOIN tasks t ON t.id=f.task_id LEFT JOIN projects p ON p.id=t.project_id WHERE f.session_type='focus' AND f.status='completed'
+      AND date(f.started_at) BETWEEN ? AND ? GROUP BY p.id,p.name ORDER BY seconds DESC LIMIT 20`).all(start,end);
+    const habitDaily=db.prepare(`SELECT log_date day,COUNT(*) logs,COALESCE(SUM(completed_count),0) completions FROM habit_logs
+      WHERE log_date BETWEEN ? AND ? AND completed=1 GROUP BY log_date ORDER BY log_date`).all(start,end);
     const goals=db.prepare(`SELECT SUM(status='active' AND archived_at IS NULL) active,SUM(status='completed' AND archived_at IS NULL) completed,
       COALESCE(AVG(CASE WHEN archived_at IS NULL THEN progress_value END),0) average_progress FROM goals`).get();
     const milestones=db.prepare(`SELECT COUNT(*) total,SUM(status='completed') completed FROM milestones`).get();
@@ -184,7 +189,7 @@ function attachPhase2(db) {
     const habitStats=habitList().filter(h=>!h.archived_at);
     habits.average_weekly_consistency=habitStats.length?Math.round(habitStats.reduce((n,h)=>n+h.weekly_consistency,0)/habitStats.length):0;
     habits.average_monthly_consistency=habitStats.length?Math.round(habitStats.reduce((n,h)=>n+h.monthly_consistency,0)/habitStats.length):0;
-    return {from:start,to:end,tasks,taskTrend,focus,daily,byWeekday,byHour,byTask,goals,milestones,habits};
+    return {from:start,to:end,tasks,taskTrend,focus,daily,byWeekday,byHour,byTask,byProject,habitDaily,goals,milestones,habits};
   }
   function savePreference(key,value) {
     const k=clean(key,80); if(!k) throw new Error('Setting key is required.');
