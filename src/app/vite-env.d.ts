@@ -24,7 +24,7 @@ declare global {
       listHabits(): Promise<any[]>; saveHabit(input:any):Promise<any>; deleteHabit(id:string):Promise<boolean>; archiveHabit(id:string,archived:boolean):Promise<any>; logHabit(input:any):Promise<any>; listHabitLogs(from?:string,to?:string):Promise<any[]>;
       saveFocusSession(input:any):Promise<any>; listFocusSessions(limit?:number):Promise<any[]>;
       saveJournalEntry(input:any):Promise<any>; deleteJournalEntry(id:string):Promise<boolean>; listJournalEntries(limit?:number):Promise<any[]>;
-      saveWeeklyReview(input:any):Promise<any>; listWeeklyReviews(limit?:number):Promise<any[]>;
+      saveWeeklyReview(input:any):Promise<any>; getWeeklyReviewSummary(from:string,to:string):Promise<any>; listWeeklyReviews(limit?:number):Promise<any[]>;
       searchAll(query:string,limit?:number):Promise<any[]>; getInsights(from?:string,to?:string):Promise<any>;
       exportData():Promise<any>; previewImport(payload:any):Promise<any>; applyImport(payload:any,mode:'merge'|'update'|'replace'):Promise<any>;
       createZipBackup():Promise<any>; previewZipBackup():Promise<any>; restoreZipBackup(payload:any,mode:'merge'|'update'|'replace'):Promise<any>;
