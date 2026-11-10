@@ -5,6 +5,7 @@ const { fileURLToPath } = require('node:url');
 const { migrateJsonStores, normalizeStateCollections, readJsonFile, writeJsonAtomic } = require('./core/persistence.cjs');
 const { createAlarmScheduler } = require('./core/alarm-scheduler.cjs');
 const { createDatabase } = require('./core/sqlite.cjs');
+const { createZipBackup, readZipBackup } = require('./core/zip-backup.cjs');
 let database = null;
 
 const hasSingleInstanceLock = app.requestSingleInstanceLock();
@@ -475,6 +476,9 @@ ipcMain.handle('v2:phase2:insights',(event,from,to)=>{assertWorkspaceSender(even
 ipcMain.handle('v2:phase2:export',(event)=>{assertWorkspaceSender(event);return database.phase2.exportData();});
 ipcMain.handle('v2:phase2:import:preview',(event,payload)=>{assertWorkspaceSender(event);return database.phase2.previewImport(payload);});
 ipcMain.handle('v2:phase2:import:apply',(event,payload,mode)=>{assertWorkspaceSender(event);return database.phase2.importData(payload,mode);});
+ipcMain.handle('v2:phase2:zip:export',async event=>{assertWorkspaceSender(event);const result=await dialog.showSaveDialog(win,{title:'Create Aurestar ZIP backup',defaultPath:'Aurestar-backup.zip',filters:[{name:'ZIP backup',extensions:['zip']}]});if(result.canceled||!result.filePath)return {canceled:true};return {ok:true,...createZipBackup(result.filePath,database.phase2.exportData())};});
+ipcMain.handle('v2:phase2:zip:preview',async event=>{assertWorkspaceSender(event);const result=await dialog.showOpenDialog(win,{title:'Preview Aurestar ZIP backup',properties:['openFile'],filters:[{name:'ZIP backup',extensions:['zip']}]});if(result.canceled||!result.filePaths[0])return {canceled:true};const payload=readZipBackup(result.filePaths[0]);return {payload,preview:database.phase2.previewImport(payload)};});
+ipcMain.handle('v2:phase2:zip:restore',async(event,payload,mode)=>{assertWorkspaceSender(event);return database.phase2.importData(payload,mode);});
 ipcMain.handle('pomodoro:widget-close',()=>{closePomodoroWidget();return {ok:true};});
 ipcMain.handle('pomodoro:widget-open',()=>{createPomodoroWidget();return {ok:true};});
 ipcMain.handle('itsuki:hide',()=>{hideItsuki();return {ok:true};});
