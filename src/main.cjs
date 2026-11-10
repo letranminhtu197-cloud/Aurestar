@@ -357,8 +357,6 @@ function createTray(){
   tray=new Tray(icon);tray.setToolTip(APP_NAME);
   tray.setContextMenu(Menu.buildFromTemplate([
     {label:'Mở Aurestar',click:()=>showMainWindow('home')},
-    {label:'Hiện Itsuki (Ctrl+F6)',click:()=>createItsuki()},
-    {label:'Ẩn Itsuki (F6)',click:()=>hideItsuki()},
     {label:'Bắt đầu / tạm dừng tập trung',click:()=>toggleFocus()},
     {label:'Thêm công việc nhanh',click:openQuickAddTask},
     {type:'separator'},{label:'Thoát Aurestar',click:()=>{app.isQuitting=true;app.quit();}}
