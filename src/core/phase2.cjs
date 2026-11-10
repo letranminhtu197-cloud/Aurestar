@@ -228,7 +228,7 @@ function attachPhase2(db) {
     const habitDaily=db.prepare(`SELECT log_date day,COUNT(*) logs,COALESCE(SUM(completed_count),0) completions FROM habit_logs
       WHERE log_date BETWEEN ? AND ? AND completed=1 GROUP BY log_date ORDER BY log_date`).all(start,end);
     const goals=db.prepare(`SELECT SUM(status='active' AND archived_at IS NULL) active,SUM(status='completed' AND archived_at IS NULL) completed,
-      COALESCE(AVG(CASE WHEN archived_at IS NULL THEN progress_value END),0) average_progress FROM goals`).get();
+      COALESCE(AVG(CASE WHEN archived_at IS NULL THEN progress_value END),0) average_progress FROM goals WHERE date(updated_at) BETWEEN ? AND ?`).get(start,end);
     const milestones=db.prepare(`SELECT COUNT(*) total,SUM(status='completed') completed FROM milestones WHERE date(updated_at) BETWEEN ? AND ?`).get(start,end);
     const habits=db.prepare(`SELECT COUNT(*) logs,COALESCE(SUM(completed_count),0) completions,COUNT(DISTINCT habit_id) tracked
       FROM habit_logs WHERE log_date BETWEEN ? AND ? AND completed=1`).get(start,end);
