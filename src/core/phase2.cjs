@@ -125,6 +125,7 @@ function attachPhase2(db) {
       FROM goals WHERE archived_at IS NULL`).get();
     const habits=db.prepare(`SELECT COUNT(*) logs,COALESCE(SUM(completed_count),0) completions,
       COUNT(DISTINCT habit_id) habits_tracked FROM habit_logs WHERE log_date BETWEEN ? AND ? AND completed=1`).get(start,end);
+    const habitStats=habitList().filter(h=>!h.archived_at);habits.consistency=habitStats.length?Math.round(habitStats.reduce((n,h)=>n+h.weekly_consistency,0)/habitStats.length):0;
     const milestones=db.prepare(`SELECT COUNT(*) total,SUM(status='completed') completed FROM milestones WHERE date(updated_at) BETWEEN ? AND ?`).get(start,end);
     return {from:start,to:end,tasks,focus,goals,habits,milestones};
   }
