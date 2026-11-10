@@ -440,6 +440,10 @@ function createDatabase(filePath) {
       if (['journalAutosave','notificationsEnabled','privacyMode','backupReminderEnabled','focusSoundEnabled','focusAutoStartBreaks','focusAutoStartSessions'].includes(key) && typeof value!=='boolean') throw new Error('Invalid boolean preference: '+key+'.');
       if (key==='taskDefaultPriority' && !['low','medium','high','urgent'].includes(value)) throw new Error('Invalid task priority.');
       if (key==='taskDefaultView' && !['list','board','calendar'].includes(value)) throw new Error('Invalid task view.');
+      if (key==='taskSort' && !['due','priority','title','created'].includes(value)) throw new Error('Invalid task sorting.');
+      if (key==='language' && !['en','vi'].includes(value)) throw new Error('Invalid language.');
+      if (key==='dateFormat' && !['yyyy-MM-dd','dd/MM/yyyy','MM/dd/yyyy'].includes(value)) throw new Error('Invalid date format.');
+      if (key==='timeFormat' && !['12h','24h'].includes(value)) throw new Error('Invalid time format.');
       if (key==='journalDefaultType' && !['reflection','freewriting'].includes(value)) throw new Error('Invalid journal type.');
       if (key==='accentColor' && !/^#[0-9a-f]{6}$/i.test(String(value))) throw new Error('Invalid accent color.');
       if (key==='focusTimerState' && value!==null && (typeof value!=='object'||Array.isArray(value))) throw new Error('Invalid focus timer state.');
