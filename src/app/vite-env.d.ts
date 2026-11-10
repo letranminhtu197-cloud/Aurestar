@@ -21,7 +21,7 @@ declare global {
       deleteMilestone(id: string): Promise<boolean>;
       deleteProject(id: string): Promise<boolean>;
       deleteTask(id: string): Promise<boolean>;
-      listHabits(): Promise<any[]>; saveHabit(input:any):Promise<any>; logHabit(input:any):Promise<any>; listHabitLogs(from?:string,to?:string):Promise<any[]>;
+      listHabits(): Promise<any[]>; saveHabit(input:any):Promise<any>; deleteHabit(id:string):Promise<boolean>; archiveHabit(id:string,archived:boolean):Promise<any>; logHabit(input:any):Promise<any>; listHabitLogs(from?:string,to?:string):Promise<any[]>;
       saveFocusSession(input:any):Promise<any>; listFocusSessions(limit?:number):Promise<any[]>;
       saveJournalEntry(input:any):Promise<any>; listJournalEntries(limit?:number):Promise<any[]>;
       saveWeeklyReview(input:any):Promise<any>; listWeeklyReviews(limit?:number):Promise<any[]>;
