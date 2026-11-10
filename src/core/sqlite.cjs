@@ -68,8 +68,10 @@ function createDatabase(filePath) {
 
   db.exec('CREATE TABLE IF NOT EXISTS schema_migrations (version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL); CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT NOT NULL);');
   db.prepare('INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES (?, ?)').run(1, now());
+  db.exec('CREATE INDEX IF NOT EXISTS idx_project_goal_goal ON project_goal_links(goal_id); CREATE INDEX IF NOT EXISTS idx_task_goal_goal ON task_goal_links(goal_id); CREATE INDEX IF NOT EXISTS idx_task_tags_tag ON task_tags(tag_id); CREATE INDEX IF NOT EXISTS idx_tasks_parent ON tasks(parent_task_id);');
   db.prepare('INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES (?, ?)').run(2, now());
-  db.pragma('user_version = 2');
+  db.prepare('INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES (?, ?)').run(3, now());
+  db.pragma('user_version = 3');
 
   const getGoalLinks = db.prepare('SELECT goal_id FROM project_goal_links WHERE project_id = ?');
   const getTaskGoalLinks = db.prepare('SELECT goal_id FROM task_goal_links WHERE task_id = ?');
