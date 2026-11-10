@@ -366,7 +366,7 @@ function createTray(){
 function showMainWindow(view='home'){
   const requested=String(view||'home');
   const target=requested==='dashboard'?'home':requested;
-  if(!['home','goals','projects','tasks'].includes(target))return;
+  if(!['home','goals','projects','tasks','habits','focus','journal','review','insights','data'].includes(target))return;
   if(!win||win.isDestroyed())createWindow(target);
   else{
     win.show();win.focus();
