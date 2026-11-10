@@ -34,6 +34,14 @@ test('focus sessions link to tasks and aggregate insights',t=>{
   assert.throws(()=>db.phase2.saveFocusSession({taskId:'missing'}),/does not exist/i);
 });
 
+test('insights calculate weekly and monthly habit consistency over distinct windows',t=>{
+ const p=fixture(t),habit=p.saveHabit({name:'Daily consistency',frequency:'daily'});
+ for(let day=4;day<=10;day++)p.logHabit({habitId:habit.id,date:'2026-11-'+String(day).padStart(2,'0'),completedCount:1});
+ const insight=p.getInsights('2026-10-12','2026-11-10');
+ assert.equal(insight.habits.average_weekly_consistency,100);
+ assert.equal(insight.habits.average_monthly_consistency,23);
+});
+
 test('journal and weekly review upsert by their natural dates',t=>{
   const p=fixture(t);
   p.saveJournalEntry({date:'2026-11-10',title:'Day 1',content:'Started'});
