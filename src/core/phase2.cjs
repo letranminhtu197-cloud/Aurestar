@@ -119,6 +119,34 @@ function attachPhase2(db) {
       projectIds:db.prepare('SELECT project_id FROM journal_project_links WHERE journal_id=?').all(row.id).map(x=>x.project_id),
       taskIds:db.prepare('SELECT task_id FROM journal_task_links WHERE journal_id=?').all(row.id).map(x=>x.task_id)}));
   }
+  function habitConsistencyBetween(from,to) {
+    const habits=db.prepare("SELECT * FROM habits WHERE archived_at IS NULL").all();
+    if(!habits.length)return 0;
+    const logs=db.prepare("SELECT habit_id,log_date,completed,completed_count FROM habit_logs WHERE log_date BETWEEN ? AND ?").all(from,to);
+    const byHabit=new Map();for(const log of logs){if(!byHabit.has(log.habit_id))byHabit.set(log.habit_id,[]);byHabit.get(log.habit_id).push(log);}
+    const parse=value=>new Date(value+'T12:00:00');
+    const fmt=value=>value.getFullYear()+'-'+String(value.getMonth()+1).padStart(2,'0')+'-'+String(value.getDate()).padStart(2,'0');
+    const shift=(value,n)=>{const d=new Date(value);d.setDate(d.getDate()+n);return d;};
+    const weekStart=d=>shift(d,-((d.getDay()+6)%7));
+    const values=habits.map(h=>{
+      const a=h.start_date&&h.start_date>from?h.start_date:from,b=h.end_date&&h.end_date<to?h.end_date:to;
+      if(b<a)return null;
+      const rows=byHabit.get(h.id)||[];
+      if(h.frequency==='weekly'){
+        const buckets=new Map();
+        for(const row of rows){const key=fmt(weekStart(parse(row.log_date)));buckets.set(key,(buckets.get(key)||0)+(row.completed?Number(row.completed_count)||0:0));}
+        let total=0,weeks=0,week=weekStart(parse(a)),last=weekStart(parse(b));
+        for(let d=week;d<=last;d=shift(d,7)){weeks++;total+=Math.min(1,(buckets.get(fmt(d))||0)/Math.max(1,h.target_count));}
+        return weeks?total/weeks*100:null;
+      }
+      let weekdays=[];try{weekdays=JSON.parse(h.selected_weekdays||'[]');}catch{}
+      const isScheduled=d=>h.frequency==='daily'||(h.frequency==='weekdays'?(weekdays.length?weekdays.includes(d.getDay()):d.getDay()>=1&&d.getDay()<=5):weekdays.includes(d.getDay()));
+      let expected=0,completed=0;
+      for(let d=parse(a);d<=parse(b);d=shift(d,1)){if(!isScheduled(d))continue;expected++;const row=rows.find(x=>x.log_date===fmt(d));if(row?.completed)completed++;}
+      return expected?completed/expected*100:null;
+    }).filter(value=>value!==null);
+    return values.length?Math.round(values.reduce((sum,value)=>sum+value,0)/values.length):0;
+  }
   function getWeeklyReviewSummary(from,to) {
     const start=date(from);if(!start)throw new Error('Week start is required.');
     const end=date(to);if(!end||end<start)throw new Error('Week end must be on or after week start.');
@@ -131,7 +159,7 @@ function attachPhase2(db) {
       FROM goals WHERE archived_at IS NULL`).get();
     const habits=db.prepare(`SELECT COUNT(*) logs,COALESCE(SUM(completed_count),0) completions,
       COUNT(DISTINCT habit_id) habits_tracked FROM habit_logs WHERE log_date BETWEEN ? AND ? AND completed=1`).get(start,end);
-    const habitStats=habitList().filter(h=>!h.archived_at);habits.consistency=habitStats.length?Math.round(habitStats.reduce((n,h)=>n+h.weekly_consistency,0)/habitStats.length):0;
+    habits.consistency=habitConsistencyBetween(start,end);
     const milestones=db.prepare(`SELECT COUNT(*) total,SUM(status='completed') completed FROM milestones WHERE date(updated_at) BETWEEN ? AND ?`).get(start,end);
     return {from:start,to:end,tasks,focus,goals,habits,milestones};
   }
@@ -200,9 +228,8 @@ function attachPhase2(db) {
     const milestones=db.prepare(`SELECT COUNT(*) total,SUM(status='completed') completed FROM milestones`).get();
     const habits=db.prepare(`SELECT COUNT(*) logs,COALESCE(SUM(completed_count),0) completions,COUNT(DISTINCT habit_id) tracked
       FROM habit_logs WHERE log_date BETWEEN ? AND ? AND completed=1`).get(start,end);
-    const habitStats=habitList().filter(h=>!h.archived_at);
-    habits.average_weekly_consistency=habitStats.length?Math.round(habitStats.reduce((n,h)=>n+h.weekly_consistency,0)/habitStats.length):0;
-    habits.average_monthly_consistency=habitStats.length?Math.round(habitStats.reduce((n,h)=>n+h.monthly_consistency,0)/habitStats.length):0;
+    habits.average_weekly_consistency=habitConsistencyBetween(start,end);
+    habits.average_monthly_consistency=habitConsistencyBetween(start,end);
     return {from:start,to:end,tasks,taskTrend,focus,daily,byWeekday,byHour,byTask,byProject,habitDaily,goals,milestones,habits};
   }
   function savePreference(key,value) {
