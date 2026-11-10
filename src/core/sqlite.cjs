@@ -71,7 +71,52 @@ function createDatabase(filePath) {
   db.exec('CREATE INDEX IF NOT EXISTS idx_project_goal_goal ON project_goal_links(goal_id); CREATE INDEX IF NOT EXISTS idx_task_goal_goal ON task_goal_links(goal_id); CREATE INDEX IF NOT EXISTS idx_task_tags_tag ON task_tags(tag_id); CREATE INDEX IF NOT EXISTS idx_tasks_parent ON tasks(parent_task_id);');
   db.prepare('INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES (?, ?)').run(2, now());
   db.prepare('INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES (?, ?)').run(3, now());
-  db.pragma('user_version = 3');
+
+  // Phase 2 migration: additive-only tables. Existing Phase 1 rows are never rewritten.
+  const migration4 = db.transaction(() => {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS habits (
+        id TEXT PRIMARY KEY, name TEXT NOT NULL, description TEXT NOT NULL DEFAULT '',
+        frequency TEXT NOT NULL DEFAULT 'daily', target_count INTEGER NOT NULL DEFAULT 1,
+        color TEXT NOT NULL DEFAULT '#B94A62', archived_at TEXT,
+        created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS habit_logs (
+        id TEXT PRIMARY KEY, habit_id TEXT NOT NULL REFERENCES habits(id) ON DELETE CASCADE,
+        log_date TEXT NOT NULL, completed_count INTEGER NOT NULL DEFAULT 1,
+        note TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+        UNIQUE(habit_id, log_date)
+      );
+      CREATE INDEX IF NOT EXISTS idx_habit_logs_date ON habit_logs(log_date, habit_id);
+      CREATE TABLE IF NOT EXISTS focus_sessions (
+        id TEXT PRIMARY KEY, task_id TEXT REFERENCES tasks(id) ON DELETE SET NULL,
+        session_type TEXT NOT NULL DEFAULT 'focus', started_at TEXT NOT NULL,
+        ended_at TEXT, planned_seconds INTEGER NOT NULL DEFAULT 1500,
+        actual_seconds INTEGER NOT NULL DEFAULT 0, status TEXT NOT NULL DEFAULT 'completed',
+        note TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_focus_sessions_started ON focus_sessions(started_at);
+      CREATE INDEX IF NOT EXISTS idx_focus_sessions_task ON focus_sessions(task_id);
+      CREATE TABLE IF NOT EXISTS journal_entries (
+        id TEXT PRIMARY KEY, entry_date TEXT NOT NULL UNIQUE, title TEXT NOT NULL DEFAULT '',
+        content TEXT NOT NULL DEFAULT '', mood TEXT, energy INTEGER,
+        created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_journal_entries_date ON journal_entries(entry_date DESC);
+      CREATE TABLE IF NOT EXISTS weekly_reviews (
+        id TEXT PRIMARY KEY, week_start TEXT NOT NULL UNIQUE, week_end TEXT NOT NULL,
+        wins TEXT NOT NULL DEFAULT '', challenges TEXT NOT NULL DEFAULT '',
+        lessons TEXT NOT NULL DEFAULT '', next_week TEXT NOT NULL DEFAULT '',
+        rating INTEGER, created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_weekly_reviews_start ON weekly_reviews(week_start DESC);
+    `);
+    db.prepare('INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES (?, ?)').run(4, now());
+    db.pragma('user_version = 4');
+  });
+  if (db.pragma('user_version', { simple: true }) < 4) migration4();
+
+  db.exec('CREATE INDEX IF NOT EXISTS idx_project_goal_goal ON project_goal_links(goal_id); CREATE INDEX IF NOT EXISTS idx_task_goal_goal ON task_goal_links(goal_id); CREATE INDEX IF NOT EXISTS idx_task_tags_tag ON task_tags(tag_id); CREATE INDEX IF NOT EXISTS idx_tasks_parent ON tasks(parent_task_id);');
 
   const getGoalLinks = db.prepare('SELECT goal_id FROM project_goal_links WHERE project_id = ?');
   const getTaskGoalLinks = db.prepare('SELECT goal_id FROM task_goal_links WHERE task_id = ?');
