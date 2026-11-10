@@ -19,7 +19,8 @@ const testDataPath=!app.isPackaged&&process.env.AURESTAR_TEST_DATA_DIR?path.reso
 const portableDataPath=process.env.PORTABLE_EXECUTABLE_DIR?path.join(process.env.PORTABLE_EXECUTABLE_DIR,'AurestarData'):null;
 app.setPath('userData',testDataPath||portableDataPath||path.join(app.getPath('appData'),'aurestar-desktop'));
 
-const APP_NAME = 'Aurestar';\nconst companionWidgetsEnabled = false;
+const APP_NAME = 'Aurestar';
+const companionWidgetsEnabled = false;
 let win = null, tray = null, pomodoroWidget = null, itsukiWindow = null, reminderWindow = null, reminderTimer = null;
 let state = null;
 const widgetPositionTimers=new Map();
@@ -289,6 +290,7 @@ function repositionWidgetsForDisplayChange(){
   separateWidgets();
 }
 function createItsuki(options={}){
+  if(!companionWidgetsEnabled)return;
   if(state?.settings?.privacyMode===true||state?.settings?.itsukiCompanionEnabled===false)return;
   if(options.startup&&state?.settings?.itsukiWidgetHiddenByUser===true)return;
   if(!options.startup){state.settings={...(state.settings||{}),itsukiWidgetHiddenByUser:false};saveState();}
