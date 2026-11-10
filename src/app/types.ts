@@ -4,7 +4,7 @@ export type TaskStatus = 'inbox' | 'todo' | 'in_progress' | 'completed' | 'cance
 export interface Goal {
   id: string; title: string; description: string; category: string; start_date: string | null;
   target_date: string | null; status: GoalStatus; priority: Priority; progress_mode: 'manual' | 'automatic';
-  progress_value: number; milestone_count: number; milestones_done: number;
+  progress_value: number; archived_at?: string | null; milestone_count: number; milestones_done: number; linked_project_count: number; linked_task_count: number;
 }
 export interface Milestone {
   id: string; goal_id: string; goal_title: string; title: string; description: string;
@@ -13,16 +13,17 @@ export interface Milestone {
 export interface Project {
   id: string; name: string; description: string; status: string; priority: Priority;
   start_date: string | null; due_date: string | null; color: string; task_count: number;
-  tasks_done: number; goalIds: string[];
+  tasks_done: number; goalIds: string[]; archived_at?: string | null;
 }
 export interface Task {
   id: string; title: string; description: string; status: TaskStatus; priority: Priority;
-  due_date: string | null; due_time: string | null; estimated_minutes: number | null;
+  start_date: string | null; due_date: string | null; due_time: string | null; estimated_minutes: number | null; created_at: string; updated_at: string;
   project_id: string | null; project_name: string | null; goalIds: string[];
-  parent_task_id: string | null; completed_at: string | null; tags: string[];
+  parent_task_id: string | null; completed_at: string | null; tags: string[]; archived_at?: string | null;
 }
 export interface WorkspaceData {
   goals: Goal[]; projects: Project[]; tasks: Task[]; milestones: Milestone[];
+  settings: Record<string, unknown>;
   summary: { activeGoals: number; activeProjects: number; openTasks: number; completedTasks: number; overdueTasks: number };
 }
 export type GoalInput = Partial<Goal> & { title: string; startDate?: string; targetDate?: string; progressMode?: 'manual'|'automatic'; progressValue?: number };

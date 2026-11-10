@@ -66,23 +66,34 @@ function createDatabase(filePath) {
     PRAGMA user_version = 1;
   `);
 
+  db.exec('CREATE TABLE IF NOT EXISTS schema_migrations (version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL); CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT NOT NULL);');
+  db.prepare('INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES (?, ?)').run(1, now());
+  db.prepare('INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES (?, ?)').run(2, now());
+  db.pragma('user_version = 2');
+
   const getGoalLinks = db.prepare('SELECT goal_id FROM project_goal_links WHERE project_id = ?');
   const getTaskGoalLinks = db.prepare('SELECT goal_id FROM task_goal_links WHERE task_id = ?');
   const getTaskTags = db.prepare('SELECT g.name FROM task_tags l JOIN tags g ON g.id=l.tag_id WHERE l.task_id=? ORDER BY g.name');
   const listGoals = () => db.prepare(`SELECT g.*,
       (SELECT COUNT(*) FROM milestones m WHERE m.goal_id=g.id) AS milestone_count,
-      (SELECT COUNT(*) FROM milestones m WHERE m.goal_id=g.id AND m.status='completed') AS milestones_done
-      FROM goals g WHERE g.archived_at IS NULL ORDER BY
+      (SELECT COUNT(*) FROM milestones m WHERE m.goal_id=g.id AND m.status='completed') AS milestones_done,
+      (SELECT COUNT(*) FROM project_goal_links l WHERE l.goal_id=g.id) AS linked_project_count,
+      (SELECT COUNT(DISTINCT t.id) FROM tasks t WHERE t.archived_at IS NULL AND (EXISTS(SELECT 1 FROM task_goal_links tl WHERE tl.task_id=t.id AND tl.goal_id=g.id) OR EXISTS(SELECT 1 FROM project_goal_links pl WHERE pl.project_id=t.project_id AND pl.goal_id=g.id))) AS linked_task_count,
+      (SELECT COUNT(DISTINCT t.id) FROM tasks t WHERE t.archived_at IS NULL AND t.status='completed' AND (EXISTS(SELECT 1 FROM task_goal_links tl WHERE tl.task_id=t.id AND tl.goal_id=g.id) OR EXISTS(SELECT 1 FROM project_goal_links pl WHERE pl.project_id=t.project_id AND pl.goal_id=g.id))) AS linked_task_done
+      FROM goals g ORDER BY
       CASE g.priority WHEN 'urgent' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END,
-      COALESCE(g.target_date,'9999-12-31'), g.created_at DESC`).all();
+      COALESCE(g.target_date,'9999-12-31'), g.created_at DESC`).all()
+      .map(g => ({ ...g, progress_value: g.progress_mode === 'automatic'
+        ? (g.milestone_count + g.linked_task_count ? Math.round((g.milestones_done + g.linked_task_done) * 100 / (g.milestone_count + g.linked_task_count)) : 0)
+        : g.progress_value }));
   const listProjects = () => db.prepare(`SELECT p.*,
       (SELECT COUNT(*) FROM tasks t WHERE t.project_id=p.id AND t.archived_at IS NULL) AS task_count,
       (SELECT COUNT(*) FROM tasks t WHERE t.project_id=p.id AND t.status='completed' AND t.archived_at IS NULL) AS tasks_done
-      FROM projects p WHERE p.archived_at IS NULL ORDER BY p.updated_at DESC`).all()
+      FROM projects p ORDER BY p.updated_at DESC`).all()
       .map(p => ({ ...p, goalIds: getGoalLinks.all(p.id).map(x => x.goal_id) }));
   const listTasks = () => db.prepare(`SELECT t.*, p.name AS project_name FROM tasks t
       LEFT JOIN projects p ON p.id=t.project_id
-      WHERE t.archived_at IS NULL ORDER BY
+      ORDER BY
       CASE t.status WHEN 'in_progress' THEN 0 WHEN 'todo' THEN 1 WHEN 'inbox' THEN 2 ELSE 3 END,
       CASE t.priority WHEN 'urgent' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END,
       COALESCE(t.due_date,'9999-12-31'), t.created_at DESC`).all()
@@ -143,9 +154,8 @@ function createDatabase(filePath) {
         VALUES (@id,@name,@description,@status,@priority,@start_date,@due_date,@color,@created_at,@updated_at)`).run({ ...row, created_at: stamp, updated_at: stamp });
       db.prepare('DELETE FROM project_goal_links WHERE project_id=?').run(id);
       const link = db.prepare('INSERT OR IGNORE INTO project_goal_links(project_id,goal_id) VALUES (?,?)');
-      for (const goalId of [...new Set(Array.isArray(input.goalIds) ? input.goalIds.map(x => text(x,80)) : [])]) {
-        if (db.prepare('SELECT id FROM goals WHERE id=?').get(goalId)) link.run(id, goalId);
-      }
+      const requestedGoals = [...new Set(Array.isArray(input.goalIds) ? input.goalIds.map(x => text(x,80)).filter(Boolean) : [])];
+      for (const goalId of requestedGoals) { if (!db.prepare('SELECT id FROM goals WHERE id=?').get(goalId)) throw new Error('A linked goal no longer exists.'); link.run(id, goalId); }
     });
     save();
     return db.prepare('SELECT * FROM projects WHERE id=?').get(id);
@@ -157,11 +167,16 @@ function createDatabase(filePath) {
     const projectId = text(input.projectId, 80) || null;
     const parentId = text(input.parentTaskId, 80) || null;
     if (parentId === id) throw new Error('A task cannot be its own parent.');
+    if (parentId && !db.prepare('SELECT id FROM tasks WHERE id=?').get(parentId)) throw new Error('Parent task does not exist.');
+    let ancestor = parentId;
+    while (ancestor) { if (ancestor === id) throw new Error('A task hierarchy cannot contain a cycle.'); const parent = db.prepare('SELECT parent_task_id FROM tasks WHERE id=?').get(ancestor); ancestor = parent?.parent_task_id || null; }
+    const dueTime = input.dueTime ? text(input.dueTime,5) : null;
+    if (dueTime && !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(dueTime)) throw new Error('Due time must use HH:MM format.');
     const row = { id, title, description: text(input.description),
       status: allowed(input.status, ['inbox','todo','in_progress','completed','cancelled'], 'todo'),
       priority: allowed(input.priority, ['low','medium','high','urgent'], 'medium'),
       start_date: date(input.startDate), due_date: date(input.dueDate),
-      due_time: input.dueTime ? text(input.dueTime, 5) : null,
+      due_time: dueTime,
       estimated_minutes: Number.isFinite(Number(input.estimatedMinutes)) && Number(input.estimatedMinutes)>0 ? Math.min(100000, Math.round(Number(input.estimatedMinutes))) : null,
       project_id: projectId, parent_task_id: parentId,
       completed_at: allowed(input.status, ['completed'], '') ? stamp : null };
@@ -176,9 +191,8 @@ function createDatabase(filePath) {
         .run({ ...row, created_at: stamp, updated_at: stamp });
       db.prepare('DELETE FROM task_goal_links WHERE task_id=?').run(id);
       const link = db.prepare('INSERT OR IGNORE INTO task_goal_links(task_id,goal_id) VALUES (?,?)');
-      for (const goalId of [...new Set(Array.isArray(input.goalIds) ? input.goalIds.map(x => text(x,80)) : [])]) {
-        if (db.prepare('SELECT id FROM goals WHERE id=?').get(goalId)) link.run(id, goalId);
-      }
+      const requestedGoals = [...new Set(Array.isArray(input.goalIds) ? input.goalIds.map(x => text(x,80)).filter(Boolean) : [])];
+      for (const goalId of requestedGoals) { if (!db.prepare('SELECT id FROM goals WHERE id=?').get(goalId)) throw new Error('A linked goal no longer exists.'); link.run(id, goalId); }
       db.prepare('DELETE FROM task_tags WHERE task_id=?').run(id);
       const addTag = db.prepare('INSERT OR IGNORE INTO tags(id,name,created_at) VALUES (?,?,?)');
       const findTag = db.prepare('SELECT id FROM tags WHERE name=? COLLATE NOCASE');
@@ -192,34 +206,106 @@ function createDatabase(filePath) {
     save();
     return db.prepare('SELECT * FROM tasks WHERE id=?').get(id);
   }
+  function setTaskStatus(id, status) {
+    const value = allowed(status, ['inbox','todo','in_progress','completed','cancelled'], null);
+    if (!value) throw new Error('Invalid task status.');
+    const stamp = now();
+    const result = db.prepare("UPDATE tasks SET status=?, completed_at=CASE WHEN ?='completed' THEN COALESCE(completed_at, ?) ELSE NULL END, updated_at=? WHERE id=?").run(value, value, stamp, stamp, text(id,80));
+    if (!result.changes) throw new Error('Task not found.');
+    return db.prepare('SELECT * FROM tasks WHERE id=?').get(text(id,80));
+  }
   function toggleTask(id) {
     const row = db.prepare('SELECT status FROM tasks WHERE id=?').get(text(id,80));
     if (!row) throw new Error('Task not found.');
     const completed = row.status !== 'completed';
-    db.prepare('UPDATE tasks SET status=?,completed_at=?,updated_at=? WHERE id=?')
-      .run(completed ? 'completed' : 'todo', completed ? now() : null, now(), text(id,80));
+    setTaskStatus(id, completed ? 'completed' : 'todo');
     return { completed };
   }
   const remove = (table, id) => {
     if (!['goals','milestones','projects','tasks'].includes(table)) throw new Error('Unsupported record type.');
     return db.prepare('DELETE FROM ' + table + ' WHERE id=?').run(text(id,80)).changes > 0;
   };
+  function setArchived(kind, id, archived = true) {
+    const table = ({ goal: 'goals', project: 'projects', task: 'tasks' })[kind];
+    if (!table) throw new Error('Unsupported archive type.');
+    const stamp = archived ? now() : null;
+    const result = db.prepare('UPDATE ' + table + ' SET archived_at=?, updated_at=? WHERE id=?').run(stamp, now(), text(id,80));
+    if (!result.changes) throw new Error('Record not found.');
+    return { archived: Boolean(stamp) };
+  }
+  function duplicateGoal(id) {
+    const source = db.prepare('SELECT * FROM goals WHERE id=?').get(text(id,80));
+    if (!source) throw new Error('Goal not found.');
+    const nextId = randomUUID(), stamp = now();
+    db.transaction(() => {
+      db.prepare('INSERT INTO goals(id,title,description,category,start_date,target_date,status,priority,progress_mode,progress_value,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)').run(nextId, source.title + ' (copy)', source.description, source.category, source.start_date, source.target_date, 'not_started', source.priority, source.progress_mode, 0, stamp, stamp);
+      const add = db.prepare('INSERT INTO milestones(id,goal_id,title,description,due_date,status,sort_order,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?)');
+      for (const m of db.prepare('SELECT * FROM milestones WHERE goal_id=?').all(source.id)) add.run(randomUUID(), nextId, m.title, m.description, m.due_date, 'pending', m.sort_order, stamp, stamp);
+      for (const row of db.prepare('SELECT project_id FROM project_goal_links WHERE goal_id=?').all(source.id)) db.prepare('INSERT OR IGNORE INTO project_goal_links(project_id,goal_id) VALUES(?,?)').run(row.project_id,nextId);
+      for (const row of db.prepare('SELECT task_id FROM task_goal_links WHERE goal_id=?').all(source.id)) db.prepare('INSERT OR IGNORE INTO task_goal_links(task_id,goal_id) VALUES(?,?)').run(row.task_id,nextId);
+    })();
+    return db.prepare('SELECT * FROM goals WHERE id=?').get(nextId);
+  }
+  function duplicateProject(id) {
+    const source = db.prepare('SELECT * FROM projects WHERE id=?').get(text(id,80));
+    if (!source) throw new Error('Project not found.');
+    const nextId = randomUUID(), stamp = now();
+    db.transaction(() => {
+      db.prepare('INSERT INTO projects(id,name,description,status,priority,start_date,due_date,color,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?)').run(nextId, source.name + ' (copy)', source.description, 'active', source.priority, source.start_date, source.due_date, source.color, stamp, stamp);
+      for (const row of db.prepare('SELECT goal_id FROM project_goal_links WHERE project_id=?').all(source.id)) db.prepare('INSERT OR IGNORE INTO project_goal_links(project_id,goal_id) VALUES(?,?)').run(nextId,row.goal_id);
+    })();
+    return db.prepare('SELECT * FROM projects WHERE id=?').get(nextId);
+  }
+  function duplicateTask(id) {
+    const source = db.prepare('SELECT * FROM tasks WHERE id=?').get(text(id,80));
+    if (!source) throw new Error('Task not found.');
+    const nextId = randomUUID(), stamp = now();
+    db.transaction(() => {
+      db.prepare('INSERT INTO tasks(id,title,description,status,priority,start_date,due_date,due_time,estimated_minutes,actual_minutes,project_id,parent_task_id,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)').run(nextId, source.title + ' (copy)', source.description, 'todo', source.priority, source.start_date, source.due_date, source.due_time, source.estimated_minutes, 0, source.project_id, source.parent_task_id, stamp, stamp);
+      for (const row of db.prepare('SELECT goal_id FROM task_goal_links WHERE task_id=?').all(source.id)) db.prepare('INSERT OR IGNORE INTO task_goal_links(task_id,goal_id) VALUES(?,?)').run(nextId,row.goal_id);
+      for (const row of db.prepare('SELECT tag_id FROM task_tags WHERE task_id=?').all(source.id)) db.prepare('INSERT OR IGNORE INTO task_tags(task_id,tag_id) VALUES(?,?)').run(nextId,row.tag_id);
+    })();
+    return db.prepare('SELECT * FROM tasks WHERE id=?').get(nextId);
+  }
+  function getSettings() {
+    const result = {};
+    for (const row of db.prepare('SELECT key,value FROM settings').all()) { try { result[row.key] = JSON.parse(row.value); } catch { result[row.key] = null; } }
+    return result;
+  }
+  function saveSettings(input = {}) {
+    const keys = new Set(['theme','density','sidebarCollapsed','defaultLandingPage']);
+    const stamp = now(), upsert = db.prepare('INSERT INTO settings(key,value,updated_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at');
+    const normalized = {};
+    for (const [key,value] of Object.entries(input)) {
+      if (!keys.has(key)) continue;
+      if (key === 'theme' && !['dark','light','system'].includes(value)) throw new Error('Invalid theme setting.');
+      if (key === 'density' && !['comfortable','compact'].includes(value)) throw new Error('Invalid density setting.');
+      if (key === 'sidebarCollapsed' && typeof value !== 'boolean') throw new Error('Invalid sidebar setting.');
+      if (key === 'defaultLandingPage' && !['home','goals','projects','tasks'].includes(value)) throw new Error('Invalid default page.');
+      normalized[key] = value;
+    }
+    db.transaction(() => { for (const [key,value] of Object.entries(normalized)) upsert.run(key, JSON.stringify(value), stamp); })();
+    return getSettings();
+  }
   function loadWorkspace() {
     const goals = listGoals(), projects = listProjects(), tasks = listTasks(), milestones = listMilestones();
-    const activeTasks = tasks.filter(t => !['completed','cancelled'].includes(t.status));
+    const activeGoals = goals.filter(g => !g.archived_at);
+    const activeProjects = projects.filter(p => !p.archived_at);
+    const activeTasks = tasks.filter(t => !t.archived_at && !['completed','cancelled'].includes(t.status));
     return {
-      goals, projects, tasks, milestones,
+      goals, projects, tasks, milestones, settings: getSettings(),
       summary: {
-        activeGoals: goals.filter(g => g.status === 'active').length,
-        activeProjects: projects.filter(p => p.status === 'active').length,
+        activeGoals: activeGoals.filter(g => g.status === 'active').length,
+        activeProjects: activeProjects.filter(p => p.status === 'active').length,
         openTasks: activeTasks.length,
-        completedTasks: tasks.filter(t => t.status === 'completed').length,
+        completedTasks: tasks.filter(t => !t.archived_at && t.status === 'completed').length,
         overdueTasks: activeTasks.filter(t => t.due_date && t.due_date < new Date().toISOString().slice(0,10)).length
       }
     };
   }
   return {
-    loadWorkspace, saveGoal, saveMilestone, saveProject, saveTask, toggleTask,
+    loadWorkspace, saveGoal, saveMilestone, saveProject, saveTask, toggleTask, setTaskStatus,
+    setArchived, duplicateGoal, duplicateProject, duplicateTask, getSettings, saveSettings,
     deleteGoal: id => remove('goals', id), deleteMilestone: id => remove('milestones', id),
     deleteProject: id => remove('projects', id), deleteTask: id => remove('tasks', id),
     close: () => db.close(), filePath

@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   test-and-package:
@@ -21,6 +21,18 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm install
+      - name: Commit regenerated npm lockfile when needed
+        if: github.event_name != 'pull_request'
+        shell: pwsh
+        run: |
+          git add package-lock.json
+          git diff --cached --quiet
+          if ($LASTEXITCODE -ne 0) {
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m 'chore: synchronize npm lockfile'
+            git push origin "HEAD:$env:GITHUB_REF_NAME"
+          }
       - run: npm test
       - run: npm run build
       - run: npm run check
@@ -29,6 +41,20 @@ jobs:
           electron_config_cache: ${{ runner.temp }}/electron-cache
           ELECTRON_BUILDER_CACHE: ${{ runner.temp }}/electron-builder-cache
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      - name: Smoke launch packaged Windows app and initialize SQLite
+        shell: pwsh
+        run: |
+          $portable = Get-ChildItem -Path dist -Filter '*Portable*x64.exe' | Select-Object -First 1
+          if (-not $portable) { throw 'Portable Windows build was not produced.' }
+          $process = Start-Process -FilePath $portable.FullName -ArgumentList '--disable-gpu' -PassThru
+          $database = Join-Path (Split-Path $portable.FullName) 'AurestarData/aurestar.sqlite'
+          $deadline = (Get-Date).AddSeconds(30)
+          while ((Get-Date) -lt $deadline -and -not (Test-Path $database)) {
+            if ($process.HasExited) { throw "Aurestar exited during startup (exit code $($process.ExitCode))." }
+            Start-Sleep -Seconds 1
+          }
+          if (-not (Test-Path $database)) { throw 'Aurestar did not initialize its SQLite database within 30 seconds.' }
+          taskkill /T /F /PID $process.Id | Out-Null
       - uses: actions/upload-artifact@v4
         with:
           name: aurestar-windows-installers

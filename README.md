@@ -36,11 +36,13 @@ The Phase 1 workspace database is stored at aurestar.sqlite under Electron's use
 - Dashboard overview and live counts
 - Goals and goal milestones
 - Projects with optional many-to-many goal links
-- Tasks with optional project and goal links, priorities, dates, completion and parent-task relationship in the database layer
-- Local SQLite persistence
-- Dark and light Itsuki-inspired themes
+- Tasks with optional project and goal links, priorities, start/due date and time, notes, tags, completion, status changes and parent-task relationships
+- Archive, restore, duplicate, permanent delete with confirmation, sorting, filtering and list/board views
+- Global search across Goals, Projects and Tasks; Quick Add from the toolbar and keyboard shortcut
+- Local SQLite persistence with versioned schema migrations and persisted appearance preferences
+- Dark, light and system-aware Itsuki-inspired themes; comfortable and compact density
 
-Settings, Habits, Focus page, Journal, Insights, full data management, and the remaining product scope are Phase 2 or later. The retained floating widgets continue to use the legacy Focus engine and legacy JSON state until the later migration phase.
+The Phase 1 Settings entry provides local appearance, density and default-page preferences. Habits, Focus page, Journal, Insights, full data management, and the remaining product scope are Phase 2 or later. The retained floating widgets continue to use the legacy Focus engine and legacy JSON state until the later migration phase.
 
 ## Security
 The renderer uses a dedicated context-isolated preload bridge. It does not receive Node.js or filesystem APIs. All SQLite operations run in the Electron main process and IPC channels are allowlisted by the preload.
