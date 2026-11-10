@@ -31,6 +31,8 @@ function attachPhase2(db) {
         unit:clean(input.unit,30)||'times',icon:clean(input.icon,50)||'check-circle',archived_at:input.active===false?stamp:null,created_at:stamp,updated_at:stamp});
     return db.prepare('SELECT * FROM habits WHERE id=?').get(id);
   }
+  function deleteHabit(id) { return db.prepare('DELETE FROM habits WHERE id=?').run(clean(id,80)).changes>0; }
+  function archiveHabit(id,archived=true) { const stamp=archived?now():null; const result=db.prepare('UPDATE habits SET archived_at=?,updated_at=? WHERE id=?').run(stamp,now(),clean(id,80)); if(!result.changes)throw new Error('Habit not found.'); return {archived:Boolean(stamp)}; }
   function logHabit(input={}) {
     const habitId=clean(input.habitId,80), logDate=date(input.date)||new Date().toISOString().slice(0,10);
     if(!db.prepare('SELECT id FROM habits WHERE id=? AND archived_at IS NULL').get(habitId)) throw new Error('Habit not found.');
@@ -170,7 +172,7 @@ function attachPhase2(db) {
     transaction();
     return {ok:true,mode,preview};
   }
-  return {saveHabit,logHabit,listHabits:habitList,listHabitLogs,saveFocusSession,listFocusSessions,
+  return {saveHabit,deleteHabit,archiveHabit,logHabit,listHabits:habitList,listHabitLogs,saveFocusSession,listFocusSessions,
     saveJournalEntry,listJournalEntries,saveWeeklyReview,listWeeklyReviews,searchAll,getInsights,
     savePreference,exportData,previewImport,importData};
 }
