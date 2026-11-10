@@ -14,7 +14,7 @@ function createDatabase(filePath) {
   db.pragma('journal_mode = WAL');
   db.pragma('foreign_keys = ON');
   db.pragma('busy_timeout = 5000');
-  db.exec(\`
+  db.exec(`
     CREATE TABLE IF NOT EXISTS goals (
       id TEXT PRIMARY KEY, title TEXT NOT NULL, description TEXT NOT NULL DEFAULT '',
       category TEXT NOT NULL DEFAULT 'Personal', start_date TEXT, target_date TEXT,
@@ -58,30 +58,30 @@ function createDatabase(filePath) {
     CREATE INDEX IF NOT EXISTS idx_milestones_goal ON milestones(goal_id, sort_order);
     CREATE INDEX IF NOT EXISTS idx_goals_status ON goals(status, target_date);
     PRAGMA user_version = 1;
-  \`);
+  `);
 
   const getGoalLinks = db.prepare('SELECT goal_id FROM project_goal_links WHERE project_id = ?');
   const getTaskGoalLinks = db.prepare('SELECT goal_id FROM task_goal_links WHERE task_id = ?');
-  const listGoals = () => db.prepare(\`SELECT g.*,
+  const listGoals = () => db.prepare(`SELECT g.*,
       (SELECT COUNT(*) FROM milestones m WHERE m.goal_id=g.id) AS milestone_count,
       (SELECT COUNT(*) FROM milestones m WHERE m.goal_id=g.id AND m.status='completed') AS milestones_done
       FROM goals g WHERE g.archived_at IS NULL ORDER BY
       CASE g.priority WHEN 'urgent' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END,
-      COALESCE(g.target_date,'9999-12-31'), g.created_at DESC\`).all();
-  const listProjects = () => db.prepare(\`SELECT p.*,
+      COALESCE(g.target_date,'9999-12-31'), g.created_at DESC`).all();
+  const listProjects = () => db.prepare(`SELECT p.*,
       (SELECT COUNT(*) FROM tasks t WHERE t.project_id=p.id AND t.archived_at IS NULL) AS task_count,
       (SELECT COUNT(*) FROM tasks t WHERE t.project_id=p.id AND t.status='completed' AND t.archived_at IS NULL) AS tasks_done
-      FROM projects p WHERE p.archived_at IS NULL ORDER BY p.updated_at DESC\`).all()
+      FROM projects p WHERE p.archived_at IS NULL ORDER BY p.updated_at DESC`).all()
       .map(p => ({ ...p, goalIds: getGoalLinks.all(p.id).map(x => x.goal_id) }));
-  const listTasks = () => db.prepare(\`SELECT t.*, p.name AS project_name FROM tasks t
+  const listTasks = () => db.prepare(`SELECT t.*, p.name AS project_name FROM tasks t
       LEFT JOIN projects p ON p.id=t.project_id
       WHERE t.archived_at IS NULL ORDER BY
       CASE t.status WHEN 'in_progress' THEN 0 WHEN 'todo' THEN 1 WHEN 'inbox' THEN 2 ELSE 3 END,
       CASE t.priority WHEN 'urgent' THEN 0 WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END,
-      COALESCE(t.due_date,'9999-12-31'), t.created_at DESC\`).all()
+      COALESCE(t.due_date,'9999-12-31'), t.created_at DESC`).all()
       .map(t => ({ ...t, goalIds: getTaskGoalLinks.all(t.id).map(x => x.goal_id) }));
-  const listMilestones = () => db.prepare(\`SELECT m.*, g.title AS goal_title FROM milestones m
-      JOIN goals g ON g.id=m.goal_id ORDER BY m.due_date IS NULL, m.due_date, m.sort_order, m.created_at\`).all();
+  const listMilestones = () => db.prepare(`SELECT m.*, g.title AS goal_title FROM milestones m
+      JOIN goals g ON g.id=m.goal_id ORDER BY m.due_date IS NULL, m.due_date, m.sort_order, m.created_at`).all();
 
   function saveGoal(input = {}) {
     const title = text(input.title, 180);
@@ -96,11 +96,11 @@ function createDatabase(filePath) {
       progress_value: Math.max(0, Math.min(100, Number(input.progressValue) || 0))
     };
     const exists = db.prepare('SELECT id FROM goals WHERE id=?').get(id);
-    if (exists) db.prepare(\`UPDATE goals SET title=@title,description=@description,category=@category,start_date=@start_date,
+    if (exists) db.prepare(`UPDATE goals SET title=@title,description=@description,category=@category,start_date=@start_date,
       target_date=@target_date,status=@status,priority=@priority,progress_mode=@progress_mode,
-      progress_value=@progress_value,updated_at=@updated_at WHERE id=@id\`).run({ ...row, updated_at: stamp });
-    else db.prepare(\`INSERT INTO goals (id,title,description,category,start_date,target_date,status,priority,progress_mode,progress_value,created_at,updated_at)
-      VALUES (@id,@title,@description,@category,@start_date,@target_date,@status,@priority,@progress_mode,@progress_value,@created_at,@updated_at)\`)
+      progress_value=@progress_value,updated_at=@updated_at WHERE id=@id`).run({ ...row, updated_at: stamp });
+    else db.prepare(`INSERT INTO goals (id,title,description,category,start_date,target_date,status,priority,progress_mode,progress_value,created_at,updated_at)
+      VALUES (@id,@title,@description,@category,@start_date,@target_date,@status,@priority,@progress_mode,@progress_value,@created_at,@updated_at)`)
       .run({ ...row, created_at: stamp, updated_at: stamp });
     return db.prepare('SELECT * FROM goals WHERE id=?').get(id);
   }
@@ -112,10 +112,10 @@ function createDatabase(filePath) {
     const row = { id, goal_id: goalId, title, description: text(input.description), due_date: date(input.dueDate),
       status: allowed(input.status, ['pending','in_progress','completed'], 'pending'), sort_order: Number(input.sortOrder) || 0 };
     const exists = db.prepare('SELECT id FROM milestones WHERE id=?').get(id);
-    if (exists) db.prepare(\`UPDATE milestones SET goal_id=@goal_id,title=@title,description=@description,due_date=@due_date,status=@status,sort_order=@sort_order,updated_at=@updated_at WHERE id=@id\`)
+    if (exists) db.prepare(`UPDATE milestones SET goal_id=@goal_id,title=@title,description=@description,due_date=@due_date,status=@status,sort_order=@sort_order,updated_at=@updated_at WHERE id=@id`)
       .run({ ...row, updated_at: stamp });
-    else db.prepare(\`INSERT INTO milestones (id,goal_id,title,description,due_date,status,sort_order,created_at,updated_at)
-      VALUES (@id,@goal_id,@title,@description,@due_date,@status,@sort_order,@created_at,@updated_at)\`)
+    else db.prepare(`INSERT INTO milestones (id,goal_id,title,description,due_date,status,sort_order,created_at,updated_at)
+      VALUES (@id,@goal_id,@title,@description,@due_date,@status,@sort_order,@created_at,@updated_at)`)
       .run({ ...row, created_at: stamp, updated_at: stamp });
     return db.prepare('SELECT * FROM milestones WHERE id=?').get(id);
   }
@@ -130,10 +130,10 @@ function createDatabase(filePath) {
       color: /^#[0-9a-f]{6}$/i.test(String(input.color || '')) ? input.color : '#B94A62' };
     const save = db.transaction(() => {
       const exists = db.prepare('SELECT id FROM projects WHERE id=?').get(id);
-      if (exists) db.prepare(\`UPDATE projects SET name=@name,description=@description,status=@status,priority=@priority,
-        start_date=@start_date,due_date=@due_date,color=@color,updated_at=@updated_at WHERE id=@id\`).run({ ...row, updated_at: stamp });
-      else db.prepare(\`INSERT INTO projects (id,name,description,status,priority,start_date,due_date,color,created_at,updated_at)
-        VALUES (@id,@name,@description,@status,@priority,@start_date,@due_date,@color,@created_at,@updated_at)\`).run({ ...row, created_at: stamp, updated_at: stamp });
+      if (exists) db.prepare(`UPDATE projects SET name=@name,description=@description,status=@status,priority=@priority,
+        start_date=@start_date,due_date=@due_date,color=@color,updated_at=@updated_at WHERE id=@id`).run({ ...row, updated_at: stamp });
+      else db.prepare(`INSERT INTO projects (id,name,description,status,priority,start_date,due_date,color,created_at,updated_at)
+        VALUES (@id,@name,@description,@status,@priority,@start_date,@due_date,@color,@created_at,@updated_at)`).run({ ...row, created_at: stamp, updated_at: stamp });
       db.prepare('DELETE FROM project_goal_links WHERE project_id=?').run(id);
       const link = db.prepare('INSERT OR IGNORE INTO project_goal_links(project_id,goal_id) VALUES (?,?)');
       for (const goalId of [...new Set(Array.isArray(input.goalIds) ? input.goalIds.map(x => text(x,80)) : [])]) {
@@ -160,12 +160,12 @@ function createDatabase(filePath) {
       completed_at: allowed(input.status, ['completed'], '') ? stamp : null };
     const save = db.transaction(() => {
       const exists = db.prepare('SELECT id,created_at FROM tasks WHERE id=?').get(id);
-      if (exists) db.prepare(\`UPDATE tasks SET title=@title,description=@description,status=@status,priority=@priority,start_date=@start_date,
+      if (exists) db.prepare(`UPDATE tasks SET title=@title,description=@description,status=@status,priority=@priority,start_date=@start_date,
         due_date=@due_date,due_time=@due_time,estimated_minutes=@estimated_minutes,project_id=@project_id,parent_task_id=@parent_task_id,
-        completed_at=CASE WHEN @status='completed' THEN COALESCE(completed_at,@completed_at) ELSE NULL END,updated_at=@updated_at WHERE id=@id\`)
+        completed_at=CASE WHEN @status='completed' THEN COALESCE(completed_at,@completed_at) ELSE NULL END,updated_at=@updated_at WHERE id=@id`)
         .run({ ...row, updated_at: stamp });
-      else db.prepare(\`INSERT INTO tasks (id,title,description,status,priority,start_date,due_date,due_time,estimated_minutes,project_id,parent_task_id,created_at,updated_at,completed_at)
-        VALUES (@id,@title,@description,@status,@priority,@start_date,@due_date,@due_time,@estimated_minutes,@project_id,@parent_task_id,@created_at,@updated_at,@completed_at)\`)
+      else db.prepare(`INSERT INTO tasks (id,title,description,status,priority,start_date,due_date,due_time,estimated_minutes,project_id,parent_task_id,created_at,updated_at,completed_at)
+        VALUES (@id,@title,@description,@status,@priority,@start_date,@due_date,@due_time,@estimated_minutes,@project_id,@parent_task_id,@created_at,@updated_at,@completed_at)`)
         .run({ ...row, created_at: stamp, updated_at: stamp });
       db.prepare('DELETE FROM task_goal_links WHERE task_id=?').run(id);
       const link = db.prepare('INSERT OR IGNORE INTO task_goal_links(task_id,goal_id) VALUES (?,?)');
