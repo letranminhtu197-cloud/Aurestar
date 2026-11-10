@@ -1,0 +1,94 @@
+{
+  "name": "aurestar-desktop",
+  "version": "3.0.0",
+  "description": "Aurestar — offline-first personal productivity workspace",
+  "author": "Aurestar",
+  "license": "UNLICENSED",
+  "main": "src/main.cjs",
+  "scripts": {
+    "prebuild": "node scripts/make-icon.cjs",
+    "dev": "npm run build && electron .",
+    "typecheck": "tsc --noEmit",
+    "build:ui": "vite build",
+    "build": "npm run typecheck && npm run build:ui",
+    "test": "node --test",
+    "check": "node --check scripts/smoke-electron.cjs && node scripts/check-source.cjs && npm run typecheck",
+    "dist:win": "npm run build && electron-builder --win nsis portable --publish never"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.0.3",
+    "lucide-react": "^0.468.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "zustand": "^5.0.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.17",
+    "@types/node": "^24.10.0",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "electron": "45.2.1",
+    "electron-builder": "26.18.0",
+    "tailwindcss": "^4.1.17",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.2"
+  },
+  "build": {
+    "appId": "com.aurestar.desktop",
+    "productName": "Aurestar",
+    "asar": true,
+    "npmRebuild": false,
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "package.json",
+      "!src/**/*.map",
+      "!src/**/test/**"
+    ],
+    "extraResources": [
+      {
+        "from": "resources/aurestar-chrome/background.js",
+        "to": "aurestar-chrome/background.js"
+      },
+      {
+        "from": "resources/itsuki",
+        "to": "itsuki"
+      }
+    ],
+    "artifactName": "Aurestar-${version}-${arch}.${ext}",
+    "win": {
+      "icon": "src/icons/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "signAndEditExecutable": true,
+      "signExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "deleteAppDataOnUninstall": false
+    },
+    "portable": {
+      "artifactName": "Aurestar-${version}-Portable-${arch}.${ext}"
+    }
+  }
+}
