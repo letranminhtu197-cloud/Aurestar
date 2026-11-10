@@ -96,6 +96,7 @@ test('journal reflection fields and goal/project/task links are stored atomicall
  assert.equal(entry.mood,'calm');assert.equal(entry.energy,4);assert.equal(entry.wins,'Win');
  assert.deepEqual(entry.goalIds,[goal.id]);assert.deepEqual(entry.projectIds,[project.id]);assert.deepEqual(entry.taskIds,[task.id]);
  assert.equal(db.phase2.listJournalEntries()[0].tomorrow_focus,'Next');
+ assert.ok(db.phase2.searchAll('Challenge').some(x=>x.type==='journal'&&x.id===entry.id));
  assert.equal(db.phase2.deleteJournalEntry(entry.id),true);
  assert.equal(db.phase2.listJournalEntries().length,0);
 });
@@ -138,4 +139,19 @@ test('journal entries and entity links survive schema migration',t=>{
  const restored=second.phase2.listJournalEntries()[0];
  assert.equal(restored.id,entry.id);assert.deepEqual(restored.goalIds,[goal.id]);
  assert.equal(second.loadWorkspace().goals[0].id,goal.id);
+});
+
+test('insights aggregate focus, habit and goal data over a selected period',t=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'aurestar-insights-'));
+ const {createDatabase}=require('../src/core/sqlite.cjs'),db=createDatabase(path.join(dir,'db.sqlite'));
+ t.after(()=>{db.close();fs.rmSync(dir,{recursive:true,force:true});});
+ const goal=db.saveGoal({title:'Analytics goal'});
+ const habit=db.phase2.saveHabit({name:'Analytics habit',frequency:'daily'});
+ const today=new Date().toISOString().slice(0,10);
+ db.phase2.logHabit({habitId:habit.id,date:today,completedCount:1});
+ db.phase2.saveFocusSession({sessionType:'focus',startedAt:new Date().toISOString(),endedAt:new Date().toISOString(),plannedSeconds:1500,actualSeconds:1200,status:'completed'});
+ const data=db.phase2.getInsights('2000-01-01','2999-12-31');
+ assert.equal(data.focus.sessions,1);assert.equal(data.focus.seconds,1200);
+ assert.equal(data.habits.completions,1);assert.equal(data.goals.active,1);
+ assert.ok(data.habits.average_weekly_consistency>=0);
 });
