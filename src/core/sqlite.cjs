@@ -319,7 +319,7 @@ function createDatabase(filePath) {
     return result;
   }
   function saveSettings(input = {}) {
-    const keys = new Set(['theme','density','sidebarCollapsed','defaultLandingPage']);
+    const keys = new Set(['theme','density','sidebarCollapsed','defaultLandingPage','accentColor','fontSize','language','dateFormat','timeFormat','weekStartsOn','taskDefaultPriority','taskDefaultView','taskSort','focusDurationMinutes','shortBreakMinutes','longBreakMinutes','longBreakInterval','focusSoundEnabled','focusAutoStartBreaks','focusAutoStartSessions','journalDefaultType','journalAutosave','notificationsEnabled','privacyMode','backupReminderEnabled']);
     const stamp = now(), upsert = db.prepare('INSERT INTO settings(key,value,updated_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at');
     const normalized = {};
     for (const [key,value] of Object.entries(input)) {
@@ -327,7 +327,14 @@ function createDatabase(filePath) {
       if (key === 'theme' && !['dark','light','system'].includes(value)) throw new Error('Invalid theme setting.');
       if (key === 'density' && !['comfortable','compact'].includes(value)) throw new Error('Invalid density setting.');
       if (key === 'sidebarCollapsed' && typeof value !== 'boolean') throw new Error('Invalid sidebar setting.');
-      if (key === 'defaultLandingPage' && !['home','goals','projects','tasks'].includes(value)) throw new Error('Invalid default page.');
+      if (key === 'defaultLandingPage' && !['home','goals','projects','tasks','habits','focus','journal','review','insights'].includes(value)) throw new Error('Invalid default page.');
+      if (key === 'weekStartsOn' && ![0,1,2,3,4,5,6].includes(value)) throw new Error('Invalid first day of week.');
+      if (['focusDurationMinutes','shortBreakMinutes','longBreakMinutes','longBreakInterval','fontSize'].includes(key) && (!Number.isInteger(value) || value<1 || value>180)) throw new Error('Invalid numeric preference: '+key+'.');
+      if (['journalAutosave','notificationsEnabled','privacyMode','backupReminderEnabled','focusSoundEnabled','focusAutoStartBreaks','focusAutoStartSessions'].includes(key) && typeof value!=='boolean') throw new Error('Invalid boolean preference: '+key+'.');
+      if (key==='taskDefaultPriority' && !['low','medium','high','urgent'].includes(value)) throw new Error('Invalid task priority.');
+      if (key==='taskDefaultView' && !['list','board','calendar'].includes(value)) throw new Error('Invalid task view.');
+      if (key==='journalDefaultType' && !['reflection','freewriting'].includes(value)) throw new Error('Invalid journal type.');
+      if (key==='accentColor' && !/^#[0-9a-f]{6}$/i.test(String(value))) throw new Error('Invalid accent color.');
       normalized[key] = value;
     }
     db.transaction(() => { for (const [key,value] of Object.entries(normalized)) upsert.run(key, JSON.stringify(value), stamp); })();
