@@ -25,11 +25,11 @@ function readZipBackup(filePath){
  const zip=fs.readFileSync(filePath);let eocd=-1;
  for(let i=zip.length-22;i>=Math.max(0,zip.length-65557);i--)if(zip.readUInt32LE(i)===0x06054b50){eocd=i;break;}
  if(eocd<0)throw new Error('Invalid ZIP backup: end record not found.');
- const count=zip.readUInt16LE(eocd+10),offset=zip.readUInt32LE(eocd+16);let cursor=offset,manifest=null,exportJson=null,total=0;
+ const count=zip.readUInt16LE(eocd+10),offset=zip.readUInt32LE(eocd+16);let cursor=offset,manifest=null,exportJson=null,total=0;const seenEntries=new Set();
  for(let i=0;i<count;i++){
   if(zip.readUInt32LE(cursor)!==0x02014b50)throw new Error('Invalid ZIP central directory.');
   const method=zip.readUInt16LE(cursor+10),crcExpected=zip.readUInt32LE(cursor+16),compressedSize=zip.readUInt32LE(cursor+20),uncompressedSize=zip.readUInt32LE(cursor+24),nameLen=zip.readUInt16LE(cursor+28),extraLen=zip.readUInt16LE(cursor+30),commentLen=zip.readUInt16LE(cursor+32),localOffset=zip.readUInt32LE(cursor+42);
-  const name=zip.subarray(cursor+46,cursor+46+nameLen).toString('utf8');
+  const name=zip.subarray(cursor+46,cursor+46+nameLen).toString('utf8');seenEntries.add(name);
   if(!name||name.startsWith('/')||name.split('/').some(part=>part==='..'||part===''))throw new Error('Unsafe ZIP entry path.');
   {
    total+=uncompressedSize;if(uncompressedSize>256*1024*1024||total>512*1024*1024)throw new Error('ZIP backup exceeds the supported size limit.');
@@ -45,7 +45,7 @@ function readZipBackup(filePath){
   }
   cursor+=46+nameLen+extraLen+commentLen;
  }
- if(!manifest||manifest.format!=='aurestar-zip-backup'||!Array.isArray(manifest.files)||!manifest.files.includes('aurestar.sqlite')||!manifest.files.includes('metadata.json'))throw new Error('ZIP backup manifest is missing required database or metadata files.');
+ if(!manifest||manifest.format!=='aurestar-zip-backup'||!Array.isArray(manifest.files)||!manifest.files.includes('aurestar.sqlite')||!manifest.files.includes('metadata.json')||manifest.files.some(name=>!seenEntries.has(name)))throw new Error('ZIP backup manifest is missing required database or metadata files.');
  if(!exportJson||exportJson.format!=='aurestar-sqlite-export')throw new Error('ZIP backup does not contain a valid Aurestar export.');
  return exportJson;
 }
