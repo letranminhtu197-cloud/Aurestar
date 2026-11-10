@@ -29,7 +29,7 @@
 .task-view-actions select{border:0;background:transparent;color:var(--text);font-size:10px}
 .inline-select{max-width:112px;min-width:0;padding:6px 7px;border:1px solid var(--line);border-radius:7px;background:var(--surface-2);color:var(--text);font-size:10px;text-transform:capitalize}
 .task-table-head,.task-table-row{grid-template-columns:28px minmax(160px,1.7fr) 105px 90px minmax(85px,.8fr) 110px 116px}
-.task-table-head span:first-child{grid-column:auto}
+.task-table-head span:first-child{grid-column:1/3}
 .task-table-row>.entity-actions{justify-content:flex-end}
 .task-board,.project-board{display:grid;grid-template-columns:repeat(5,minmax(210px,1fr));gap:12px;overflow:auto;padding-bottom:8px;align-items:start}
 .project-board{grid-template-columns:repeat(3,minmax(230px,1fr))}
