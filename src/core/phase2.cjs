@@ -151,52 +151,66 @@ function attachPhase2(db) {
       .run(k,JSON.stringify(value),now());
     return value;
   }
+  const exportTables=['goals','milestones','projects','project_goal_links','tasks','task_goal_links','tags','task_tags','settings','habits','habit_logs','focus_sessions','journal_entries','journal_goal_links','journal_project_links','journal_task_links','weekly_reviews'];
+  const importKeys={project_goal_links:['project_id','goal_id'],task_goal_links:['task_id','goal_id'],task_tags:['task_id','tag_id'],habit_logs:['habit_id','log_date'],journal_entries:['entry_date'],weekly_reviews:['week_start'],settings:['key'],journal_goal_links:['journal_id','goal_id'],journal_project_links:['journal_id','project_id'],journal_task_links:['journal_id','task_id']};
   function exportData() {
-    const tables=['goals','milestones','projects','project_goal_links','tasks','task_goal_links','tags','task_tags','settings','habits','habit_logs','focus_sessions','journal_entries','journal_goal_links','journal_project_links','journal_task_links','weekly_reviews'];
-    const data={format:'aurestar-sqlite-export',version:1,exportedAt:now(),tables:{}};
-    for(const table of tables) data.tables[table]=db.prepare('SELECT * FROM '+table).all();
+    const data={format:'aurestar-sqlite-export',version:2,schemaVersion:db.pragma('user_version',{simple:true}),exportedAt:now(),app:'Aurestar',tables:{}};
+    for(const table of exportTables) data.tables[table]=db.prepare('SELECT * FROM '+table).all();
     return data;
   }
   function previewImport(payload) {
-    if(!payload||payload.format!=='aurestar-sqlite-export'||!payload.tables||typeof payload.tables!=='object') throw new Error('Unsupported Aurestar export format.');
-    const allowedTables=['goals','milestones','projects','project_goal_links','tasks','task_goal_links','tags','task_tags','settings','habits','habit_logs','focus_sessions','journal_entries','journal_goal_links','journal_project_links','journal_task_links','weekly_reviews'];
+    if(!payload||payload.format!=='aurestar-sqlite-export'||!payload.tables||typeof payload.tables!=='object'||Array.isArray(payload.tables)) throw new Error('Unsupported Aurestar export format.');
+    const schemaVersion=Number(payload.schemaVersion||1),currentVersion=db.pragma('user_version',{simple:true});
+    if(!Number.isInteger(schemaVersion)||schemaVersion<1||schemaVersion>currentVersion) throw new Error('Backup schema version is not supported by this application.');
+    for(const table of Object.keys(payload.tables)) if(!exportTables.includes(table)) throw new Error('Unsupported table in import: '+table);
     const summary={};
-    for(const table of allowedTables) {
+    for(const table of exportTables) {
       const rows=payload.tables[table]??[];
       if(!Array.isArray(rows)) throw new Error('Invalid table data: '+table);
-      summary[table]={incoming:rows.length,existing:db.prepare('SELECT COUNT(*) n FROM '+table).get().n};
-      for(const row of rows) if(!row||typeof row!=='object'||Array.isArray(row)) throw new Error('Invalid row in '+table);
+      const columns=new Set(db.pragma('table_info('+table+')').map(column=>column.name));
+      const keys=importKeys[table]||['id'];
+      let duplicates=0;
+      for(const row of rows) {
+        if(!row||typeof row!=='object'||Array.isArray(row)) throw new Error('Invalid row in '+table);
+        const rowKeys=Object.keys(row);
+        if(rowKeys.some(key=>!columns.has(key))) throw new Error('Unknown column in '+table);
+        if(!keys.every(key=>Object.hasOwn(row,key))) throw new Error('Missing primary key in '+table);
+        if(db.prepare('SELECT 1 FROM '+table+' WHERE '+keys.map(key=>'`'+key+'`=?').join(' AND ')).get(...keys.map(key=>row[key]))) duplicates++;
+      }
+      summary[table]={incoming:rows.length,existing:db.prepare('SELECT COUNT(*) n FROM '+table).get().n,duplicates,newRecords:rows.length-duplicates};
     }
-    return {valid:true,version:payload.version||0,summary};
+    return {valid:true,version:payload.version||0,schemaVersion,summary};
   }
   function importData(payload,mode='merge') {
     const preview=previewImport(payload);
     if(!['merge','update','replace'].includes(mode)) throw new Error('Unsupported import mode.');
     const tables=['goals','projects','tasks','tags','milestones','project_goal_links','task_goal_links','task_tags','habits','habit_logs','focus_sessions','journal_entries','weekly_reviews','settings','journal_goal_links','journal_project_links','journal_task_links'];
-    const primary={project_goal_links:['project_id','goal_id'],task_goal_links:['task_id','goal_id'],task_tags:['task_id','tag_id'],habit_logs:['habit_id','log_date'],journal_entries:['entry_date'],weekly_reviews:['week_start'],settings:['key'],journal_goal_links:['journal_id','goal_id'],journal_project_links:['journal_id','project_id'],journal_task_links:['journal_id','task_id']};
+    const report={inserted:0,updated:0,skipped:0};
     const transaction=db.transaction(()=>{
-      if(mode==='replace') for(const table of ['habit_logs','focus_sessions','journal_entries','weekly_reviews','task_tags','task_goal_links','project_goal_links','milestones','tasks','projects','goals','tags','habits','settings']) db.prepare('DELETE FROM '+table).run();
+      if(mode==='replace') for(const table of ['habit_logs','focus_sessions','journal_goal_links','journal_project_links','journal_task_links','journal_entries','weekly_reviews','task_tags','task_goal_links','project_goal_links','milestones','tasks','projects','goals','tags','habits','settings']) db.prepare('DELETE FROM '+table).run();
       for(const table of tables) {
-        const rows=payload.tables[table]||[];
+        const rows=payload.tables[table]||[],keys=importKeys[table]||['id'];
+        const columns=new Set(db.pragma('table_info('+table+')').map(column=>column.name));
         for(const row of rows) {
-          const keys=Object.keys(row);
-          if(!keys.length) continue;
-          const allowedColumns=new Set(db.prepare('PRAGMA table_info('+table+')').all().map(column=>column.name));
-          if(keys.some(key=>!allowedColumns.has(key))) throw new Error('Unknown column in '+table);
-          const pk=primary[table]||['id'];
-          if(!pk.every(k=>Object.hasOwn(row,k))) throw new Error('Missing primary key in '+table);
-          const conflict=pk.join(',');
-          const columns=keys.map(k=>'`'+k+'`').join(',');
-          const placeholders=keys.map(()=>'?').join(',');
-          const updates=keys.filter(k=>!pk.includes(k)).map(k=>'`'+k+'`=excluded.`'+k+'`').join(',');
-          const sql=`INSERT INTO ${table}(${columns}) VALUES(${placeholders}) ON CONFLICT(${conflict}) ${updates?'DO UPDATE SET '+updates:'DO NOTHING'}`;
-          if(mode==='merge' && db.prepare('SELECT 1 FROM '+table+' WHERE '+pk.map(k=>'`'+k+'`=?').join(' AND ')).get(...pk.map(k=>row[k]))) continue;
-          db.prepare(sql).run(...keys.map(k=>row[k]));
+          const rowKeys=Object.keys(row);
+          if(rowKeys.some(key=>!columns.has(key))) throw new Error('Unknown column in '+table);
+          if(!keys.every(key=>Object.hasOwn(row,key))) throw new Error('Missing primary key in '+table);
+          const exists=Boolean(db.prepare('SELECT 1 FROM '+table+' WHERE '+keys.map(key=>'`'+key+'`=?').join(' AND ')).get(...keys.map(key=>row[key])));
+          if(mode==='merge'&&exists){report.skipped++;continue;}
+          const cols=rowKeys.map(key=>'`'+key+'`').join(','),placeholders=rowKeys.map(()=>'?').join(',');
+          const updates=rowKeys.filter(key=>!keys.includes(key)).map(key=>'`'+key+'`=excluded.`'+key+'`').join(',');
+          const sql=`INSERT INTO ${table}(${cols}) VALUES(${placeholders}) ON CONFLICT(${keys.join(',')}) ${updates?'DO UPDATE SET '+updates:'DO NOTHING'}`;
+          db.prepare(sql).run(...rowKeys.map(key=>row[key]));
+          if(mode==='update'&&exists)report.updated++;else report.inserted++;
         }
       }
+      const fk=db.pragma('foreign_key_check');
+      if(fk.length) throw new Error('Import failed integrity validation: foreign key violations were detected.');
+      const check=db.pragma('quick_check',{simple:true});
+      if(check!=='ok') throw new Error('Import failed SQLite integrity verification.');
     });
     transaction();
-    return {ok:true,mode,preview};
+    return {ok:true,mode,report,preview,integrity:'ok'};
   }
   return {saveHabit,deleteHabit,archiveHabit,logHabit,listHabits:habitList,listHabitLogs,saveFocusSession,listFocusSessions,
     saveJournalEntry,deleteJournalEntry,listJournalEntries,saveWeeklyReview,listWeeklyReviews,searchAll,getInsights,
