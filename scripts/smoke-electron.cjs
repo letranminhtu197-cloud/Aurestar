@@ -99,8 +99,14 @@ async function main() {
       'const pause = ms => new Promise(resolve => setTimeout(resolve, ms));',
       'for (let i = 0; i < 40; i++) { const root = document.querySelector("#root"); if (root && root.innerText.includes("AURESTAR")) break; await pause(250); }',
       'const root = document.querySelector("#root"); if (!root || !root.innerText.includes("AURESTAR")) throw new Error("Renderer did not recover after page reload.");',
-      'const goalsNav = [...document.querySelectorAll(".nav-item")].find(button => button.innerText.includes("Goals")); goalsNav?.click(); await pause(150);',
-      'if (![...document.querySelectorAll("h2")].some(el => el.innerText === "Goals")) throw new Error("Goals navigation failed.");',
+      'const goalsNav = [...document.querySelectorAll(".nav-item")].find(button => button.innerText.includes("Goals")); goalsNav?.click(); await pause(500);',
+      'if (!document.querySelector("#root")?.innerText.includes("AURESTAR CI restart marker")) throw new Error("Goals view did not load the persisted Goal after reload.");',
+      'return { ok: true, mode: "ui-after-reload", page: "Goals", persistedGoalVisible: true };',
+      '})()'
+    ].join('\n');
+    const uiAfterSearch = [
+      '(async () => {',
+      'const pause = ms => new Promise(resolve => setTimeout(resolve, ms));',
       'const projectsNav = [...document.querySelectorAll(".nav-item")].find(button => button.innerText.includes("Projects")); projectsNav?.click(); await pause(150);',
       'if (![...document.querySelectorAll("h2")].some(el => el.innerText === "Projects")) throw new Error("Projects navigation failed.");',
       'const tasksNav = [...document.querySelectorAll(".nav-item")].find(button => button.innerText.includes("Tasks")); tasksNav?.click(); await pause(150);',
@@ -108,9 +114,10 @@ async function main() {
       'const quick = [...document.querySelectorAll("button")].find(button => button.innerText.includes("Quick Add")); quick?.click(); await pause(150);',
       'if (!document.querySelector(".editor-modal")) throw new Error("Quick Add did not open the task editor.");',
       'document.querySelector(".editor-modal .modal-head .icon-button")?.click();',
-      'return { ok: true, mode: "ui-after-reload", page: "Tasks", globalSearch: true, quickAdd: true };',
+      'return { ok: true, mode: "navigation-after-search", pages: ["Projects", "Tasks"], quickAdd: true };',
       '})()'
     ].join('\n');
+
     const verifyExpression = [
       '(async () => {',
       'const api = window.aurestarV2;',
@@ -134,15 +141,17 @@ async function main() {
       await send('Page.reload', { ignoreCache: true });
       await new Promise(resolve => setTimeout(resolve, 1200));
       for (let i = 0; i < 40; i++) { try { const ready = await send('Runtime.evaluate', { expression: 'document.readyState', returnByValue: true }); const shell = await send('Runtime.evaluate', { expression: '!!document.querySelector(\"#root\") && !document.querySelector(\".loading-state\")', returnByValue: true }); if (ready.result?.value === 'complete' && shell.result?.value === true) break; } catch {} await new Promise(resolve => setTimeout(resolve, 250)); }
+      const uiResult = await send('Runtime.evaluate', { expression: uiAfterReload, awaitPromise: true, returnByValue: true });
+      if (uiResult.exceptionDetails || !uiResult.result?.value?.ok) throw new Error(uiResult.exceptionDetails?.text || uiResult.result?.value?.error || 'Post-reload UI smoke test failed.');
       await send('Runtime.evaluate', { expression: 'document.querySelector(".top-search input")?.focus()', returnByValue: true });
       await send('Input.insertText', { text: 'AURESTAR CI restart marker' });
       await new Promise(resolve => setTimeout(resolve, 400));
       const searchResult = await send('Runtime.evaluate', { expression: 'document.querySelector(".search-results")?.innerText.includes("AURESTAR CI restart marker") === true', returnByValue: true });
       if (searchResult.result?.value !== true) throw new Error('Global search did not return the persisted Goal after reload.');
       await send('Runtime.evaluate', { expression: 'document.querySelector(".top-search input")?.blur()', returnByValue: true });
-      const uiResult = await send('Runtime.evaluate', { expression: uiAfterReload, awaitPromise: true, returnByValue: true });
-      if (uiResult.exceptionDetails || !uiResult.result?.value?.ok) throw new Error(uiResult.exceptionDetails?.text || uiResult.result?.value?.error || 'Post-reload UI smoke test failed.');
-      process.stdout.write('Renderer UI smoke test passed: ' + JSON.stringify(uiResult.result.value) + '\\n');
+      const navResult = await send('Runtime.evaluate', { expression: uiAfterSearch, awaitPromise: true, returnByValue: true });
+      if (navResult.exceptionDetails || !navResult.result?.value?.ok) throw new Error(navResult.exceptionDetails?.text || navResult.result?.value?.error || 'Navigation/Quick Add smoke test failed.');
+      process.stdout.write('Renderer UI smoke test passed: ' + JSON.stringify(uiResult.result.value) + ' ' + JSON.stringify(navResult.result.value) + '\n');
     }
 
     if (result.exceptionDetails) throw new Error(result.exceptionDetails.text || 'Renderer smoke test threw an exception.');
