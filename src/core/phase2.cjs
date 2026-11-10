@@ -140,6 +140,8 @@ function attachPhase2(db) {
         for(const row of rows) {
           const keys=Object.keys(row);
           if(!keys.length) continue;
+          const allowedColumns=new Set(db.prepare('PRAGMA table_info('+table+')').all().map(column=>column.name));
+          if(keys.some(key=>!allowedColumns.has(key))) throw new Error('Unknown column in '+table);
           const pk=primary[table]||['id'];
           if(!pk.every(k=>Object.hasOwn(row,k))) throw new Error('Missing primary key in '+table);
           const conflict=pk.join(',');
