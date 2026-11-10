@@ -89,7 +89,11 @@ function attachPhase2(db) {
     return db.prepare('SELECT f.*,t.title AS task_title FROM focus_sessions f LEFT JOIN tasks t ON t.id=f.task_id ORDER BY f.started_at DESC LIMIT ?').all(Math.max(1,Math.min(5000,Number(limit)||500)));
   }
   function saveJournalEntry(input={}) {
-    const entryDate=date(input.date)||new Date().toISOString().slice(0,10), id=clean(input.id,80)||randomUUID(), stamp=now();
+    const entryDate=date(input.date)||new Date().toISOString().slice(0,10), requestedId=clean(input.id,80), stamp=now();
+    const existingById=requestedId?db.prepare('SELECT id FROM journal_entries WHERE id=?').get(requestedId):null;
+    const existingByDate=db.prepare('SELECT id FROM journal_entries WHERE entry_date=?').get(entryDate);
+    if(existingById&&existingByDate&&existingById.id!==existingByDate.id)throw new Error('A different journal entry already exists for this date.');
+    const id=existingById?.id||existingByDate?.id||requestedId||randomUUID();
     const entryType=enumValue(input.entryType,['reflection','freewriting'],'reflection');
     const mood=clean(input.mood,40)||null,energy=input.energy==null?null:Math.max(1,Math.min(5,Math.round(Number(input.energy)||1)));
     const transaction=db.transaction(()=>{
