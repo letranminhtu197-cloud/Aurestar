@@ -153,12 +153,36 @@ function attachPhase2(db) {
     return rows.sort((a,b)=>String(b.updated_at||'').localeCompare(String(a.updated_at||''))).slice(0,Math.max(1,Math.min(200,limit)));
   }
   function getInsights(from,to) {
-    const start=date(from)||new Date(Date.now()-29*86400000).toISOString().slice(0,10), end=date(to)||new Date().toISOString().slice(0,10);
-    const tasks=db.prepare(`SELECT COUNT(*) total,SUM(status='completed') completed FROM tasks WHERE date(updated_at) BETWEEN ? AND ? AND archived_at IS NULL`).get(start,end);
-    const focus=db.prepare(`SELECT COUNT(*) sessions,COALESCE(SUM(actual_seconds),0) seconds FROM focus_sessions WHERE session_type='focus' AND status='completed' AND date(started_at) BETWEEN ? AND ?`).get(start,end);
-    const habits=db.prepare(`SELECT COUNT(*) logs,COALESCE(SUM(completed_count),0) completions FROM habit_logs WHERE log_date BETWEEN ? AND ?`).get(start,end);
-    const daily=db.prepare(`SELECT date(started_at) day,COUNT(*) sessions,COALESCE(SUM(actual_seconds),0) seconds FROM focus_sessions WHERE session_type='focus' AND status='completed' AND date(started_at) BETWEEN ? AND ? GROUP BY date(started_at) ORDER BY day`).all(start,end);
-    return {from:start,to:end,tasks,focus,habits,daily};
+    const start=date(from)||new Date(Date.now()-29*86400000).toISOString().slice(0,10),end=date(to)||new Date().toISOString().slice(0,10);
+    if(end<start)throw new Error('Insights end date must be on or after start date.');
+    const tasks=db.prepare(`SELECT COUNT(*) created,
+      (SELECT COUNT(*) FROM tasks WHERE archived_at IS NULL AND date(completed_at) BETWEEN ? AND ?) completed,
+      (SELECT COUNT(*) FROM tasks WHERE archived_at IS NULL AND due_date BETWEEN ? AND ? AND status NOT IN ('completed','cancelled')) overdue
+      FROM tasks WHERE archived_at IS NULL AND date(created_at) BETWEEN ? AND ?`).get(start,end,start,end,start,end);
+    tasks.completion_rate=tasks.created?Math.round(tasks.completed/tasks.created*100):0;
+    const taskTrend=db.prepare(`SELECT date(completed_at) day,COUNT(*) completed FROM tasks WHERE archived_at IS NULL AND status='completed'
+      AND date(completed_at) BETWEEN ? AND ? GROUP BY date(completed_at) ORDER BY day`).all(start,end);
+    const focus=db.prepare(`SELECT COUNT(*) sessions,COALESCE(SUM(actual_seconds),0) seconds,
+      COALESCE(AVG(actual_seconds),0) average_seconds FROM focus_sessions WHERE session_type='focus' AND status='completed'
+      AND date(started_at) BETWEEN ? AND ?`).get(start,end);
+    const daily=db.prepare(`SELECT date(started_at) day,COUNT(*) sessions,COALESCE(SUM(actual_seconds),0) seconds FROM focus_sessions
+      WHERE session_type='focus' AND status='completed' AND date(started_at) BETWEEN ? AND ? GROUP BY date(started_at) ORDER BY day`).all(start,end);
+    const byWeekday=db.prepare(`SELECT strftime('%w',started_at) weekday,COUNT(*) sessions,COALESCE(SUM(actual_seconds),0) seconds FROM focus_sessions
+      WHERE session_type='focus' AND status='completed' AND date(started_at) BETWEEN ? AND ? GROUP BY weekday ORDER BY weekday`).all(start,end);
+    const byHour=db.prepare(`SELECT strftime('%H',started_at) hour,COUNT(*) sessions FROM focus_sessions
+      WHERE session_type='focus' AND status='completed' AND date(started_at) BETWEEN ? AND ? GROUP BY hour ORDER BY hour`).all(start,end);
+    const byTask=db.prepare(`SELECT t.id task_id,t.title,COUNT(f.id) sessions,COALESCE(SUM(f.actual_seconds),0) seconds FROM focus_sessions f
+      LEFT JOIN tasks t ON t.id=f.task_id WHERE f.session_type='focus' AND f.status='completed' AND date(f.started_at) BETWEEN ? AND ?
+      GROUP BY t.id,t.title ORDER BY seconds DESC LIMIT 20`).all(start,end);
+    const goals=db.prepare(`SELECT SUM(status='active' AND archived_at IS NULL) active,SUM(status='completed' AND archived_at IS NULL) completed,
+      COALESCE(AVG(CASE WHEN archived_at IS NULL THEN progress_value END),0) average_progress FROM goals`).get();
+    const milestones=db.prepare(`SELECT COUNT(*) total,SUM(status='completed') completed FROM milestones`).get();
+    const habits=db.prepare(`SELECT COUNT(*) logs,COALESCE(SUM(completed_count),0) completions,COUNT(DISTINCT habit_id) tracked
+      FROM habit_logs WHERE log_date BETWEEN ? AND ? AND completed=1`).get(start,end);
+    const habitStats=habitList().filter(h=>!h.archived_at);
+    habits.average_weekly_consistency=habitStats.length?Math.round(habitStats.reduce((n,h)=>n+h.weekly_consistency,0)/habitStats.length):0;
+    habits.average_monthly_consistency=habitStats.length?Math.round(habitStats.reduce((n,h)=>n+h.monthly_consistency,0)/habitStats.length):0;
+    return {from:start,to:end,tasks,taskTrend,focus,daily,byWeekday,byHour,byTask,goals,milestones,habits};
   }
   function savePreference(key,value) {
     const k=clean(key,80); if(!k) throw new Error('Setting key is required.');
