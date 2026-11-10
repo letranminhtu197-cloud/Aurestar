@@ -15,11 +15,12 @@ function attachPhase2(db) {
       (SELECT completed_count FROM habit_logs l WHERE l.habit_id=h.id AND l.log_date=date('now','localtime')) AS today_count
       FROM habits h ORDER BY h.archived_at IS NOT NULL,h.created_at DESC`).all();
     const allLogs=db.prepare('SELECT habit_id,log_date,completed,completed_count FROM habit_logs ORDER BY log_date').all();
+    const logsByHabit=new Map();for(const row of allLogs){if(!logsByHabit.has(row.habit_id))logsByHabit.set(row.habit_id,[]);logsByHabit.get(row.habit_id).push(row);}
     const today=new Date();today.setHours(12,0,0,0);
     const fmt=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
     const shift=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x;};
     return habits.map(h=>{
-      const logs=allLogs.filter(x=>x.habit_id===h.id), done=new Set(logs.filter(x=>x.completed&&x.completed_count>0).map(x=>x.log_date));
+      const logs=logsByHabit.get(h.id)||[], done=new Set(logs.filter(x=>x.completed&&x.completed_count>0).map(x=>x.log_date));
       let weekdays=[];try{weekdays=JSON.parse(h.selected_weekdays||'[]');}catch{}
       const scheduled=d=>{const key=fmt(d);if(h.start_date&&key<h.start_date)return false;if(h.end_date&&key>h.end_date)return false;const day=d.getDay();if(h.frequency==='daily')return true;if(h.frequency==='weekdays')return weekdays.length?weekdays.includes(day):day>=1&&day<=5;if(h.frequency==='weekly')return true;return weekdays.includes(day);};
       let current=0, longest=0, streak=0;let first=logs[0]?.log_date||h.start_date||fmt(shift(today,-365));const firstDate=new Date(first+'T12:00:00');
