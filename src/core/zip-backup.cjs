@@ -34,7 +34,9 @@ function readZipBackup(filePath){
   {
    total+=uncompressedSize;if(uncompressedSize>256*1024*1024||total>512*1024*1024)throw new Error('ZIP backup exceeds the supported size limit.');
    if(zip.readUInt32LE(localOffset)!==0x04034b50)throw new Error('Invalid ZIP local header.');
-   const localName=zip.readUInt16LE(localOffset+26),localExtra=zip.readUInt16LE(localOffset+28),start=localOffset+30+localName+localExtra;
+   const localName=zip.readUInt16LE(localOffset+26),localExtra=zip.readUInt16LE(localOffset+28),localNameText=zip.subarray(localOffset+30,localOffset+30+localName).toString('utf8');
+   if(localNameText!==name)throw new Error('ZIP local and central entry names do not match.');
+   const start=localOffset+30+localName+localExtra;
    const packed=zip.subarray(start,start+compressedSize),data=method===0?packed:method===8?zlib.inflateRawSync(packed,{maxOutputLength:256*1024*1024}):null;
    if(!data)throw new Error('Unsupported ZIP compression method.');
    if(data.length!==uncompressedSize||crc32(data)!==crcExpected)throw new Error('ZIP backup integrity check failed.');
