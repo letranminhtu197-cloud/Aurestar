@@ -17,6 +17,7 @@ export function shiftLocalDate(value: string, days: number): string {
 }
 
 export function localWeekStart(value: Date = new Date(), weekStartsOn = 1): string {
+  if (!Number.isInteger(weekStartsOn) || weekStartsOn < 0 || weekStartsOn > 6) throw new Error('Week start must be between 0 and 6.');
   const date = new Date(value.getFullYear(), value.getMonth(), value.getDate(), 12);
   const offset = (date.getDay() - weekStartsOn + 7) % 7;
   date.setDate(date.getDate() - offset);
