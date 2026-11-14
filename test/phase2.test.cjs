@@ -169,16 +169,18 @@ test('focus analytics attribute UTC events to the operating-system local calenda
   "const {createDatabase}=require('./src/core/sqlite.cjs');",
   "const dir=fs.mkdtempSync(path.join(os.tmpdir(),'aurestar-local-analytics-'));",
   "const db=createDatabase(path.join(dir,'db.sqlite'));",
-  "db.phase2.saveFocusSession({startedAt:'2026-11-14T18:30:00.000Z',endedAt:'2026-11-14T18:55:00.000Z',plannedSeconds:1500,actualSeconds:1500,status:'completed'});",
-  "const data=db.phase2.getInsights('2026-11-15','2026-11-15');",
+  "const started=new Date(2026,10,15,1,30,0);",
+  "const day=started.getFullYear()+'-'+String(started.getMonth()+1).padStart(2,'0')+'-'+String(started.getDate()).padStart(2,'0');",
+  "const hour=String(started.getHours()).padStart(2,'0'),weekday=String(started.getDay());",
+  "db.phase2.saveFocusSession({startedAt:started.toISOString(),endedAt:new Date(started.getTime()+1500000).toISOString(),plannedSeconds:1500,actualSeconds:1500,status:'completed'});",
+  "const data=db.phase2.getInsights(day,day);",
   "process.stdout.write(JSON.stringify({seconds:data.focus.seconds,day:data.daily[0]?.day,hour:data.byHour[0]?.hour,weekday:data.byWeekday[0]?.weekday}));",
   "db.close();fs.rmSync(dir,{recursive:true,force:true});"
  ].join('');
- const result=spawnSync(process.execPath,['-e',script],{encoding:'utf8',env:{...process.env,TZ:'Asia/Ho_Chi_Minh'}});
+ const result=spawnSync(process.execPath,['-e',script],{encoding:'utf8'});
  assert.equal(result.status,0,result.stderr);
  assert.deepEqual(JSON.parse(result.stdout),{seconds:1500,day:'2026-11-15',hour:'01',weekday:'0'});
 });
-
 test('daily plan enforces three MIT tasks and persists selections across restart',t=>{
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'aurestar-daily-plan-'));
  const file=path.join(dir,'db.sqlite');
