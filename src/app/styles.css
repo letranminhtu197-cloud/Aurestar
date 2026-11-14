@@ -50,3 +50,112 @@
 
 .brand-mark span{font-size:19px;font-weight:850;letter-spacing:-.08em;color:var(--gold)}.brand-mark:after{content:'✦';position:absolute;right:4px;top:2px;font-size:9px;color:var(--gold)}
 .task-table-head span:first-child{grid-column:1/3}
+
+
+/* Phase 1 Overview — dark plum / Itsuki gold, low-cost surfaces */
+:root:not([data-theme=light]){
+  --bg:#0a060e;--sidebar:#100a14;--surface:#180f17;--surface-2:#221520;--surface-3:#2b1b29;
+  --line:rgba(255,255,255,.085);--text:#f8f6f4;--muted:#aba1ab;--muted-2:#786e77;
+  --primary:#e05252;--primary-hover:#f06565;--rose:#e05252;--gold:#e2b764;
+  --success:#34d399;--danger:#f07878;--shadow:0 12px 32px rgba(0,0,0,.22)
+}
+.app-shell{min-width:0}
+.overview-content{display:grid;gap:18px;align-content:start}
+.overview-welcome{display:flex;align-items:flex-end;justify-content:space-between;gap:18px}
+.overview-welcome h2{margin:7px 0 5px;font-size:23px;letter-spacing:-.035em}
+.overview-welcome p{margin:0;color:var(--muted);font-size:12px}
+.overview-actions{display:flex;gap:8px;flex-wrap:wrap}
+.overview-hero-grid{display:grid;grid-template-columns:minmax(0,1.8fr) minmax(300px,1.2fr);gap:14px}
+.commitment-card{position:relative;display:flex;flex-direction:column;justify-content:space-between;gap:22px;min-width:0;padding:20px 22px;border:1px solid rgba(224,82,82,.32);border-radius:13px;background:linear-gradient(135deg,rgba(46,22,38,.96),rgba(20,11,19,.98));box-shadow:0 8px 24px rgba(0,0,0,.2);overflow:hidden}
+.commitment-card:before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:linear-gradient(180deg,var(--rose),var(--gold))}
+.commitment-card-head{display:flex;justify-content:space-between;align-items:center;gap:12px;color:var(--gold);font-size:10px;font-weight:800;letter-spacing:.12em}
+.commitment-status{padding:4px 8px;border:1px solid rgba(226,183,100,.24);border-radius:6px;color:var(--muted);font-size:10px;letter-spacing:0;font-weight:650;white-space:nowrap}
+.commitment-status.met{border-color:rgba(52,211,153,.25);color:var(--success);background:rgba(52,211,153,.08)}
+.commitment-card-body{display:flex;justify-content:space-between;align-items:flex-end;gap:20px}
+.commitment-card-body h3{max-width:380px;margin:0 0 6px;font-size:17px;color:#fff;line-height:1.35}
+.commitment-card-body p{max-width:400px;margin:0;color:#c3b6c2;font-size:11px;line-height:1.55}
+.commitment-progress{width:145px;flex:none;text-align:right}
+.commitment-progress strong{display:block;margin-bottom:7px;color:#fff;font-size:25px;line-height:1;font-variant-numeric:tabular-nums}
+.commitment-progress strong span{color:var(--muted);font-size:14px}
+.commitment-progress .progress-track{height:7px;background:rgba(255,255,255,.1)}
+.commitment-progress .progress-track i{background:linear-gradient(90deg,var(--rose),var(--gold))}
+.commitment-progress small{display:block;margin-top:6px;color:#a99ba8;font-size:8px;letter-spacing:.12em}
+.overview-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.overview-metric{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;min-width:0;padding:13px 8px;border:1px solid var(--line);border-radius:12px;background:var(--surface);text-align:center}
+.overview-metric span{color:var(--muted);font-size:9px;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
+.overview-metric strong{color:var(--text);font-size:22px;font-weight:800;font-variant-numeric:tabular-nums}
+.overview-metric small{color:var(--muted-2);font-size:9px}
+.overview-main-grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(290px,1fr);gap:16px;align-items:start}
+.overview-column{display:grid;gap:14px;min-width:0}
+.next-action-card{display:flex;align-items:center;justify-content:space-between;gap:18px;min-width:0;padding:16px 18px;border:1px solid rgba(224,82,82,.32);border-radius:11px;background:linear-gradient(135deg,rgba(54,25,44,.78),rgba(26,14,25,.9))}
+.next-action-copy{min-width:0}
+.next-action-copy>span{color:var(--rose);font-size:9px;font-weight:850;letter-spacing:.12em}
+.next-action-copy h3{overflow:hidden;margin:5px 0 4px;color:#fff;font-size:15px;text-overflow:ellipsis;white-space:nowrap}
+.next-action-copy p{margin:0;color:var(--muted);font-size:10px}
+.next-action-card .primary-button{flex:none}
+.overview-panel{padding:16px 18px}
+.overview-panel .panel-head{align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.overview-panel .panel-head h3{font-size:12px;letter-spacing:.045em;text-transform:uppercase}
+.overview-panel .panel-head p{font-size:10px}
+.overview-panel .task-list{max-height:300px;overflow:auto;overscroll-behavior:contain}
+.overview-panel .task-row{padding:10px 0}
+.overview-panel .task-copy b{font-size:11px}
+.overview-panel .task-copy small{font-size:9px}
+.overview-panel .priority{font-size:9px}
+.overview-text-action{margin-top:10px;padding:0;border:0;background:none;color:var(--rose);font-size:10px}
+.overview-goal-list,.overview-project-list{display:grid;gap:5px}
+.overview-goal-row{display:flex;align-items:center;gap:10px;width:100%;padding:9px 7px;border:0;border-radius:8px;background:transparent;text-align:left}
+.overview-goal-row:hover{background:var(--surface-2)}
+.overview-goal-icon{display:grid;place-items:center;width:30px;height:30px;flex:none;border:1px solid rgba(226,183,100,.2);border-radius:8px;background:rgba(226,183,100,.08);color:var(--gold)}
+.overview-goal-main{display:grid;flex:1;min-width:0;gap:4px}
+.overview-goal-main b,.overview-project-row b,.overview-milestone-row b{overflow:hidden;color:var(--text);font-size:10px;text-overflow:ellipsis;white-space:nowrap}
+.overview-goal-main small,.overview-project-row small,.overview-milestone-row small{color:var(--muted-2);font-size:9px}
+.overview-goal-main .progress-track{display:block;height:4px;margin-top:1px}
+.overview-goal-main .progress-track em{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--rose),var(--gold))}
+.overview-goal-row>strong{color:var(--gold);font-size:10px;font-variant-numeric:tabular-nums}
+.overview-project-row{display:flex;align-items:center;gap:9px;padding:8px 6px}
+.overview-project-dot{width:8px;height:8px;flex:none;border-radius:50%}
+.overview-project-row>div{display:grid;flex:1;min-width:0;gap:3px}
+.overview-project-row>strong{color:var(--muted);font-size:10px}
+.overview-milestones{display:grid;gap:8px;margin-top:12px;padding-top:11px;border-top:1px solid var(--line)}
+.overview-subheading{color:var(--gold);font-size:8px;font-weight:800;letter-spacing:.12em}
+.overview-milestone-row{display:flex;align-items:flex-start;gap:9px}
+.overview-milestone-row>span{width:7px;height:7px;flex:none;margin-top:4px;border:1px solid var(--rose);border-radius:50%}
+.overview-milestone-row>div{display:grid;min-width:0;gap:2px}
+.overview-panel .empty-state{padding:16px 8px}
+@media(max-width:1180px){
+  .overview-hero-grid{grid-template-columns:minmax(0,1.3fr) minmax(260px,1fr)}
+  .overview-main-grid{grid-template-columns:minmax(0,1.2fr) minmax(270px,1fr)}
+  .page-content{padding:22px 22px 30px}
+}
+@media(max-width:980px){
+  .overview-hero-grid,.overview-main-grid{grid-template-columns:minmax(0,1fr)}
+  .overview-metrics{min-height:104px}
+  .overview-main-grid{gap:12px}
+}
+@media(max-width:900px){
+  .app-shell{grid-template-columns:72px minmax(0,1fr)}
+  .sidebar{padding:16px 8px}
+  .brand{justify-content:center;padding:2px 0 20px}
+  .brand>div:last-child,.workspace-pill>div:nth-child(2),.workspace-pill>svg,.nav-caption,.nav-item span,.offline-state,.sidebar-foot{display:none}
+  .workspace-pill{justify-content:center;padding:7px;margin-bottom:18px}
+  .nav-item{justify-content:center;padding:0}
+  .sidebar-bottom .nav-item{justify-content:center}
+  .topbar{gap:14px;padding:0 18px}
+  .page-content{padding:18px 18px 26px}
+}
+@media(max-width:640px){
+  .topbar{height:auto;min-height:76px;padding:12px}
+  .topbar h1{font-size:18px}
+  .overview-welcome{align-items:flex-start;flex-direction:column}
+  .overview-welcome h2{font-size:20px}
+  .overview-metrics{gap:6px}
+  .overview-metric{padding:10px 5px}
+  .overview-metric span{font-size:8px}
+  .overview-metric strong{font-size:18px}
+  .commitment-card{padding:16px}
+  .commitment-card-body{align-items:flex-start;flex-direction:column}
+  .commitment-progress{width:100%;text-align:left}
+  .next-action-card{align-items:flex-start;flex-direction:column}
+  .next-action-copy h3{white-space:normal}
+}
