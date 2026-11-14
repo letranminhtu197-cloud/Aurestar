@@ -222,6 +222,28 @@ function createDatabase(filePath) {
   });
   if (db.pragma('user_version', { simple: true }) < 7) migration7();
 
+  const migration8 = db.transaction(() => {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS daily_plans (
+        plan_date TEXT PRIMARY KEY, intention TEXT NOT NULL DEFAULT '',
+        created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS daily_mit_items (
+        id TEXT PRIMARY KEY,
+        plan_date TEXT NOT NULL REFERENCES daily_plans(plan_date) ON DELETE CASCADE,
+        task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+        position INTEGER NOT NULL CHECK(position BETWEEN 1 AND 3),
+        created_at TEXT NOT NULL,
+        UNIQUE(plan_date, task_id),
+        UNIQUE(plan_date, position)
+      );
+      CREATE INDEX IF NOT EXISTS idx_daily_mit_task ON daily_mit_items(task_id);
+    `);
+    db.prepare('INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES (?, ?)').run(8, now());
+    db.pragma('user_version = 8');
+  });
+  if (db.pragma('user_version', { simple: true }) < 8) migration8();
+
 
 
 
@@ -453,13 +475,43 @@ function createDatabase(filePath) {
     db.transaction(() => { for (const [key,value] of Object.entries(normalized)) upsert.run(key, JSON.stringify(value), stamp); })();
     return getSettings();
   }
+  function getDailyPlan(value) {
+    const planDate = date(value) || formatLocalDate();
+    const plan = db.prepare('SELECT * FROM daily_plans WHERE plan_date=?').get(planDate);
+    const items = db.prepare(`SELECT i.id,i.plan_date,i.task_id,i.position,t.title,t.description,t.status,t.priority,t.due_date,t.due_time,t.project_id
+      FROM daily_mit_items i JOIN tasks t ON t.id=i.task_id WHERE i.plan_date=? ORDER BY i.position`).all(planDate);
+    return { date: planDate, intention: plan?.intention || '', items };
+  }
+  function saveDailyPlan(input = {}) {
+    const planDate = date(input.date) || formatLocalDate();
+    const intention = text(input.intention, 1000);
+    const taskIds = [...new Set(Array.isArray(input.mitTaskIds) ? input.mitTaskIds.map(id => text(id, 80)).filter(Boolean) : [])];
+    if (taskIds.length > 3) throw new Error('A daily plan can contain no more than three MIT tasks.');
+    const stamp = now();
+    const save = db.transaction(() => {
+      for (const taskId of taskIds) {
+        if (!db.prepare('SELECT id FROM tasks WHERE id=? AND archived_at IS NULL').get(taskId)) {
+          throw new Error('A selected MIT task does not exist or is archived.');
+        }
+      }
+      db.prepare(`INSERT INTO daily_plans(plan_date,intention,created_at,updated_at) VALUES(?,?,?,?)
+        ON CONFLICT(plan_date) DO UPDATE SET intention=excluded.intention,updated_at=excluded.updated_at`)
+        .run(planDate,intention,stamp,stamp);
+      db.prepare('DELETE FROM daily_mit_items WHERE plan_date=?').run(planDate);
+      const add = db.prepare('INSERT INTO daily_mit_items(id,plan_date,task_id,position,created_at) VALUES(?,?,?,?,?)');
+      taskIds.forEach((taskId,index) => add.run(randomUUID(),planDate,taskId,index+1,stamp));
+    });
+    save();
+    return getDailyPlan(planDate);
+  }
+
   function loadWorkspace() {
     const goals = listGoals(), projects = listProjects(), tasks = listTasks(), milestones = listMilestones();
     const activeGoals = goals.filter(g => !g.archived_at);
     const activeProjects = projects.filter(p => !p.archived_at);
     const activeTasks = tasks.filter(t => !t.archived_at && !['completed','cancelled'].includes(t.status));
     return {
-      goals, projects, tasks, milestones, settings: getSettings(),
+      goals, projects, tasks, milestones, dailyPlan: getDailyPlan(formatLocalDate()), settings: getSettings(),
       summary: {
         activeGoals: activeGoals.filter(g => g.status === 'active').length,
         activeProjects: activeProjects.filter(p => p.status === 'active').length,
@@ -472,7 +524,7 @@ function createDatabase(filePath) {
   const phase2 = attachPhase2(db);
   return {
     phase2,
-    loadWorkspace, saveGoal, saveMilestone, saveProject, saveTask, toggleTask, setTaskStatus,
+    loadWorkspace, getDailyPlan, saveDailyPlan, saveGoal, saveMilestone, saveProject, saveTask, toggleTask, setTaskStatus,
     setArchived, duplicateGoal, duplicateProject, duplicateTask, getSettings, saveSettings,
     deleteGoal: id => remove('goals', id), deleteMilestone: id => remove('milestones', id),
     deleteProject: id => remove('projects', id), deleteTask: id => remove('tasks', id),
@@ -480,7 +532,7 @@ function createDatabase(filePath) {
     exportBackupData: backupPath => {
       const snapshot=new Database(backupPath,{readonly:true,fileMustExist:true});
       try {
-        const tables=['goals','milestones','projects','project_goal_links','tasks','task_goal_links','tags','task_tags','settings','habits','habit_logs','focus_sessions','journal_entries','journal_goal_links','journal_project_links','journal_task_links','weekly_reviews'];
+        const tables=['goals','milestones','projects','project_goal_links','tasks','task_goal_links','tags','task_tags','settings','habits','habit_logs','focus_sessions','journal_entries','journal_goal_links','journal_project_links','journal_task_links','weekly_reviews','daily_plans','daily_mit_items'];
         const payload={format:'aurestar-sqlite-export',version:2,schemaVersion:snapshot.pragma('user_version',{simple:true}),exportedAt:new Date().toISOString(),app:'Aurestar',tables:{}};
         for(const table of tables)payload.tables[table]=snapshot.prepare('SELECT * FROM '+table).all();
         return payload;
