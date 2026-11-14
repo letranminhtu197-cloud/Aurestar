@@ -246,8 +246,8 @@ function attachPhase2(db) {
       .run(k,JSON.stringify(value),now());
     return value;
   }
-  const exportTables=['goals','milestones','projects','project_goal_links','tasks','task_goal_links','tags','task_tags','settings','habits','habit_logs','focus_sessions','journal_entries','journal_goal_links','journal_project_links','journal_task_links','weekly_reviews'];
-  const importKeys={project_goal_links:['project_id','goal_id'],task_goal_links:['task_id','goal_id'],task_tags:['task_id','tag_id'],habit_logs:['habit_id','log_date'],journal_entries:['id'],weekly_reviews:['week_start'],settings:['key'],journal_goal_links:['journal_id','goal_id'],journal_project_links:['journal_id','project_id'],journal_task_links:['journal_id','task_id']};
+  const exportTables=['goals','milestones','projects','project_goal_links','tasks','task_goal_links','tags','task_tags','settings','habits','habit_logs','focus_sessions','journal_entries','journal_goal_links','journal_project_links','journal_task_links','weekly_reviews','daily_plans','daily_mit_items'];
+  const importKeys={project_goal_links:['project_id','goal_id'],task_goal_links:['task_id','goal_id'],task_tags:['task_id','tag_id'],habit_logs:['habit_id','log_date'],journal_entries:['id'],weekly_reviews:['week_start'],settings:['key'],journal_goal_links:['journal_id','goal_id'],journal_project_links:['journal_id','project_id'],journal_task_links:['journal_id','task_id'],daily_plans:['plan_date']};
   function exportData() {
     const data={format:'aurestar-sqlite-export',version:2,schemaVersion:db.pragma('user_version',{simple:true}),exportedAt:now(),app:'Aurestar',tables:{}};
     for(const table of exportTables) data.tables[table]=db.prepare('SELECT * FROM '+table).all();
@@ -279,10 +279,10 @@ function attachPhase2(db) {
   function importData(payload,mode='merge') {
     const preview=previewImport(payload);
     if(!['merge','update','replace'].includes(mode)) throw new Error('Unsupported import mode.');
-    const tables=['goals','projects','tasks','tags','milestones','project_goal_links','task_goal_links','task_tags','habits','habit_logs','focus_sessions','journal_entries','weekly_reviews','settings','journal_goal_links','journal_project_links','journal_task_links'];
+    const tables=['goals','projects','tasks','tags','milestones','project_goal_links','task_goal_links','task_tags','habits','habit_logs','focus_sessions','journal_entries','weekly_reviews','settings','journal_goal_links','journal_project_links','journal_task_links','daily_plans','daily_mit_items'];
     const report={inserted:0,updated:0,skipped:0};
     const transaction=db.transaction(()=>{
-      if(mode==='replace') for(const table of ['habit_logs','focus_sessions','journal_goal_links','journal_project_links','journal_task_links','journal_entries','weekly_reviews','task_tags','task_goal_links','project_goal_links','milestones','tasks','projects','goals','tags','habits','settings']) db.prepare('DELETE FROM '+table).run();
+      if(mode==='replace') for(const table of ['habit_logs','focus_sessions','journal_goal_links','journal_project_links','journal_task_links','journal_entries','weekly_reviews','daily_mit_items','daily_plans','task_tags','task_goal_links','project_goal_links','milestones','tasks','projects','goals','tags','habits','settings']) db.prepare('DELETE FROM '+table).run();
       for(const table of tables) {
         const rows=payload.tables[table]||[],keys=importKeys[table]||['id'];
         const columns=new Set(db.pragma('table_info('+table+')').map(column=>column.name));
