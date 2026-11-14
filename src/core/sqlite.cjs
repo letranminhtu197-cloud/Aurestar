@@ -3,6 +3,7 @@ const path = require('node:path');
 const { randomUUID } = require('node:crypto');
 const Database = require('better-sqlite3');
 const { attachPhase2 } = require('./phase2.cjs');
+const { formatLocalDate } = require('./date-utils.cjs');
 
 const now = () => new Date().toISOString();
 const text = (value, max = 5000) => String(value ?? '').trim().slice(0, max);
@@ -464,7 +465,7 @@ function createDatabase(filePath) {
         activeProjects: activeProjects.filter(p => p.status === 'active').length,
         openTasks: activeTasks.length,
         completedTasks: tasks.filter(t => !t.archived_at && t.status === 'completed').length,
-        overdueTasks: activeTasks.filter(t => t.due_date && t.due_date < new Date().toISOString().slice(0,10)).length
+        overdueTasks: activeTasks.filter(t => t.due_date && t.due_date < formatLocalDate()).length
       }
     };
   }
