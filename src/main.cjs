@@ -450,6 +450,8 @@ ipcMain.handle('chrome:notification',(_event,payload)=>{
 });
 ipcMain.handle('state:get',()=>state);
 ipcMain.handle('v2:workspace:load',event=>{assertWorkspaceSender(event);return database.loadWorkspace();});
+ipcMain.handle('v2:daily-plan:get',(event,date)=>{assertWorkspaceSender(event);return database.getDailyPlan(date);});
+ipcMain.handle('v2:daily-plan:save',(event,input)=>{assertWorkspaceSender(event);return database.saveDailyPlan(input);});
 ipcMain.handle('v2:goal:save',(event,input)=>{assertWorkspaceSender(event);return database.saveGoal(input);});
 ipcMain.handle('v2:goal:delete',(event,id)=>{assertWorkspaceSender(event);return database.deleteGoal(id);});
 ipcMain.handle('v2:milestone:save',(event,input)=>{assertWorkspaceSender(event);return database.saveMilestone(input);});
@@ -491,7 +493,7 @@ ipcMain.handle('v2:phase2:import:apply',(event,payload,mode)=>{assertWorkspaceSe
 function createPhase2ZipBackup(destination) {
   const temp=path.join(app.getPath('temp'),'aurestar-sqlite-backup-'+Date.now()+'.sqlite');
   return database.backupTo(temp).then(()=>{
-    const extras={'aurestar.sqlite':fs.readFileSync(temp),'metadata.json':Buffer.from(JSON.stringify({app:'Aurestar',version:app.getVersion(),schemaVersion:7,createdAt:new Date().toISOString()}))};
+    const extras={'aurestar.sqlite':fs.readFileSync(temp),'metadata.json':Buffer.from(JSON.stringify({app:'Aurestar',version:app.getVersion(),schemaVersion:8,createdAt:new Date().toISOString()}))};
     const assetRoot=app.isPackaged?path.join(process.resourcesPath,'itsuki'):path.join(__dirname,'..','resources','itsuki');
     const addFiles=(directory,prefix)=>{if(!fs.existsSync(directory))return;for(const entry of fs.readdirSync(directory,{withFileTypes:true})){const full=path.join(directory,entry.name),name=prefix+'/'+entry.name;if(entry.isDirectory())addFiles(full,name);else if(entry.isFile())extras[name]=fs.readFileSync(full);}};
     addFiles(assetRoot,'assets/itsuki');
