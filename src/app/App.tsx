@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useWorkspace } from './store';
 import type { Goal, Milestone, Project, Task, Priority } from './types';
+import { localDateString } from './date';
 import { Phase2Page, DataTools } from './Phase2Pages';
 
 function errorText(error:unknown):string {
@@ -130,7 +131,7 @@ function App() {
     return () => stop?.();
   }, []);
   useEffect(() => { location.hash = page; }, [page]);
-  const today = new Date().toISOString().slice(0,10);
+  const today = localDateString();
   const filteredTasks = useMemo(() => data.tasks.filter(t => {
     const matches = !query || [t.title,t.description,t.project_name||'',...(t.tags||[])].some(v => v.toLowerCase().includes(query.toLowerCase()));
     const status = taskFilter === 'completed' ? t.status === 'completed' && !t.archived_at : taskFilter === 'today' ? t.due_date===today && !t.archived_at : taskFilter === 'upcoming' ? !!t.due_date && t.due_date>today && !['completed','cancelled'].includes(t.status) && !t.archived_at : taskFilter === 'overdue' ? !['completed','cancelled'].includes(t.status) && !!t.due_date && t.due_date<today && !t.archived_at : taskFilter === 'inbox' ? t.status==='inbox' && !t.archived_at : taskFilter === 'archived' ? !!t.archived_at : !t.archived_at;
@@ -199,7 +200,7 @@ function NavItem({active,icon,label,onClick}:{active:boolean;icon:React.ReactNod
 
 function Dashboard({data,onPage,onOpen,onTaskToggle}:{data:ReturnType<typeof useWorkspace.getState>;onPage:(p:Page)=>void;onOpen:(k:'goal'|'project'|'task'|'milestone',item?:Goal|Project|Task,goalId?:string)=>void;onTaskToggle:(id:string)=>void}) {
   const tasks=data.tasks.filter(t=>!t.archived_at&&!['completed','cancelled'].includes(t.status)).slice(0,6);
-  const today=new Date().toISOString().slice(0,10); const dueToday=data.tasks.filter(t=>!t.archived_at&&t.due_date===today&&!['completed','cancelled'].includes(t.status)).length; const completedToday=data.tasks.filter(t=>!t.archived_at&&t.status==='completed'&&t.completed_at?.slice(0,10)===today).length;
+  const today=localDateString(); const dueToday=data.tasks.filter(t=>!t.archived_at&&t.due_date===today&&!['completed','cancelled'].includes(t.status)).length; const completedToday=data.tasks.filter(t=>!t.archived_at&&t.status==='completed'&&t.completed_at&&localDateString(new Date(t.completed_at))===today).length;
   return <div className="page-content">
     <div className="welcome-row"><div><div className="eyebrow">{new Date().toLocaleDateString(document.documentElement.dataset.locale||'vi-VN',{weekday:'long'}).toUpperCase()}, {new Date().toLocaleDateString(document.documentElement.dataset.locale||'vi-VN',{month:'long',day:'numeric',year:'numeric'}).toUpperCase()}</div><h2>Không gian rõ ràng để tạo nên tiến bộ có ý nghĩa.</h2><p>Mục tiêu, dự án và những việc cần làm — tất cả trong một không gian gọn gàng.</p></div><button className="secondary-button" onClick={()=>onPage('tasks')}>Mở danh sách công việc <ArrowUpRight size={15}/></button></div>
     <section className="metric-grid">
