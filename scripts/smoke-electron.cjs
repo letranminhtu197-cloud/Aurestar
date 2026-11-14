@@ -97,7 +97,8 @@ async function main() {
       'const insight = await api.getInsights(date, date); if (insight.focus.seconds !== 1200) throw new Error("Phase 2 focus analytics did not include the persisted session.");',
       'const search = await api.searchAll("AURESTAR CI journal marker", 200); if (!search.some(item => item.type === "journal" && item.id === journal.id)) throw new Error("Phase 2 global search did not find the Journal entry.");',
       'const snapshot = await api.exportData(); const preview = await api.previewImport(snapshot); if (!preview.valid || !snapshot.tables.habits.some(item => item.id === habit.id) || !snapshot.tables.journal_entries.some(item => item.id === journal.id)) throw new Error("Phase 2 JSON export/import preview did not round-trip."); const persistedNow={habit:(await api.listHabits()).some(item=>item.id===habit.id),focus:(await api.listFocusSessions(100)).some(item=>item.id==="aurestar-ci-focus-session"),journal:(await api.listJournalEntries(100)).some(item=>item.id===journal.id),review:(await api.listWeeklyReviews(100)).some(item=>item.wins==="CI weekly wins")}; if(Object.values(persistedNow).some(value=>!value)) throw new Error("Phase 2 records were not queryable immediately after saving: "+JSON.stringify(persistedNow));',
-      'const phase2 = { habitId: habit.id, journalId: journal.id, reviewStart: weekStart, date, formulaTaskId: formulaTask.id };',
+      'await api.saveDailyPlan({ date, intention: "AURESTAR CI daily plan", mitTaskIds: [task.id] });',
+      'const phase2 = { habitId: habit.id, journalId: journal.id, reviewStart: weekStart, date, formulaTaskId: formulaTask.id };'
       'await api.saveSettings({ theme: "dark", density: "compact", sidebarCollapsed: false, defaultLandingPage: "tasks", language: "vi" });',
       'data = await api.loadWorkspace(); if (data.settings.density !== "compact" || data.settings.language !== "vi") throw new Error("Settings did not persist.");',
       'return { ok: true, mode: "write", title: document.title, theme: initialTheme, goal: goal.title, phase2 };',
@@ -141,6 +142,7 @@ async function main() {
       'const milestone = data.milestones.find(item => item.title === "AURESTAR CI restart milestone");',
       'if (!goal || !project || !task || !formulaTask || !milestone) throw new Error("Data was not preserved after restarting the packaged application.");',
       'if (task.project_id !== project.id || !task.goalIds.includes(goal.id) || !task.tags.includes("ci-smoke")) throw new Error("Relationships were not preserved after application restart.");',
+      'if (data.dailyPlan.intention !== "AURESTAR CI daily plan" || !data.dailyPlan.items.some(item => item.task_id === task.id)) throw new Error("Daily MIT plan did not persist across application restart.");',
       'if (data.settings.defaultLandingPage !== "tasks" || data.settings.density !== "compact" || data.settings.theme !== "dark" || data.settings.language !== "vi") throw new Error("Settings were not preserved after application restart.");',
       'const habit = data && (await api.listHabits()).find(item => item.name === "AURESTAR CI habit marker");',
       'const focus = (await api.listFocusSessions(100)).find(item => item.id === "aurestar-ci-focus-session");',
@@ -151,7 +153,7 @@ async function main() {
       'if (!(await api.previewImport(await api.exportData())).valid) throw new Error("Phase 2 export/preview validation failed after restart.");',
 
       'await api.deleteTask(task.id); await api.deleteTask(formulaTask.id); await api.deleteProject(project.id); await api.deleteGoal(goal.id);',
-      'return { ok: true, mode: "verify-restart", persistedGoal: goal.title, persistedSettings: true, phase2: { habit: habit.name, journal: journal.title, review: review.week_start, focus: focus.id } };',
+      'return { ok: true, mode: "verify-restart", persistedGoal: goal.title, persistedSettings: true, dailyPlan: data.dailyPlan, phase2: { habit: habit.name, journal: journal.title, review: review.week_start, focus: focus.id } };',
       '})()'
     ].join('\n');
 
