@@ -178,7 +178,7 @@ test('daily plan enforces three MIT tasks and persists selections across restart
  const restored=second.getDailyPlan('2026-11-14');
  assert.equal(restored.intention,'Protect focused time');
  assert.deepEqual(restored.items.map(item=>item.task_id),tasks.slice(0,3).map(task=>task.id));
- assert.equal(second.pragma('user_version',{simple:true}),8);
+ const raw=new (require('better-sqlite3'))(file,{readonly:true});\n try{assert.equal(raw.pragma('user_version',{simple:true}),8);}finally{raw.close();}
 });
 
 test('schema migration is idempotent across database restarts',t=>{
