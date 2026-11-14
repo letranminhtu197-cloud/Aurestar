@@ -11,8 +11,9 @@ type Store = WorkspaceData & {
   duplicateGoal:(id:string)=>Promise<void>; duplicateProject:(id:string)=>Promise<void>; duplicateTask:(id:string)=>Promise<void>; saveSettings:(v:Record<string,unknown>)=>Promise<void>;
   deleteGoal: (id: string) => Promise<void>; deleteProject: (id: string) => Promise<void>;
   deleteTask: (id: string) => Promise<void>; deleteMilestone: (id: string) => Promise<void>;
+  saveDailyPlan: (input: { date?: string; intention?: string; mitTaskIds: string[] }) => Promise<void>;
 };
-const empty: WorkspaceData = { goals: [], projects: [], tasks: [], milestones: [], summary: { activeGoals: 0, activeProjects: 0, openTasks: 0, completedTasks: 0, overdueTasks: 0 }, settings: {} };
+const empty: WorkspaceData = { goals: [], projects: [], tasks: [], milestones: [], dailyPlan: { date: '', intention: '', items: [] }, summary: { activeGoals: 0, activeProjects: 0, openTasks: 0, completedTasks: 0, overdueTasks: 0 }, settings: {} };
 export const useWorkspace = create<Store>((set) => {
   const reload = async () => { const data = await workspaceApi.load(); set({ ...data, loading: false, error: null }); };
   const mutate = async (fn: () => Promise<unknown>) => { set({ error: null }); try { await fn(); await reload(); } catch (e) { const message = e instanceof Error ? e.message : 'An unexpected error occurred.'; set({ error: message }); throw e; } };
@@ -35,6 +36,7 @@ export const useWorkspace = create<Store>((set) => {
     deleteGoal: id => mutate(() => workspaceApi.deleteGoal(id)),
     deleteProject: id => mutate(() => workspaceApi.deleteProject(id)),
     deleteTask: id => mutate(() => workspaceApi.deleteTask(id)),
-    deleteMilestone: id => mutate(() => workspaceApi.deleteMilestone(id))
+    deleteMilestone: id => mutate(() => workspaceApi.deleteMilestone(id)),
+    saveDailyPlan: input => mutate(() => workspaceApi.saveDailyPlan(input))
   };
 });
