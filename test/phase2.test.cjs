@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const { spawnSync } = require('node:child_process');
 const { createDatabase } = require('../src/core/sqlite.cjs');
 
 function fixture(t) {
@@ -160,6 +161,22 @@ test('journal title, body and global-search record survive a full database resta
  assert.equal(restored.title,'Restart persistence marker');
  assert.equal(restored.content,'Journal body survives restart');
  assert.ok(second.phase2.searchAll('Restart persistence marker',200).some(row=>row.id===saved.id));
+});
+
+test('focus analytics attribute UTC events to the operating-system local calendar date',t=>{
+ const script=[
+  "const fs=require('node:fs'),os=require('node:os'),path=require('node:path');",
+  "const {createDatabase}=require('./src/core/sqlite.cjs');",
+  "const dir=fs.mkdtempSync(path.join(os.tmpdir(),'aurestar-local-analytics-'));",
+  "const db=createDatabase(path.join(dir,'db.sqlite'));",
+  "db.phase2.saveFocusSession({startedAt:'2026-11-14T18:30:00.000Z',endedAt:'2026-11-14T18:55:00.000Z',plannedSeconds:1500,actualSeconds:1500,status:'completed'});",
+  "const data=db.phase2.getInsights('2026-11-15','2026-11-15');",
+  "process.stdout.write(JSON.stringify({seconds:data.focus.seconds,day:data.daily[0]?.day,hour:data.byHour[0]?.hour,weekday:data.byWeekday[0]?.weekday}));",
+  "db.close();fs.rmSync(dir,{recursive:true,force:true});"
+ ].join('');
+ const result=spawnSync(process.execPath,['-e',script],{encoding:'utf8',env:{...process.env,TZ:'Asia/Ho_Chi_Minh'}});
+ assert.equal(result.status,0,result.stderr);
+ assert.deepEqual(JSON.parse(result.stdout),{seconds:1500,day:'2026-11-15',hour:'01',weekday:'0'});
 });
 
 test('daily plan enforces three MIT tasks and persists selections across restart',t=>{
