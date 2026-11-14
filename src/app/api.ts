@@ -5,6 +5,8 @@ const api = () => {
 };
 export const workspaceApi = {
   load: () => api().loadWorkspace(),
+  getDailyPlan: (date?: string) => api().getDailyPlan(date),
+  saveDailyPlan: (input: { date?: string; intention?: string; mitTaskIds: string[] }) => api().saveDailyPlan(input),
   saveGoal: (input: GoalInput) => api().saveGoal(input),
   saveMilestone: (input: MilestoneInput) => api().saveMilestone(input),
   saveProject: (input: ProjectInput) => api().saveProject(input),
