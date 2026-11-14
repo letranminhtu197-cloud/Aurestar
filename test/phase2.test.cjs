@@ -147,7 +147,22 @@ test('journal reflection fields and goal/project/task links are stored atomicall
  assert.equal(db.phase2.listJournalEntries().length,0);
 });
 
-test('journal title, body and global-search record survive a full database restart',t=>{\n const dir=fs.mkdtempSync(path.join(os.tmpdir(),'aurestar-journal-restart-'));\n const file=path.join(dir,'db.sqlite');\n const first=createDatabase(file);\n const saved=first.phase2.saveJournalEntry({date:'2026-11-14',title:'Restart persistence marker',content:'Journal body survives restart'});\n first.close();\n const second=createDatabase(file);\n t.after(()=>{second.close();fs.rmSync(dir,{recursive:true,force:true});});\n const restored=second.phase2.listJournalEntries(100).find(row=>row.id===saved.id);\n assert.ok(restored);\n assert.equal(restored.title,'Restart persistence marker');\n assert.equal(restored.content,'Journal body survives restart');\n assert.ok(second.phase2.searchAll('Restart persistence marker',200).some(row=>row.id===saved.id));\n});\n\ntest('daily plan enforces three MIT tasks and persists selections across restart',t=>{
+test('journal title, body and global-search record survive a full database restart',t=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'aurestar-journal-restart-'));
+ const file=path.join(dir,'db.sqlite');
+ const first=createDatabase(file);
+ const saved=first.phase2.saveJournalEntry({date:'2026-11-14',title:'Restart persistence marker',content:'Journal body survives restart'});
+ first.close();
+ const second=createDatabase(file);
+ t.after(()=>{second.close();fs.rmSync(dir,{recursive:true,force:true});});
+ const restored=second.phase2.listJournalEntries(100).find(row=>row.id===saved.id);
+ assert.ok(restored);
+ assert.equal(restored.title,'Restart persistence marker');
+ assert.equal(restored.content,'Journal body survives restart');
+ assert.ok(second.phase2.searchAll('Restart persistence marker',200).some(row=>row.id===saved.id));
+});
+
+test('daily plan enforces three MIT tasks and persists selections across restart',t=>{
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'aurestar-daily-plan-'));
  const file=path.join(dir,'db.sqlite');
  const first=createDatabase(file);
