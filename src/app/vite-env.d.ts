@@ -4,6 +4,8 @@ declare global {
   interface Window {
     aurestarV2: {
       loadWorkspace(): Promise<WorkspaceData>;
+      getDailyPlan(date?:string):Promise<WorkspaceData['dailyPlan']>;
+      saveDailyPlan(input:{date?:string;intention?:string;mitTaskIds:string[]}):Promise<WorkspaceData['dailyPlan']>;
       saveGoal(input: GoalInput): Promise<unknown>;
       saveMilestone(input: MilestoneInput): Promise<unknown>;
       saveProject(input: ProjectInput): Promise<unknown>;
