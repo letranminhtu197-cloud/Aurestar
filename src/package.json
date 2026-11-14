@@ -1,0 +1,11 @@
+{
+  "name": "aurestar-desktop",
+  "version": "1.0.0",
+  "description": "Aurestar Windows desktop study planner",
+  "private": true,
+  "main": "main.cjs",
+  "author": "Aurestar",
+  "dependencies": {
+    "uiohook-napi": "1.5.4"
+  }
+}

@@ -1,0 +1,112 @@
+'use strict';
+
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const { mergeStores, migrateJsonStores, readJsonFile } = require('../src/core/persistence.cjs');
+const { createAlarmScheduler } = require('../src/core/alarm-scheduler.cjs');
+
+test('migration prioritizes current UI data, restores unique legacy records and saves backups', t => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'aurestar-migration-'));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const canonicalPath = path.join(root, 'aurestar-data.json');
+  const legacyPath = path.join(root, 'aurestar-chrome-storage.json');
+  const backupDir = path.join(root, 'backups');
+  fs.writeFileSync(canonicalPath, JSON.stringify({ settings: { theme: 'dark' }, tasks: [{ id: 'same', title: 'new' }, { id: 'new' }] }));
+  fs.writeFileSync(legacyPath, JSON.stringify({ settings: { theme: 'light', language: 'vi' }, tasks: [{ id: 'same', title: 'old' }, { id: 'old' }] }));
+
+  const result = migrateJsonStores({ canonicalPath, legacyPaths: [legacyPath], preferredPaths: [legacyPath], backupDir });
+  assert.deepEqual(result.settings, { theme: 'light', language: 'vi' });
+  assert.deepEqual(result.tasks, [{ id: 'same', title: 'old' }, { id: 'old' }, { id: 'new' }]);
+  assert.equal(fs.readdirSync(backupDir).length, 2);
+  assert.equal(readJsonFile(canonicalPath).valid, true);
+});
+
+test('migration refuses to overwrite corrupt data when no readable copy exists', t => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'aurestar-corrupt-'));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const canonicalPath = path.join(root, 'aurestar-data.json');
+  fs.writeFileSync(canonicalPath, '{broken');
+  assert.throws(() => migrateJsonStores({ canonicalPath }), /original file was preserved/);
+  assert.equal(fs.readFileSync(canonicalPath, 'utf8'), '{broken');
+  assert.equal(fs.readdirSync(path.join(root, 'backups')).length, 1);
+});
+
+test('store merge prioritizes matching canonical task versions and de-duplicates anonymous values', () => {
+  const merged = mergeStores({ tasks: [{ id: 'a', title: 'canonical' }], completions: [{ kind: 'task', date: '2026-01-01' }] }, { tasks: [{ id: 'a', title: 'legacy' }, { id: 'b' }], completions: [{ kind: 'task', date: '2026-01-01' }] });
+  assert.deepEqual(merged.tasks, [{ id: 'a', title: 'canonical' }, { id: 'b' }]);
+  assert.equal(merged.completions.length, 1);
+});
+
+test('alarm scheduler fires on absolute time, replaces duplicate names and resumes overdue alarms once', () => {
+  let clock = 1_000;
+  let id = 0;
+  const timers = new Map();
+  const fired = [];
+  const setTimer = (fn, ms) => { const key = ++id; timers.set(key, { fn, at: clock + ms }); return key; };
+  const clearTimer = key => timers.delete(key);
+  const scheduler = createAlarmScheduler({ now: () => clock, setTimer, clearTimer, onAlarm: alarm => fired.push(alarm) });
+  const runDue = () => {
+    let next;
+    while ((next = [...timers.entries()].find(([, timer]) => timer.at <= clock))) {
+      timers.delete(next[0]); next[1].fn();
+    }
+  };
+
+  scheduler.create('focus', { when: 3_000 });
+  scheduler.create('focus', { when: 4_000 });
+  clock = 3_000; runDue(); assert.equal(fired.length, 0);
+  clock = 4_000; runDue(); assert.equal(fired.length, 1);
+  scheduler.create('daily', { when: 9_000 });
+  clock = 10_000; scheduler.resume();
+  assert.equal(fired.length, 2);
+  scheduler.resume(); assert.equal(fired.length, 2);
+  scheduler.close();
+});
+
+
+test('state normalization repairs missing or malformed collections without discarding valid data', () => {
+  const { normalizeStateCollections } = require('../src/core/persistence.cjs');
+  const defaults = { tasks: [], habits: [], settings: { theme: 'dark' }, profile: { xp: 0 } };
+  const result = normalizeStateCollections({
+    tasks: [{ id: 't1' }], habits: null, focusSessions: 'invalid',
+    settings: { language: 'vi' }, profile: { xp: 42 }
+  }, defaults);
+  assert.deepEqual(result.tasks, [{ id: 't1' }]);
+  assert.deepEqual(result.habits, []);
+  assert.deepEqual(result.focusSessions, []);
+  assert.deepEqual(result.settings, { theme: 'dark', language: 'vi' });
+  assert.deepEqual(result.profile, { xp: 42 });
+});
+
+test('import JSON reader rejects oversized, malformed and non-object backups', t => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'aurestar-import-'));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const malformed = path.join(root, 'broken.json');
+  const arrayRoot = path.join(root, 'array.json');
+  fs.writeFileSync(malformed, '{bad');
+  fs.writeFileSync(arrayRoot, '[]');
+  assert.equal(readJsonFile(malformed).valid, false);
+  assert.equal(readJsonFile(arrayRoot).valid, false);
+});
+
+
+test('functional audit: habit edit action validates fields and preserves completion history', () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'resources', 'aurestar-chrome', 'background.js'), 'utf8');
+  assert.match(source, /case"updateHabit":\{const h=s\.habits\.find/);
+  assert.match(source, /Habit name is required/);
+  assert.match(source, /Habit frequency must be daily or weekly/);
+  assert.match(source, /Object\.assign\(h,\{title,frequency,xp:habitXP/);
+  assert.doesNotMatch(source, /case"updateHabit":[^]*?completions:\[\]/);
+});
+
+test('functional audit: habit edit is reachable and long histories are not truncated in Focus or Training', () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer.js'), 'utf8');
+  assert.match(source, /data-edit-habit/);
+  assert.match(source, /openHabitForm\(b\.dataset\.editHabit\)/);
+  assert.match(source, /action\("updateHabit"/);
+  assert.doesNotMatch(source, /focusSessions\|\|\[\]\)\]\.sort\([^]*?\.slice\(0,10\)/);
+  assert.doesNotMatch(source, /workoutSessions\|\|\[\]\)\.slice\(-8\)/);
+});

@@ -1,0 +1,380 @@
+{
+  "schemaVersion": 10,
+  "description": "Vietnamese dialogue in Itsuki's warm, earnest, lightly teasing study-companion voice; original artwork and UI language unchanged.",
+  "targetImageCount": 30,
+  "verifiedImageCount": 30,
+  "images": [
+    {
+      "id": "itsuki-01",
+      "src": "assets/itsuki/1.jpg",
+      "primaryExpression": "cheerful",
+      "expressions": [
+        "cheerful",
+        "supportive"
+      ],
+      "visualNotes": "Laughing with eyes closed",
+      "source": "User-provided offline image archive; visually reviewed in contact sheet",
+      "dialogue": "Hừm, hôm nay cũng cố gắng nhé! Mình sẽ cổ vũ cậu… một chút thôi đó."
+    },
+    {
+      "id": "itsuki-02",
+      "src": "assets/itsuki/2.jpg",
+      "primaryExpression": "serious",
+      "expressions": [
+        "serious",
+        "determined"
+      ],
+      "visualNotes": "Neutral, serious gaze",
+      "source": "User-provided offline image archive; visually reviewed in contact sheet",
+      "dialogue": "Tập trung nào. Cậu đã đặt mục tiêu rồi thì từng bước thực hiện nhé."
+    },
+    {
+      "id": "itsuki-03",
+      "src": "assets/itsuki/3.jpg",
+      "primaryExpression": "cheerful",
+      "expressions": [
+        "cheerful",
+        "supportive"
+      ],
+      "visualNotes": "Bright smile and upbeat pose",
+      "source": "User-provided offline image archive; visually reviewed in contact sheet",
+      "dialogue": "Hừm, hôm nay cũng cố gắng nhé! Mình sẽ cổ vũ cậu… một chút thôi đó."
+    },
+    {
+      "id": "itsuki-04",
+      "src": "assets/itsuki/4.jpg",
+      "primaryExpression": "sad",
+      "expressions": [
+        "sad",
+        "concerned"
+      ],
+      "visualNotes": "Downcast, subdued expression",
+      "source": "User-provided offline image archive; visually reviewed in contact sheet",
+      "dialogue": "Có mệt thì nghỉ một chút. Đừng tự trách mình… mai thử lại cũng được."
+    },
+    {
+      "id": "itsuki-05",
+      "src": "assets/itsuki/5.jpg",
+      "primaryExpression": "surprised",
+      "expressions": [
+        "surprised",
+        "shy"
+      ],
+      "visualNotes": "Wide eyes and flushed cheeks",
+      "source": "User-provided offline image archive; visually reviewed in contact sheet",
+      "dialogue": "Ơ, lại xao nhãng nữa à? Nào, quay về bài học đi!"
+    },
+    {
+      "id": "itsuki-06",
+      "src": "assets/itsuki/6.jpg",
+      "primaryExpression": "concerned",
+      "expressions": [
+        "concerned",
+        "serious"
+      ],
+      "visualNotes": "Worried, subdued gaze",
+      "source": "User-provided offline image archive; visually reviewed in contact sheet",
+      "dialogue": "Đừng quên uống nước và nghỉ mắt nhé. Học tốt cũng phải biết chăm sóc mình."
+    },
+    {
+      "id": "itsuki-07",
+      "src": "assets/itsuki/7.jpg",
+      "primaryExpression": "surprised",
+      "expressions": [
+        "surprised",
+        "curious"
+      ],
+      "visualNotes": "Wide-eyed surprise",
+      "source": "User-provided offline image archive; visually reviewed in contact sheet",
+      "dialogue": "Ơ, lại xao nhãng nữa à? Nào, quay về bài học đi!"
+    },
+    {
+      "id": "itsuki-08",
+      "src": "assets/itsuki/8.jpg",
+      "primaryExpression": "surprised",
+      "expressions": [
+        "surprised",
+        "confused"
+      ],
+      "visualNotes": "Dizzy, startled expression",
+      "source": "User-provided offline image archive; visually reviewed in contact sheet",
+      "dialogue": "Ơ, lại xao nhãng nữa à? Nào, quay về bài học đi!"
+    },
+    {
+      "id": "itsuki-09",
+      "src": "assets/itsuki/9.jpg",
+      "primaryExpression": "shy",
+      "expressions": [
+        "shy",
+        "supportive"
+      ],
+      "visualNotes": "Blushing, gentle expression",
+      "source": "User-provided offline image archive; visually reviewed in contact sheet",
+      "dialogue": "Cậu đang tiến bộ đó… mình có nói vậy thì cũng đừng tự mãn nhé."
+    },
+    {
+      "id": "itsuki-10",
+      "src": "assets/itsuki/10.jpg",
+      "primaryExpression": "displeased",
+      "expressions": [
+        "displeased",
+        "angry"
+      ],
+      "visualNotes": "Open-mouthed upset expression",
+      "source": "User-provided offline image archive; visually reviewed in contact sheet",
+      "dialogue": "Này! Điện thoại xuống nào. Bài học đang chờ cậu kìa!"
+    },
+    {
+      "id": "itsuki-11",
+      "src": "assets/itsuki/11.jpg",
+      "primaryExpression": "shy",
+      "expressions": [
+        "shy",
+        "displeased"
+      ],
+      "visualNotes": "Blushing with a slightly stern look",
+      "source": "User-provided offline image archive; visually reviewed in contact sheet",
+      "dialogue": "Cậu đang tiến bộ đó… mình có nói vậy thì cũng đừng tự mãn nhé."
+    },
+    {
+      "id": "itsuki-12",
+      "src": "assets/itsuki/12.jpg",
+      "primaryExpression": "shy",
+      "expressions": [
+        "shy",
+        "surprised"
+      ],
+      "visualNotes": "Embarrassed, startled expression",
+      "source": "User-provided offline image archive; visually reviewed in contact sheet",
+      "dialogue": "Cậu đang tiến bộ đó… mình có nói vậy thì cũng đừng tự mãn nhé."
+    },
+    {
+      "id": "itsuki-13",
+      "src": "assets/itsuki/13.jpg",
+      "primaryExpression": "angry",
+      "expressions": [
+        "angry",
+        "displeased"
+      ],
+      "visualNotes": "Eyes shut, shouting in frustration",
+      "source": "User-provided offline image archive; visually reviewed in contact sheet",
+      "dialogue": "Còn định trì hoãn đến bao giờ hả? …Thôi, bắt đầu một chút đi!"
+    },
+    {
+      "id": "itsuki-14",
+      "src": "assets/itsuki/14.jpg",
+      "primaryExpression": "displeased",
+      "expressions": [
+        "displeased",
+        "angry"
+      ],
+      "visualNotes": "Annoyed, shouting expression",
+      "source": "User-provided offline image archive; visually reviewed in contact sheet",
+      "dialogue": "Này! Điện thoại xuống nào. Bài học đang chờ cậu kìa!"
+    },
+    {
+      "id": "itsuki-15",
+      "src": "assets/itsuki/15.jpg",
+      "primaryExpression": "serious",
+      "expressions": [
+        "serious",
+        "supportive"
+      ],
+      "visualNotes": "Calm, attentive expression",
+      "source": "User-provided offline image archive; visually reviewed in contact sheet",
+      "dialogue": "Tập trung nào. Cậu đã đặt mục tiêu rồi thì từng bước thực hiện nhé."
+    },
+    {
+      "id": "itsuki-16",
+      "src": "assets/itsuki/16.jpg",
+      "primaryExpression": "sad",
+      "expressions": [
+        "sad",
+        "shy"
+      ],
+      "visualNotes": "Tearful, distressed expression",
+      "source": "User-provided offline image archive; visually reviewed in contact sheet",
+      "dialogue": "Có mệt thì nghỉ một chút. Đừng tự trách mình… mai thử lại cũng được."
+    },
+    {
+      "id": "itsuki-17",
+      "src": "assets/itsuki/17.jpg",
+      "primaryExpression": "angry",
+      "expressions": [
+        "angry",
+        "displeased"
+      ],
+      "visualNotes": "Blushing, angry pout",
+      "source": "User-provided offline image archive; visually reviewed in contact sheet",
+      "dialogue": "Còn định trì hoãn đến bao giờ hả? …Thôi, bắt đầu một chút đi!"
+    },
+    {
+      "id": "itsuki-18",
+      "src": "assets/itsuki/18.jpg",
+      "primaryExpression": "displeased",
+      "expressions": [
+        "displeased",
+        "serious"
+      ],
+      "visualNotes": "Grumpy, displeased expression",
+      "source": "User-provided offline image archive; visually reviewed in contact sheet",
+      "dialogue": "Này! Điện thoại xuống nào. Bài học đang chờ cậu kìa!"
+    },
+    {
+      "id": "itsuki-19",
+      "src": "assets/itsuki/19.jpg",
+      "primaryExpression": "relaxed",
+      "expressions": [
+        "relaxed",
+        "cheerful"
+      ],
+      "visualNotes": "Playful relaxed pose",
+      "source": "User-provided offline image archive; visually reviewed in contact sheet",
+      "dialogue": "Chậm mà chắc nhé. Không cần vội, miễn là cậu vẫn tiến lên."
+    },
+    {
+      "id": "itsuki-20",
+      "src": "assets/itsuki/20.jpg",
+      "primaryExpression": "cheerful",
+      "expressions": [
+        "cheerful",
+        "supportive"
+      ],
+      "visualNotes": "Laughing energetically",
+      "source": "User-provided offline image archive; visually reviewed in contact sheet",
+      "dialogue": "Hừm, hôm nay cũng cố gắng nhé! Mình sẽ cổ vũ cậu… một chút thôi đó."
+    },
+    {
+      "id": "itsuki-21",
+      "src": "assets/itsuki/21.jpg",
+      "primaryExpression": "determined",
+      "expressions": [
+        "determined",
+        "serious"
+      ],
+      "visualNotes": "Studying with glasses and focused posture",
+      "source": "User-provided offline image archive; visually reviewed in contact sheet",
+      "dialogue": "Quyết tâm lên! Chọn một việc và hoàn thành nó. Cậu làm được!"
+    },
+    {
+      "id": "itsuki-22",
+      "src": "assets/itsuki/22.jpg",
+      "primaryExpression": "cheerful",
+      "expressions": [
+        "cheerful",
+        "supportive"
+      ],
+      "visualNotes": "Eyes closed, warm smile",
+      "source": "User-provided offline image archive; visually reviewed in contact sheet",
+      "dialogue": "Hừm, hôm nay cũng cố gắng nhé! Mình sẽ cổ vũ cậu… một chút thôi đó."
+    },
+    {
+      "id": "itsuki-23",
+      "src": "assets/itsuki/23.jpg",
+      "primaryExpression": "shy",
+      "expressions": [
+        "shy",
+        "displeased"
+      ],
+      "visualNotes": "Flustered, hands raised",
+      "source": "User-provided offline image archive; visually reviewed in contact sheet",
+      "dialogue": "Cậu đang tiến bộ đó… mình có nói vậy thì cũng đừng tự mãn nhé."
+    },
+    {
+      "id": "itsuki-24",
+      "src": "assets/itsuki/24.jpg",
+      "primaryExpression": "determined",
+      "expressions": [
+        "determined",
+        "serious"
+      ],
+      "visualNotes": "Intense, determined gaze",
+      "source": "User-provided offline image archive; visually reviewed in contact sheet",
+      "dialogue": "Quyết tâm lên! Chọn một việc và hoàn thành nó. Cậu làm được!"
+    },
+    {
+      "id": "itsuki-25",
+      "src": "assets/itsuki/25.jpg",
+      "primaryExpression": "surprised",
+      "expressions": [
+        "surprised",
+        "concerned"
+      ],
+      "visualNotes": "Wide-eyed startled expression",
+      "source": "User-provided offline image archive; visually reviewed in contact sheet",
+      "dialogue": "Ơ, lại xao nhãng nữa à? Nào, quay về bài học đi!"
+    },
+    {
+      "id": "itsuki-26",
+      "src": "assets/itsuki/26.jpg",
+      "primaryExpression": "confident",
+      "expressions": [
+        "confident",
+        "cheerful"
+      ],
+      "visualNotes": "Confident smile",
+      "source": "User-provided offline image archive; visually reviewed in contact sheet",
+      "dialogue": "Thấy chưa, cậu làm được mà! Giữ nhịp này nhé."
+    },
+    {
+      "id": "itsuki-27",
+      "src": "assets/itsuki/27.jpg",
+      "primaryExpression": "surprised",
+      "expressions": [
+        "surprised",
+        "shy"
+      ],
+      "visualNotes": "Wide eyes and flushed cheeks",
+      "source": "User-provided offline image archive; visually reviewed in contact sheet",
+      "dialogue": "Ơ, lại xao nhãng nữa à? Nào, quay về bài học đi!"
+    },
+    {
+      "id": "itsuki-28",
+      "src": "assets/itsuki/28.jpg",
+      "primaryExpression": "determined",
+      "expressions": [
+        "determined",
+        "confident"
+      ],
+      "visualNotes": "Focused, confident smile",
+      "source": "User-provided offline image archive; visually reviewed in contact sheet",
+      "dialogue": "Quyết tâm lên! Chọn một việc và hoàn thành nó. Cậu làm được!"
+    },
+    {
+      "id": "itsuki-29",
+      "src": "assets/itsuki/29.jpg",
+      "primaryExpression": "thoughtful",
+      "expressions": [
+        "thoughtful",
+        "relaxed"
+      ],
+      "visualNotes": "Quiet, thoughtful expression",
+      "source": "User-provided offline image archive; visually reviewed in contact sheet",
+      "dialogue": "Tiến bộ không phải lúc nào cũng thấy ngay. Cứ kiên trì nhé."
+    },
+    {
+      "id": "itsuki-30",
+      "src": "assets/itsuki/30.jpg",
+      "primaryExpression": "sleepy",
+      "expressions": [
+        "sleepy",
+        "displeased"
+      ],
+      "visualNotes": "Half-lidded, tired expression",
+      "source": "User-provided offline image archive; visually reviewed in contact sheet",
+      "dialogue": "Từng bước một nhé. Mình tin cậu làm được."
+    },
+    {
+      "id": "itsuki-chibi-fallback",
+      "src": "assets/itsuki/itsuki-pet.png",
+      "primaryExpression": "cheerful",
+      "expressions": [
+        "cheerful",
+        "supportive"
+      ],
+      "visualNotes": "Bundled chibi fallback, used only if all numbered images fail validation.",
+      "source": "Original project archive",
+      "dialogue": "Hừm, hôm nay cũng cố gắng nhé! Mình sẽ cổ vũ cậu… một chút thôi đó."
+    }
+  ]
+}
