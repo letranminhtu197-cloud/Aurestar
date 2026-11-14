@@ -1,4 +1,5 @@
 const { randomUUID } = require('node:crypto');
+const { formatLocalDate, addCalendarDays } = require('./date-utils.cjs');
 const now = () => new Date().toISOString();
 const clean = (v, max=5000) => String(v ?? '').trim().slice(0,max);
 const date = v => {
@@ -56,7 +57,7 @@ function attachPhase2(db) {
   function deleteHabit(id) { return db.prepare('DELETE FROM habits WHERE id=?').run(clean(id,80)).changes>0; }
   function archiveHabit(id,archived=true) { const stamp=archived?now():null; const result=db.prepare('UPDATE habits SET archived_at=?,updated_at=? WHERE id=?').run(stamp,now(),clean(id,80)); if(!result.changes)throw new Error('Habit not found.'); return {archived:Boolean(stamp)}; }
   function logHabit(input={}) {
-    const habitId=clean(input.habitId,80), logDate=date(input.date)||new Date().toISOString().slice(0,10);
+    const habitId=clean(input.habitId,80), logDate=date(input.date)||formatLocalDate();
     if(!db.prepare('SELECT id FROM habits WHERE id=? AND archived_at IS NULL').get(habitId)) throw new Error('Habit not found.');
     const count=Math.max(0,Math.min(100,Math.round(Number(input.completedCount)||0))), stamp=now();
     const completed=input.completed===undefined?count>0:Boolean(input.completed), value=Math.max(0,Math.min(100000,Number(input.value??count)||0));
@@ -89,7 +90,7 @@ function attachPhase2(db) {
     return db.prepare('SELECT f.*,t.title AS task_title FROM focus_sessions f LEFT JOIN tasks t ON t.id=f.task_id ORDER BY f.started_at DESC LIMIT ?').all(Math.max(1,Math.min(5000,Number(limit)||500)));
   }
   function saveJournalEntry(input={}) {
-    const entryDate=date(input.date)||new Date().toISOString().slice(0,10), requestedId=clean(input.id,80), stamp=now();
+    const entryDate=date(input.date)||formatLocalDate(), requestedId=clean(input.id,80), stamp=now();
     const existingById=requestedId?db.prepare('SELECT id FROM journal_entries WHERE id=?').get(requestedId):null;
     const existingByDate=db.prepare('SELECT id FROM journal_entries WHERE entry_date=?').get(entryDate);
     if(existingById&&existingByDate&&existingById.id!==existingByDate.id)throw new Error('A different journal entry already exists for this date.');
@@ -201,7 +202,7 @@ function attachPhase2(db) {
     return rows.sort((a,b)=>String(b.updated_at||'').localeCompare(String(a.updated_at||''))).slice(0,Math.max(1,Math.min(200,Number(limit)||50)));
   }
   function getInsights(from,to) {
-    const start=date(from)||new Date(Date.now()-29*86400000).toISOString().slice(0,10),end=date(to)||new Date().toISOString().slice(0,10);
+    const end=date(to)||formatLocalDate(),start=date(from)||addCalendarDays(end,-29);
     if(end<start)throw new Error('Insights end date must be on or after start date.');
     const tasks=db.prepare(`SELECT COUNT(*) created,
       (SELECT COUNT(*) FROM tasks WHERE archived_at IS NULL AND date(completed_at) BETWEEN ? AND ?) completed,
@@ -232,8 +233,7 @@ function attachPhase2(db) {
     const milestones=db.prepare(`SELECT COUNT(*) total,SUM(status='completed') completed FROM milestones WHERE date(updated_at) BETWEEN ? AND ?`).get(start,end);
     const habits=db.prepare(`SELECT COUNT(*) logs,COALESCE(SUM(completed_count),0) completions,COUNT(DISTINCT habit_id) tracked
       FROM habit_logs WHERE log_date BETWEEN ? AND ? AND completed=1`).get(start,end);
-    const endDate=new Date(end+'T12:00:00Z');
-    const shiftStart=days=>{const d=new Date(endDate);d.setUTCDate(d.getUTCDate()-days+1);return d.toISOString().slice(0,10);};
+    const shiftStart=days=>addCalendarDays(end,-days+1);
     const weeklyStart=shiftStart(7)>start?shiftStart(7):start;
     const monthlyStart=shiftStart(30)>start?shiftStart(30):start;
     habits.average_weekly_consistency=habitConsistencyBetween(weeklyStart,end);
