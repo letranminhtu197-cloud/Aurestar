@@ -3,6 +3,8 @@ const { contextBridge, ipcRenderer } = require('electron');
 const invoke = (channel, ...args) => ipcRenderer.invoke(channel, ...args);
 const api = {
   loadWorkspace: () => invoke('v2:workspace:load'),
+  getDailyPlan: date => invoke('v2:daily-plan:get',date),
+  saveDailyPlan: input => invoke('v2:daily-plan:save',input),
   saveGoal: input => invoke('v2:goal:save', input),
   deleteGoal: id => invoke('v2:goal:delete', id),
   saveMilestone: input => invoke('v2:milestone:save', input),
