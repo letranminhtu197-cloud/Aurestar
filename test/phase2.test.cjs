@@ -5,6 +5,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const { createDatabase } = require('../src/core/sqlite.cjs');
+const { createZipBackup, readZipBackup } = require('../src/core/zip-backup.cjs');
 
 function fixture(t) {
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'aurestar-phase2-'));
@@ -73,13 +74,22 @@ test('export preview and merge/update/replace imports are transactional',t=>{
   assert.equal(p.listHabits()[0].id,habit.id);
 });
 
-test('daily plans are included in JSON export, preview and transactional replace import',t=>{
+test('daily plans are included in JSON and ZIP backup, preview and transactional restore',async t=>{
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'aurestar-daily-plan-import-'));
  const db=createDatabase(path.join(dir,'db.sqlite'));
  t.after(()=>{db.close();fs.rmSync(dir,{recursive:true,force:true});});
  const task=db.saveTask({title:'Exported MIT'});
  db.saveDailyPlan({date:'2026-11-14',intention:'Export this plan',mitTaskIds:[task.id]});
  const snapshot=db.phase2.exportData();
+ const sqliteCopy=path.join(dir,'backup.sqlite'),zipFile=path.join(dir,'backup.zip');
+ await db.backupTo(sqliteCopy);
+ const backupPayload=db.exportBackupData(sqliteCopy);
+ assert.equal(backupPayload.tables.daily_plans.length,1);
+ assert.equal(backupPayload.tables.daily_mit_items.length,1);
+ createZipBackup(zipFile,backupPayload,{'aurestar.sqlite':fs.readFileSync(sqliteCopy)});
+ const zipped=readZipBackup(zipFile);
+ assert.equal(zipped.tables.daily_plans.length,1);
+ assert.equal(zipped.tables.daily_mit_items.length,1);
  assert.equal(snapshot.tables.daily_plans.length,1);
  assert.equal(snapshot.tables.daily_mit_items.length,1);
  assert.equal(db.phase2.previewImport(snapshot).valid,true);
@@ -199,6 +209,30 @@ test('daily plan enforces three MIT tasks and persists selections across restart
  assert.deepEqual(restored.items.map(item=>item.task_id),tasks.slice(0,3).map(task=>task.id));
  const raw=new (require('better-sqlite3'))(file,{readonly:true});
  try{assert.equal(raw.pragma('user_version',{simple:true}),8);}finally{raw.close();}
+});
+
+test('schema migration 8 upgrades an existing version 7 database without losing Phase 1 data',t=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'aurestar-v7-upgrade-'));
+ const file=path.join(dir,'db.sqlite');
+ const first=createDatabase(file);
+ const goal=first.saveGoal({title:'Preserve version 7 goal'});
+ const task=first.saveTask({title:'Preserve version 7 task',goalIds:[goal.id]});
+ first.close();
+ const Database=require('better-sqlite3'),raw=new Database(file);
+ raw.pragma('foreign_keys = ON');
+ raw.exec('DROP TABLE daily_mit_items; DROP TABLE daily_plans; DELETE FROM schema_migrations WHERE version=8; PRAGMA user_version=7;');
+ raw.close();
+ const upgraded=createDatabase(file);
+ t.after(()=>{upgraded.close();fs.rmSync(dir,{recursive:true,force:true});});
+ assert.equal(upgraded.loadWorkspace().goals.find(item=>item.id===goal.id).title,'Preserve version 7 goal');
+ assert.equal(upgraded.loadWorkspace().tasks.find(item=>item.id===task.id).title,'Preserve version 7 task');
+ assert.equal(upgraded.getDailyPlan('2026-11-14').items.length,0);
+ const check=new Database(file,{readonly:true});
+ try{
+  assert.equal(check.pragma('user_version',{simple:true}),8);
+  assert.ok(check.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='daily_mit_items'").get());
+  assert.deepEqual(check.prepare('SELECT version FROM schema_migrations ORDER BY version').all().map(row=>row.version),[1,2,3,4,5,6,7,8]);
+ }finally{check.close();}
 });
 
 test('schema migration is idempotent across database restarts',t=>{
