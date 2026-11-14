@@ -40,7 +40,7 @@ function App() {
     return () => stop?.();
   }, []);
   useEffect(() => { location.hash = page; }, [page]);
-  const today = new Date().toISOString().slice(0,10);
+  const today = localDateKey();
   const filteredTasks = useMemo(() => data.tasks.filter(t => {
     const matches = !query || [t.title,t.description,t.project_name||'',...(t.tags||[])].some(v => v.toLowerCase().includes(query.toLowerCase()));
     const status = taskFilter === 'completed' ? t.status === 'completed' && !t.archived_at : taskFilter === 'today' ? t.due_date===today && !t.archived_at : taskFilter === 'upcoming' ? !!t.due_date && t.due_date>today && !['completed','cancelled'].includes(t.status) && !t.archived_at : taskFilter === 'overdue' ? !['completed','cancelled'].includes(t.status) && !!t.due_date && t.due_date<today && !t.archived_at : taskFilter === 'inbox' ? t.status==='inbox' && !t.archived_at : taskFilter === 'archived' ? !!t.archived_at : !t.archived_at;
@@ -101,35 +101,79 @@ function NavItem({active,icon,label,onClick}:{active:boolean;icon:React.ReactNod
   return <button title={label} className={'nav-item '+(active?'active':'')} onClick={onClick}>{icon}<span>{label}</span>{active&&<i/>}</button>;
 }
 
+function localDateKey(value = new Date()) {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, '0');
+  const day = String(value.getDate()).padStart(2, '0');
+  return year + '-' + month + '-' + day;
+}
 function Dashboard({data,onPage,onOpen,onTaskToggle}:{data:ReturnType<typeof useWorkspace.getState>;onPage:(p:Page)=>void;onOpen:(k:'goal'|'project'|'task'|'milestone',item?:Goal|Project|Task,goalId?:string)=>void;onTaskToggle:(id:string)=>void}) {
-  const tasks=data.tasks.filter(t=>!t.archived_at&&!['completed','cancelled'].includes(t.status)).slice(0,6);
-  const today=new Date().toISOString().slice(0,10); const dueToday=data.tasks.filter(t=>!t.archived_at&&t.due_date===today&&!['completed','cancelled'].includes(t.status)).length; const completedToday=data.tasks.filter(t=>!t.archived_at&&t.status==='completed'&&t.completed_at?.slice(0,10)===today).length;
-  return <div className="page-content">
-    <div className="welcome-row"><div><div className="eyebrow">{new Date().toLocaleDateString(undefined,{weekday:'long'}).toUpperCase()}, {new Date().toLocaleDateString(undefined,{month:'long',day:'numeric',year:'numeric'}).toUpperCase()}</div><h2>A clearer space for meaningful progress.</h2><p>Your goals, projects and next actions — together in one calm workspace.</p></div><button className="secondary-button" onClick={()=>onPage('tasks')}>Open task list <ArrowUpRight size={15}/></button></div>
-    <section className="metric-grid">
-      <Metric icon={<ListTodo/>} label="Due today" value={dueToday} foot="Tasks scheduled for today"/>
-      <Metric icon={<CheckCircle2/>} label="Completed today" value={completedToday} foot="Finished tasks today"/>
-      <Metric icon={<Target/>} label="Active goals" value={data.summary.activeGoals} foot="Keep your direction clear"/>
-      <Metric icon={<FolderKanban/>} label="Active projects" value={data.summary.activeProjects} foot="Work in progress"/>
-      <Metric icon={<CheckCircle2/>} label="Completed tasks" value={data.summary.completedTasks} foot="Progress recorded locally"/>
-    </section>
-    <div className="dashboard-grid">
-      <section className="panel tasks-panel"><PanelHead title="Next actions" subtitle="Your active task queue" action="All tasks" onAction={()=>onPage('tasks')}/>
-        {tasks.length ? <div className="task-list">{tasks.map(t=><TaskRow key={t.id} task={t} onToggle={()=>onTaskToggle(t.id)} onEdit={()=>onOpen('task',t)}/>)}</div> : <Empty icon={<CheckCircle2/>} title="Nothing waiting" body="Add a task to give your next session a clear direction."/>}
-      </section>
-      <section className="panel goals-panel"><PanelHead title="Active goals" subtitle="The outcomes you are moving toward" action="View goals" onAction={()=>onPage('goals')}/>
-        {data.goals.filter(g=>!g.archived_at&&g.status==='active').slice(0,4).map(g=><div className="goal-row" key={g.id}><div className="goal-icon"><GoalIcon size={17}/></div><div className="goal-main"><b>{g.title}</b><small>{g.category} · {g.milestones_done}/{g.milestone_count} milestones</small><div className="progress-track"><i style={{width:`${g.progress_value}%`}}/></div></div><strong>{Math.round(g.progress_value)}%</strong></div>)}
-        {!data.goals.some(g=>!g.archived_at&&g.status==='active')&&<Empty icon={<Target/>} title="No active goals" body="Create a goal to define what progress means."/>}
-      </section>
-      <section className="panel projects-panel"><PanelHead title="Project overview" subtitle="A home for related tasks" action="All projects" onAction={()=>onPage('projects')}/>
-        {data.projects.filter(p=>!p.archived_at).slice(0,3).map(p=><div className="project-row" key={p.id}><span className="project-dot" style={{background:p.color}}/><div><b>{p.name}</b><small>{p.tasks_done}/{p.task_count} tasks complete</small></div><span className="project-percent">{p.task_count?Math.round(p.tasks_done/p.task_count*100):0}%</span></div>)}
-        {!data.projects.some(p=>!p.archived_at)&&<Empty icon={<FolderKanban/>} title="No projects yet" body="Projects help organize work across goals."/>}
-      </section>
-      <section className="panel milestone-panel"><PanelHead title="Upcoming milestones" subtitle="Small checkpoints, visible progress" action="Goals" onAction={()=>onPage('goals')}/>
-        {data.milestones.filter(m=>m.status!=='completed'&&!data.goals.find(g=>g.id===m.goal_id)?.archived_at).slice(0,4).map(m=><div className="milestone-row" key={m.id}><span className="milestone-dot"/><div><b>{m.title}</b><small>{m.goal_title} · {dateLabel(m.due_date)}</small></div></div>)}
-        {!data.milestones.some(m=>m.status!=='completed'&&!data.goals.find(g=>g.id===m.goal_id)?.archived_at)&&<Empty icon={<MilestoneIcon/>} title="No milestones yet" body="Add checkpoints to an active goal."/>}
-      </section>
+  const today = localDateKey();
+  const todayTasks = data.tasks.filter(t => !t.archived_at && t.due_date === today && t.status !== 'cancelled');
+  const completedToday = todayTasks.filter(t => t.status === 'completed').length;
+  const completion = todayTasks.length ? Math.round(completedToday / todayTasks.length * 100) : 0;
+  const activeTasks = data.tasks
+    .filter(t => !t.archived_at && !['completed','cancelled'].includes(t.status))
+    .sort((a,b) => {
+      const priority = {urgent:0,high:1,medium:2,low:3};
+      return priority[a.priority] - priority[b.priority]
+        || (a.due_date || '9999-12-31').localeCompare(b.due_date || '9999-12-31')
+        || a.created_at.localeCompare(b.created_at);
+    });
+  const nextTask = activeTasks[0];
+  const activeGoals = data.goals.filter(g => !g.archived_at && g.status === 'active').slice(0,4);
+  const activeProjects = data.projects.filter(p => !p.archived_at).slice(0,4);
+  const upcomingMilestones = data.milestones
+    .filter(m => m.status !== 'completed' && !data.goals.find(g => g.id === m.goal_id)?.archived_at)
+    .sort((a,b) => (a.due_date || '9999-12-31').localeCompare(b.due_date || '9999-12-31'))
+    .slice(0,4);
+  const greetingHour = new Date().getHours();
+  const greeting = greetingHour < 12 ? 'Chào buổi sáng' : greetingHour < 18 ? 'Chào buổi chiều' : 'Chào buổi tối';
+  const dateText = new Date().toLocaleDateString('vi-VN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const priorityText: Record<Priority,string> = {urgent:'Khẩn cấp',high:'Cao',medium:'Trung bình',low:'Thấp'};
+  return <div className="page-content overview-content">
+    <div className="overview-welcome">
+      <div><div className="eyebrow">{dateText.toLocaleUpperCase?.() || dateText}</div><h2>{greeting}. Sẵn sàng cho một ngày hiệu quả?</h2><p>Tập trung vào những việc quan trọng nhất, từng bước một.</p></div>
+      <div className="overview-actions"><button className="secondary-button" onClick={()=>onPage('tasks')}>Tất cả công việc <ArrowUpRight size={15}/></button></div>
     </div>
+    <section className="overview-hero-grid">
+      <article className="commitment-card">
+        <div className="commitment-card-head"><span>✦ DAILY COMMITMENT</span><span className={todayTasks.length && completion >= 70 ? 'commitment-status met' : 'commitment-status'}>{todayTasks.length ? completion + '% hoàn thành' : 'Chưa có lịch hôm nay'}</span></div>
+        <div className="commitment-card-body">
+          <div><h3>{todayTasks.length ? 'Hoàn thành những điều đã lên kế hoạch.' : 'Chọn một việc quan trọng để bắt đầu.'}</h3><p>{todayTasks.length ? completedToday + ' trên ' + todayTasks.length + ' công việc đến hạn hôm nay đã hoàn thành.' : 'Các công việc có ngày đến hạn hôm nay sẽ xuất hiện tại đây.'}</p></div>
+          <div className="commitment-progress"><strong>{completedToday}<span> / {todayTasks.length}</span></strong><div className="progress-track"><i style={{width:completion + '%'}}/></div><small>TIẾN ĐỘ HÔM NAY</small></div>
+        </div>
+      </article>
+      <div className="overview-metrics">
+        <article className="overview-metric"><span>Tasks hôm nay</span><strong>{completedToday}/{todayTasks.length}</strong><small>{todayTasks.length-completedToday} còn lại</small></article>
+        <article className="overview-metric"><span>Mục tiêu đang chạy</span><strong>{data.summary.activeGoals}</strong><small>Goals đang hoạt động</small></article>
+        <article className="overview-metric"><span>Dự án hiện tại</span><strong>{data.summary.activeProjects}</strong><small>Projects chưa lưu trữ</small></article>
+      </div>
+    </section>
+    <section className="overview-main-grid">
+      <div className="overview-column">
+        <article className="next-action-card">
+          <div className="next-action-copy"><span>⚡ NEXT ACTION PRIORITY</span><h3>{nextTask?.title || 'Chưa có công việc đang chờ'}</h3><p>{nextTask ? priorityText[nextTask.priority] + ' · ' + (nextTask.project_name || 'Cá nhân') + ' · ' + (nextTask.due_date ? dateLabel(nextTask.due_date) : 'Chưa đặt hạn') : 'Thêm task để xác định bước tiếp theo của bạn.'}</p></div>
+          {nextTask ? <button className="primary-button" onClick={()=>onOpen('task',nextTask)}>Mở công việc <ArrowUpRight size={14}/></button> : <button className="primary-button" onClick={()=>onOpen('task')}>+ New Task</button>}
+        </article>
+        <section className="panel overview-panel">
+          <PanelHead title="Today's Schedule & Tasks" subtitle="Các công việc được lên lịch hôm nay" action="Xem tất cả" onAction={()=>onPage('tasks')}/>
+          {todayTasks.length ? <div className="task-list">{todayTasks.slice(0,7).map(t=><TaskRow key={t.id} task={t} onToggle={()=>onTaskToggle(t.id)} onEdit={()=>onOpen('task',t)}/>)}</div> : <Empty icon={<ListTodo/>} title="Hôm nay chưa có task" body="Tạo công việc và đặt ngày đến hạn hôm nay để theo dõi tại đây."/>}
+          {todayTasks.length>7&&<button className="overview-text-action" onClick={()=>onPage('tasks')}>Còn {todayTasks.length-7} công việc khác</button>}
+        </section>
+      </div>
+      <div className="overview-column">
+        <section className="panel overview-panel">
+          <PanelHead title="Active Goals" subtitle="Những kết quả bạn đang hướng tới" action="Goals" onAction={()=>onPage('goals')}/>
+          {activeGoals.length ? <div className="overview-goal-list">{activeGoals.map(g=><button className="overview-goal-row" key={g.id} onClick={()=>onOpen('goal',g)}><span className="overview-goal-icon"><Target size={16}/></span><span className="overview-goal-main"><b>{g.title}</b><small>{g.milestones_done}/{g.milestone_count} milestones</small><i className="progress-track"><em style={{width:Math.max(0,Math.min(100,g.progress_value)) + '%'}}/></i></span><strong>{Math.round(g.progress_value)}%</strong></button>)}</div> : <Empty icon={<Target/>} title="Chưa có mục tiêu" body="Tạo Goal đầu tiên để xác định hướng đi dài hạn."/>}
+        </section>
+        <section className="panel overview-panel">
+          <PanelHead title="Projects & Milestones" subtitle="Các đầu việc gắn với mục tiêu" action="Projects" onAction={()=>onPage('projects')}/>
+          {activeProjects.length ? <div className="overview-project-list">{activeProjects.slice(0,3).map(p=><div className="overview-project-row" key={p.id}><span className="overview-project-dot" style={{background:p.color}}/><div><b>{p.name}</b><small>{p.tasks_done}/{p.task_count} tasks hoàn thành</small></div><strong>{p.task_count?Math.round(p.tasks_done/p.task_count*100):0}%</strong></div>)}</div> : <Empty icon={<FolderKanban/>} title="Chưa có project" body="Projects giúp gom nhóm các task liên quan."/>}
+          {upcomingMilestones.length>0&&<div className="overview-milestones"><div className="overview-subheading">UPCOMING MILESTONES</div>{upcomingMilestones.map(m=><div className="overview-milestone-row" key={m.id}><span/><div><b>{m.title}</b><small>{m.goal_title} · {dateLabel(m.due_date)}</small></div></div>)}</div>}
+        </section>
+      </div>
+    </section>
   </div>;
 }
 function Metric({icon,label,value,foot}:{icon:React.ReactNode;label:string;value:number;foot:string}){return <article className="metric-card"><div className="metric-top">{icon}<span>{label}</span></div><strong>{value}</strong><small>{foot}</small></article>}
