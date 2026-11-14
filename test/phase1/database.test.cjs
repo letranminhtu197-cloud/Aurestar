@@ -81,8 +81,8 @@ test('schema migrations and settings survive database reopen', t => {
   assert.equal(second.getSettings().density, 'compact');
   second.close();
   const raw = require('better-sqlite3')(file);
-  assert.equal(raw.pragma('user_version', { simple: true }), 7);
-  assert.equal(raw.prepare('SELECT COUNT(*) AS n FROM schema_migrations').get().n, 7);
+  assert.equal(raw.pragma('user_version', { simple: true }), 8);
+  assert.equal(raw.prepare('SELECT COUNT(*) AS n FROM schema_migrations').get().n, 8);
   assert.ok(raw.prepare("PRAGMA index_list('tasks')").all().some(index => index.name === 'idx_tasks_parent'));
   assert.ok(raw.prepare("PRAGMA index_list('task_goal_links')").all().some(index => index.name === 'idx_task_goal_goal'));
   raw.close();
@@ -192,12 +192,12 @@ test('Phase 2 additive migration creates new feature tables without changing Pha
   const Database = require('better-sqlite3');
   const raw = new Database(db.filePath, { readonly: true });
   try {
-    assert.equal(raw.pragma('user_version', { simple: true }), 7);
-    for (const table of ['habits','habit_logs','focus_sessions','journal_entries','weekly_reviews']) {
+    assert.equal(raw.pragma('user_version', { simple: true }), 8);
+    for (const table of ['habits','habit_logs','focus_sessions','journal_entries','weekly_reviews','daily_plans','daily_mit_items']) {
       assert.ok(raw.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name=?").get(table), table + ' table should exist');
     }
     assert.equal(raw.prepare('SELECT title FROM goals WHERE id=?').get(goal.id).title, 'Keep Phase 1 goal');
     assert.equal(raw.prepare('SELECT title FROM tasks WHERE id=?').get(task.id).title, 'Keep Phase 1 task');
-    assert.deepEqual(raw.prepare('SELECT version FROM schema_migrations ORDER BY version').all().map(x => x.version), [1,2,3,4,5,6,7]);
+    assert.deepEqual(raw.prepare('SELECT version FROM schema_migrations ORDER BY version').all().map(x => x.version), [1,2,3,4,5,6,7,8]);
   } finally { raw.close(); }
 });
