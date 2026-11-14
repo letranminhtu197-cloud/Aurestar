@@ -72,6 +72,24 @@ test('export preview and merge/update/replace imports are transactional',t=>{
   assert.equal(p.listHabits()[0].id,habit.id);
 });
 
+test('daily plans are included in JSON export, preview and transactional replace import',t=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'aurestar-daily-plan-import-'));
+ const db=createDatabase(path.join(dir,'db.sqlite'));
+ t.after(()=>{db.close();fs.rmSync(dir,{recursive:true,force:true});});
+ const task=db.saveTask({title:'Exported MIT'});
+ db.saveDailyPlan({date:'2026-11-14',intention:'Export this plan',mitTaskIds:[task.id]});
+ const snapshot=db.phase2.exportData();
+ assert.equal(snapshot.tables.daily_plans.length,1);
+ assert.equal(snapshot.tables.daily_mit_items.length,1);
+ assert.equal(db.phase2.previewImport(snapshot).valid,true);
+ db.saveDailyPlan({date:'2026-11-15',intention:'Temporary plan',mitTaskIds:[task.id]});
+ db.phase2.importData(snapshot,'replace');
+ const restored=db.getDailyPlan('2026-11-14');
+ assert.equal(restored.intention,'Export this plan');
+ assert.equal(restored.items.length,1);
+ assert.equal(db.getDailyPlan('2026-11-15').items.length,0);
+});
+
 test('replace with an empty validated export clears every workspace table safely',t=>{
  const p=fixture(t);
  const habit=p.saveHabit({name:'Clear habit'});
