@@ -22,7 +22,8 @@ export interface Task {
   parent_task_id: string | null; completed_at: string | null; tags: string[]; archived_at?: string | null;
 }
 export interface DailyMITItem { id: string; plan_date: string; task_id: string; position: number; title: string; description: string; status: TaskStatus; priority: Priority; due_date: string | null; due_time: string | null; project_id: string | null; }
-export interface DailyPlan { date: string; intention: string; items: DailyMITItem[]; }\nexport interface WorkspaceData {
+export interface DailyPlan { date: string; intention: string; items: DailyMITItem[]; }
+export interface WorkspaceData {
   goals: Goal[]; projects: Project[]; tasks: Task[]; milestones: Milestone[]; dailyPlan: DailyPlan;
   settings: Record<string, unknown>;
   summary: { activeGoals: number; activeProjects: number; openTasks: number; completedTasks: number; overdueTasks: number };
