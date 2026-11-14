@@ -13,6 +13,8 @@ function errorText(error:unknown):string {
  const message=error instanceof Error?error.message:String(error??'');
  const exact:Record<string,string>={
  'Invalid calendar date.':'Ngày không hợp lệ.',
+ 'A daily plan can contain no more than three MIT tasks.':'Mỗi ngày chỉ được chọn tối đa ba công việc quan trọng nhất.',
+ 'A selected MIT task does not exist or is archived.':'Công việc được chọn không tồn tại hoặc đã lưu trữ.',
  'Habit name is required.':'Vui lòng nhập tên thói quen.',
  'Habit end date must be on or after start date.':'Ngày kết thúc thói quen phải bằng hoặc sau ngày bắt đầu.',
  'Habit not found.':'Không tìm thấy thói quen.',
@@ -210,6 +212,7 @@ function Dashboard({data,onPage,onOpen,onTaskToggle}:{data:ReturnType<typeof use
       <Metric icon={<FolderKanban/>} label="Dự án đang thực hiện" value={data.summary.activeProjects} foot="Công việc đang triển khai"/>
       <Metric icon={<CheckCircle2/>} label="Công việc đã hoàn thành" value={data.summary.completedTasks} foot="Tiến độ được lưu trên thiết bị"/>
     </section>
+    <DailyMITPanel data={data}/>
     <div className="dashboard-grid">
       <section className="panel tasks-panel"><PanelHead title="Việc cần làm tiếp theo" subtitle="Danh sách công việc đang thực hiện" action="Tất cả công việc" onAction={()=>onPage('tasks')}/>
         {tasks.length ? <div className="task-list">{tasks.map(t=><TaskRow key={t.id} task={t} onToggle={()=>onTaskToggle(t.id)} onEdit={()=>onOpen('task',t)}/>)}</div> : <Empty icon={<CheckCircle2/>} title="Không có việc đang chờ" body="Thêm công việc để xác định rõ việc cần làm tiếp theo."/>}
@@ -228,6 +231,48 @@ function Dashboard({data,onPage,onOpen,onTaskToggle}:{data:ReturnType<typeof use
       </section>
     </div>
   </div>;
+}
+function DailyMITPanel({data}:{data:ReturnType<typeof useWorkspace.getState>}) {
+  const [intention,setIntention]=useState(data.dailyPlan.intention||'');
+  const [taskIds,setTaskIds]=useState<string[]>(data.dailyPlan.items.map(item=>item.task_id));
+  const [saving,setSaving]=useState(false);
+  const [message,setMessage]=useState('');
+  useEffect(()=>{
+    setIntention(data.dailyPlan.intention||'');
+    setTaskIds(data.dailyPlan.items.map(item=>item.task_id));
+  },[data.dailyPlan]);
+  const available=data.tasks.filter(task=>!task.archived_at&&!['cancelled'].includes(task.status));
+  const updateSlot=(index:number,value:string)=>{
+    setTaskIds(current=>{
+      if(value&&current.some((id,slot)=>slot!==index&&id===value))return current;
+      const next=[...current];next[index]=value;return next;
+    });
+    setMessage('');
+  };
+  const save=async()=>{
+    setSaving(true);setMessage('');
+    try{await data.saveDailyPlan({date:data.dailyPlan.date||localDateString(),intention,mitTaskIds:taskIds.filter(Boolean)});setMessage('Đã lưu kế hoạch hôm nay.');}
+    catch(error){setMessage(errorText(error));}
+    finally{setSaving(false);}
+  };
+  return <section className="panel" style={{marginBottom:14}}>
+    <div className="panel-head"><div><h3>Ba việc quan trọng nhất</h3><p>Chọn tối đa ba công việc cần ưu tiên hôm nay.</p></div><span className="count-pill">{taskIds.filter(Boolean).length}/3</span></div>
+    <label style={{display:'block',fontSize:12,color:'var(--muted)',marginBottom:10}}>Ý định hôm nay
+      <input value={intention} onChange={event=>{setIntention(event.target.value);setMessage('');}} maxLength={1000} placeholder="Điều quan trọng nhất bạn muốn hoàn thành…" style={{width:'100%',marginTop:6,padding:'10px 12px',borderRadius:9,border:'1px solid var(--line)',background:'var(--surface-2)',color:'var(--text)'}}/>
+    </label>
+    <div style={{display:'grid',gridTemplateColumns:'repeat(3,minmax(0,1fr))',gap:10}}>
+      {[0,1,2].map(index=><label key={index} style={{display:'block',fontSize:12,color:'var(--muted)'}}>MIT {index+1}
+        <select value={taskIds[index]||''} onChange={event=>updateSlot(index,event.target.value)} style={{width:'100%',marginTop:6,padding:'10px 8px',borderRadius:9,border:'1px solid var(--line)',background:'var(--surface-2)',color:'var(--text)'}}>
+          <option value="">Chọn công việc</option>
+          {available.filter(task=>!taskIds.some((id,slot)=>slot!==index&&id===task.id)).map(task=><option key={task.id} value={task.id}>{task.title}</option>)}
+        </select>
+      </label>)}
+    </div>
+    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginTop:12,flexWrap:'wrap'}}>
+      <small style={{color:'var(--muted)'}}>{message||'Các lựa chọn được lưu trong cơ sở dữ liệu cục bộ.'}</small>
+      <button className="primary-button compact" disabled={saving} onClick={()=>void save()}>{saving?'Đang lưu…':'Lưu kế hoạch'}</button>
+    </div>
+  </section>;
 }
 function Metric({icon,label,value,foot}:{icon:React.ReactNode;label:string;value:number;foot:string}){return <article className="metric-card"><div className="metric-top">{icon}<span>{label}</span></div><strong>{value}</strong><small>{foot}</small></article>}
 function PanelHead({title,subtitle,action,onAction}:{title:string;subtitle:string;action:string;onAction:()=>void}){return <div className="panel-head"><div><h3>{title}</h3><p>{subtitle}</p></div><button onClick={onAction}>{action}<ArrowUpRight size={14}/></button></div>}
