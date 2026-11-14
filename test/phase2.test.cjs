@@ -86,7 +86,7 @@ test('daily plans are included in JSON and ZIP backup, preview and transactional
  const backupPayload=db.exportBackupData(sqliteCopy);
  assert.equal(backupPayload.tables.daily_plans.length,1);
  assert.equal(backupPayload.tables.daily_mit_items.length,1);
- createZipBackup(zipFile,backupPayload,{'aurestar.sqlite':fs.readFileSync(sqliteCopy)});
+ createZipBackup(zipFile,backupPayload,{'aurestar.sqlite':fs.readFileSync(sqliteCopy),'metadata.json':Buffer.from(JSON.stringify({app:'Aurestar'}))});
  const zipped=readZipBackup(zipFile);
  assert.equal(zipped.tables.daily_plans.length,1);
  assert.equal(zipped.tables.daily_mit_items.length,1);
