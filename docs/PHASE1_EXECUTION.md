@@ -1,50 +1,62 @@
-# Phase 1 — Unified Core Execution
+# Phase 1 — Execution and acceptance
 
-Status: in progress  
+Status: implementation in progress; acceptance is blocked on green CI and Windows runtime verification.  
 Working branch: `feature/phase1-unified-core`  
 Baseline: `feature/phase2-productivity-data`
 
-## Scope
+## Phase 1 scope
 
-Phase 1 stabilizes the existing Electron + React + TypeScript + SQLite workspace and completes the daily planning foundation. Work is additive and isolated to this branch. The default branch and historical feature branches are not modified.
+Phase 1 is the React + TypeScript workspace backed by SQLite: Dashboard, Goals, Milestones, Projects, Tasks, search, settings, persistence, archive/restore and task relationships. The daily MIT planner is an additive productivity improvement on this branch.
 
-## Implemented in this branch
+The working branch also contains Phase 2 modules inherited from its baseline. Their presence is not a substitute for the Phase 1 acceptance checks.
 
-- Added shared calendar-date utilities for the Electron main process and renderer.
-- Replaced UTC-derived default business dates with operating-system local dates in Habit logging, Journal entry creation, Insights defaults, task overdue counts, Dashboard filters and Weekly Review date calculations.
-- Added regression tests for timezone-sensitive local dates, leap days, month/year boundaries and week-start configuration.
+## Implemented changes on this branch
+
+- Added shared local-calendar date helpers for the Electron main process and renderer.
+- Replaced UTC-derived business-date defaults in Habit, Journal, Insights, Dashboard and Weekly Review calculations.
+- Converted analytics date grouping for UTC timestamps to operating-system local time.
+- Added regression tests for leap days, month/year boundaries, configured week starts and timezone behavior.
 - Added SQLite schema migration 8 for daily plans and ordered MIT task selections.
-- Added database validation limiting each daily plan to at most three distinct, active tasks.
-- Added daily plan retrieval to the workspace load result and a narrow sender-validated IPC/preload bridge for saving plans.
-- Added the Dashboard MIT panel with an optional daily intention and three task selectors.
+- Enforced a maximum of three distinct, active Tasks per daily plan.
+- Exposed daily-plan retrieval and save through sender-validated IPC and the narrow preload bridge.
+- Added a Dashboard panel for a daily intention and up to three MITs.
 - Included daily plan tables in JSON export/import and SQLite ZIP backup snapshots.
-- Added a Journal restart-persistence regression test and expanded the packaged smoke-test diagnostics.
+- Added Journal restart-persistence and daily-plan export/restore regression tests.
+- Expanded packaged smoke-test diagnostics and corrected its calendar-date fixtures.
 
-## Data model
+## Persistence boundary
 
-- `daily_plans.plan_date` is the local calendar date and primary key.
-- `daily_mit_items` stores ordered task references, with positions 1–3.
-- Foreign keys cascade when a referenced task or daily plan is deleted.
-- A unique constraint prevents selecting the same task twice for one date.
-- Daily planning data is stored in SQLite; no cloud service is required.
+- The React workspace uses SQLite under Electron's user-data directory.
+- Legacy Itsuki/Pomodoro widget windows continue to use their existing JSON-backed runtime.
+- The two persistence paths are not bidirectionally synchronized in this branch. Legacy JSON files are retained; do not delete or overwrite them during Phase 1.
+- Daily MIT data belongs to the SQLite workspace and references active Task records using foreign keys.
 
 ## Date/time contract
 
 - Absolute event timestamps remain ISO-8601 UTC values.
 - Business dates use local `YYYY-MM-DD` calendar strings.
-- Calendar arithmetic is performed on date-only values, not by dividing elapsed seconds into 24-hour days.
-- Timezone changes must not silently rewrite historical business dates.
+- Calendar arithmetic is performed on date-only values.
+- SQL analytics convert UTC event timestamps using SQLite's `localtime` modifier.
 
-## Verification still required
+## Acceptance checklist
 
-- Run the complete Node test suite and TypeScript production build on GitHub Actions.
-- Run the Windows packaged smoke test, including a close/relaunch persistence check.
-- Investigate the existing Journal persistence failure. The previous CI run reported one Journal row after restart but did not match the expected title; the new regression test and expanded smoke diagnostics are intended to isolate this.
-- Verify migration 8 against a representative pre-existing database and confirm all earlier records remain intact.
-- Complete remaining Phase 1 UI and data-integrity acceptance checks before marking this phase complete.
+- [ ] Full Node test suite passes on the latest commit.
+- [ ] TypeScript typecheck and Vite production build pass.
+- [ ] Static source/security checks pass.
+- [ ] Windows NSIS installer and portable x64 build complete.
+- [ ] Packaged smoke test passes through renderer, IPC and SQLite writes.
+- [ ] Close/relaunch smoke test confirms Goals, Projects, Tasks, Habit, Focus, Journal and Weekly Review persistence.
+- [ ] Migration 8 is verified against a representative existing database; prior Phase 1 rows remain intact.
+- [ ] Manual Windows acceptance covers navigation, task CRUD/status/relationships, board/list views, settings persistence, archive/restore, daily MIT and legacy widget startup.
+- [ ] Legacy JSON data and widgets remain intact after an upgrade test.
 
-## Safety constraints
+## Known verification history
 
-- Do not merge this branch into `main` until CI and Windows runtime checks pass.
+An earlier Windows CI run on commit `e54264c7` failed three tests: two Phase 1 tests still expected schema version 7 after migration 8, and a local-time analytics test assumed the CI host used the Vietnam timezone. The schema assertions and timezone-dependent test were corrected in subsequent commits. The latest commit is awaiting a fresh CI result; no passing result is claimed yet.
+
+## Release constraints
+
+- Do not merge this branch into `main` until all automated checks pass.
 - Do not delete legacy JSON data or historical branches during this phase.
-- Do not claim Windows packaged runtime verification based solely on unit tests or a successful build.
+- Do not claim packaged Windows runtime verification solely from unit tests or a successful build.
+- Phase 1 is not complete until both CI and the manual Windows acceptance checklist pass.
