@@ -155,17 +155,17 @@ function attachPhase2(db) {
   function getWeeklyReviewSummary(from,to) {
     const start=date(from);if(!start)throw new Error('Week start is required.');
     const end=date(to);if(!end||end<start)throw new Error('Week end must be on or after week start.');
-    const tasks=db.prepare(`SELECT COUNT(*) created,(SELECT COUNT(*) FROM tasks WHERE archived_at IS NULL AND date(completed_at) BETWEEN ? AND ?) completed,
+    const tasks=db.prepare(`SELECT COUNT(*) created,(SELECT COUNT(*) FROM tasks WHERE archived_at IS NULL AND date(completed_at,'localtime') BETWEEN ? AND ?) completed,
       (SELECT COUNT(*) FROM tasks WHERE archived_at IS NULL AND due_date BETWEEN ? AND ? AND status NOT IN ('completed','cancelled')) open_due
-      FROM tasks WHERE archived_at IS NULL AND date(created_at) BETWEEN ? AND ?`).get(start,end,start,end,start,end);
+      FROM tasks WHERE archived_at IS NULL AND date(created_at,'localtime') BETWEEN ? AND ?`).get(start,end,start,end,start,end);
     const focus=db.prepare(`SELECT COUNT(*) sessions,COALESCE(SUM(actual_seconds),0) seconds FROM focus_sessions
-      WHERE session_type='focus' AND status='completed' AND date(started_at) BETWEEN ? AND ?`).get(start,end);
+      WHERE session_type='focus' AND status='completed' AND date(started_at,'localtime') BETWEEN ? AND ?`).get(start,end);
     const goals=db.prepare(`SELECT SUM(status='active') active,SUM(status='completed') completed,COALESCE(AVG(progress_value),0) average_progress
-      FROM goals WHERE archived_at IS NULL AND date(updated_at) BETWEEN ? AND ?`).get(start,end);
+      FROM goals WHERE archived_at IS NULL AND date(updated_at,'localtime') BETWEEN ? AND ?`).get(start,end);
     const habits=db.prepare(`SELECT COUNT(*) logs,COALESCE(SUM(completed_count),0) completions,
       COUNT(DISTINCT habit_id) habits_tracked FROM habit_logs WHERE log_date BETWEEN ? AND ? AND completed=1`).get(start,end);
     habits.consistency=habitConsistencyBetween(start,end);
-    const milestones=db.prepare(`SELECT COUNT(*) total,SUM(status='completed') completed FROM milestones WHERE date(updated_at) BETWEEN ? AND ?`).get(start,end);
+    const milestones=db.prepare(`SELECT COUNT(*) total,SUM(status='completed') completed FROM milestones WHERE date(updated_at,'localtime') BETWEEN ? AND ?`).get(start,end);
     return {from:start,to:end,tasks,focus,goals,habits,milestones};
   }
   function saveWeeklyReview(input={}) {
@@ -205,32 +205,32 @@ function attachPhase2(db) {
     const end=date(to)||formatLocalDate(),start=date(from)||addCalendarDays(end,-29);
     if(end<start)throw new Error('Insights end date must be on or after start date.');
     const tasks=db.prepare(`SELECT COUNT(*) created,
-      (SELECT COUNT(*) FROM tasks WHERE archived_at IS NULL AND date(completed_at) BETWEEN ? AND ?) completed,
+      (SELECT COUNT(*) FROM tasks WHERE archived_at IS NULL AND date(completed_at,'localtime') BETWEEN ? AND ?) completed,
       (SELECT COUNT(*) FROM tasks WHERE archived_at IS NULL AND due_date BETWEEN ? AND ? AND status NOT IN ('completed','cancelled')) overdue
-      FROM tasks WHERE archived_at IS NULL AND date(created_at) BETWEEN ? AND ?`).get(start,end,start,end,start,end);
+      FROM tasks WHERE archived_at IS NULL AND date(created_at,'localtime') BETWEEN ? AND ?`).get(start,end,start,end,start,end);
     tasks.completion_rate=tasks.created?Math.round(tasks.completed/tasks.created*100):0;
-    const taskTrend=db.prepare(`SELECT date(completed_at) day,COUNT(*) completed FROM tasks WHERE archived_at IS NULL AND status='completed'
-      AND date(completed_at) BETWEEN ? AND ? GROUP BY date(completed_at) ORDER BY day`).all(start,end);
+    const taskTrend=db.prepare(`SELECT date(completed_at,'localtime') day,COUNT(*) completed FROM tasks WHERE archived_at IS NULL AND status='completed'
+      AND date(completed_at,'localtime') BETWEEN ? AND ? GROUP BY date(completed_at,'localtime') ORDER BY day`).all(start,end);
     const focus=db.prepare(`SELECT COUNT(*) sessions,COALESCE(SUM(actual_seconds),0) seconds,
       COALESCE(AVG(actual_seconds),0) average_seconds FROM focus_sessions WHERE session_type='focus' AND status='completed'
-      AND date(started_at) BETWEEN ? AND ?`).get(start,end);
-    const daily=db.prepare(`SELECT date(started_at) day,COUNT(*) sessions,COALESCE(SUM(actual_seconds),0) seconds FROM focus_sessions
-      WHERE session_type='focus' AND status='completed' AND date(started_at) BETWEEN ? AND ? GROUP BY date(started_at) ORDER BY day`).all(start,end);
-    const byWeekday=db.prepare(`SELECT strftime('%w',started_at) weekday,COUNT(*) sessions,COALESCE(SUM(actual_seconds),0) seconds FROM focus_sessions
-      WHERE session_type='focus' AND status='completed' AND date(started_at) BETWEEN ? AND ? GROUP BY weekday ORDER BY weekday`).all(start,end);
-    const byHour=db.prepare(`SELECT strftime('%H',started_at) hour,COUNT(*) sessions FROM focus_sessions
-      WHERE session_type='focus' AND status='completed' AND date(started_at) BETWEEN ? AND ? GROUP BY hour ORDER BY hour`).all(start,end);
+      AND date(started_at,'localtime') BETWEEN ? AND ?`).get(start,end);
+    const daily=db.prepare(`SELECT date(started_at,'localtime') day,COUNT(*) sessions,COALESCE(SUM(actual_seconds),0) seconds FROM focus_sessions
+      WHERE session_type='focus' AND status='completed' AND date(started_at,'localtime') BETWEEN ? AND ? GROUP BY date(started_at,'localtime') ORDER BY day`).all(start,end);
+    const byWeekday=db.prepare(`SELECT strftime('%w',started_at,'localtime') weekday,COUNT(*) sessions,COALESCE(SUM(actual_seconds),0) seconds FROM focus_sessions
+      WHERE session_type='focus' AND status='completed' AND date(started_at,'localtime') BETWEEN ? AND ? GROUP BY weekday ORDER BY weekday`).all(start,end);
+    const byHour=db.prepare(`SELECT strftime('%H',started_at,'localtime') hour,COUNT(*) sessions FROM focus_sessions
+      WHERE session_type='focus' AND status='completed' AND date(started_at,'localtime') BETWEEN ? AND ? GROUP BY hour ORDER BY hour`).all(start,end);
     const byTask=db.prepare(`SELECT t.id task_id,t.title,COUNT(f.id) sessions,COALESCE(SUM(f.actual_seconds),0) seconds FROM focus_sessions f
-      LEFT JOIN tasks t ON t.id=f.task_id WHERE f.session_type='focus' AND f.status='completed' AND date(f.started_at) BETWEEN ? AND ?
+      LEFT JOIN tasks t ON t.id=f.task_id WHERE f.session_type='focus' AND f.status='completed' AND date(f.started_at,'localtime') BETWEEN ? AND ?
       GROUP BY t.id,t.title ORDER BY seconds DESC LIMIT 20`).all(start,end);
     const byProject=db.prepare(`SELECT p.id project_id,p.name,COUNT(f.id) sessions,COALESCE(SUM(f.actual_seconds),0) seconds FROM focus_sessions f
       LEFT JOIN tasks t ON t.id=f.task_id LEFT JOIN projects p ON p.id=t.project_id WHERE f.session_type='focus' AND f.status='completed'
-      AND date(f.started_at) BETWEEN ? AND ? GROUP BY p.id,p.name ORDER BY seconds DESC LIMIT 20`).all(start,end);
+      AND date(f.started_at,'localtime') BETWEEN ? AND ? GROUP BY p.id,p.name ORDER BY seconds DESC LIMIT 20`).all(start,end);
     const habitDaily=db.prepare(`SELECT log_date day,COUNT(*) logs,COALESCE(SUM(completed_count),0) completions FROM habit_logs
       WHERE log_date BETWEEN ? AND ? AND completed=1 GROUP BY log_date ORDER BY log_date`).all(start,end);
     const goals=db.prepare(`SELECT SUM(status='active' AND archived_at IS NULL) active,SUM(status='completed' AND archived_at IS NULL) completed,
-      COALESCE(AVG(CASE WHEN archived_at IS NULL THEN progress_value END),0) average_progress FROM goals WHERE date(updated_at) BETWEEN ? AND ?`).get(start,end);
-    const milestones=db.prepare(`SELECT COUNT(*) total,SUM(status='completed') completed FROM milestones WHERE date(updated_at) BETWEEN ? AND ?`).get(start,end);
+      COALESCE(AVG(CASE WHEN archived_at IS NULL THEN progress_value END),0) average_progress FROM goals WHERE date(updated_at,'localtime') BETWEEN ? AND ?`).get(start,end);
+    const milestones=db.prepare(`SELECT COUNT(*) total,SUM(status='completed') completed FROM milestones WHERE date(updated_at,'localtime') BETWEEN ? AND ?`).get(start,end);
     const habits=db.prepare(`SELECT COUNT(*) logs,COALESCE(SUM(completed_count),0) completions,COUNT(DISTINCT habit_id) tracked
       FROM habit_logs WHERE log_date BETWEEN ? AND ? AND completed=1`).get(start,end);
     const shiftStart=days=>addCalendarDays(end,-days+1);
